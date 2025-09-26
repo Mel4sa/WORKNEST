@@ -1,1 +1,0 @@
-ReferenceError: document is not defined
