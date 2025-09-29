@@ -1,19 +1,21 @@
 import { AppBar, Toolbar, Button, Box } from "@mui/material";
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.png";
 
 function Navbar() {
   return (
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "#3f51b5",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        background: "linear-gradient(90deg, #2c2c2c, #555555, #c9c1c1ff)", 
+        boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+        transition: "all 0.4s ease",
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Link to="/">
-          <img src={logo} alt="WORKNEST Logo" style={{ height: "40px" }} />
+        <Link to="/" style={{ textDecoration: "none" }}>
+          <Box sx={{ color: "#ffffff", fontWeight: "bold", fontSize: "1.5rem", letterSpacing: 2 }}>
+            WORKNEST
+          </Box>
         </Link>
 
         <Box sx={{ display: "flex", gap: 3 }}>
@@ -28,10 +30,13 @@ function Navbar() {
               component={Link}
               to={item.path}
               sx={{
-                color: "#ffffff",
+                color: "#f5f5f5",
                 fontWeight: 500,
                 transition: "0.3s",
-                "&:hover": { backgroundColor: "#64b5f6" },
+                "&:hover": {
+                  backgroundColor: "rgba(255,255,255,0.15)",
+                  transform: "scale(1.05)",
+                },
               }}
             >
               {item.label}
@@ -41,33 +46,34 @@ function Navbar() {
 
         <Box sx={{ display: "flex", gap: 2 }}>
           <Button
-            component={Link}
-            to="/signin"
-            variant="outlined"
-            sx={{
-              color: "#ffffff",
-              borderColor: "#ffffff",
-              borderRadius: "50px",
-              padding: "6px 24px",
-              textTransform: "uppercase",
-              fontWeight: "bold",
-              transition: "0.3s",
-              "&:hover": {
-                backgroundColor: "#43c1ebff",
-                transform: "scale(1.05)",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-              },
-            }}
-          >
-            Kayıt Ol
-          </Button>
+  component={Link}
+  to="/signin"
+  variant="outlined"
+  sx={{
+    color: "#ffffff",
+    borderColor: "#ffffff",
+    borderRadius: "50px",
+    padding: "6px 24px",
+    textTransform: "uppercase",
+    fontWeight: "bold",
+    backgroundColor: "rgba(0,0,0,0.25)", 
+    transition: "0.3s",
+    "&:hover": {
+      backgroundColor: "rgba(0,0,0,0.4)",
+      transform: "scale(1.05)",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+    },
+  }}
+>
+  Kayıt Ol
+</Button>
 
           <Button
             component={Link}
             to="/login"
             variant="contained"
             sx={{
-              backgroundColor: "#00acc1",
+              backgroundColor: "#8d6e63", 
               color: "#ffffff",
               borderRadius: "50px",
               padding: "6px 24px",
@@ -75,9 +81,9 @@ function Navbar() {
               fontWeight: "bold",
               transition: "0.3s",
               "&:hover": {
-                backgroundColor: "#26c6da",
+                backgroundColor: "#a1887f", 
                 transform: "scale(1.05)",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
               },
             }}
           >
