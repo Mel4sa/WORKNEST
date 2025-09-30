@@ -6,7 +6,6 @@ import Projects from "./pages/Projects";
 import Invites from "./pages/Invites";
 import SignIn from "./pages/SignIn";
 import Login from "./pages/Login";
-import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
   return (
@@ -19,7 +18,6 @@ function App() {
         <Route path="/invites" element={<Invites />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/forgotpassword" element={<ForgotPassword />} />
       </Routes>
     </Router>
   );
