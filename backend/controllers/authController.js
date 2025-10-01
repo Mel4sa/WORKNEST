@@ -1,51 +1,84 @@
-// import User from "../models/User.js";
-// import { hashPassword, comparePassword } from "../utils/password.js";
-// import jwt from "jsonwebtoken";
+import bcrypt from 'bcryptjs';
+import User from '../models/user.model.js';
+import { generateToken } from '../lib/utils.js';
 
-// const { validationResult } = require("express-validator");
+export const register = async (req, res) => {
+  const { fullname, email, password, bio } = req.body;
+
+  try {
+    if (!fullname || !email || !password) {
+      return res.status(400).json({ message: 'Tüm alanları doldurunuz' });
+    }
+
+    if (password.length < 8 || password.length > 20) {
+      return res.status(400).json({ message: 'Şifre 8-20 karakter arasında olmalıdır' });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email kullanılmaktadır' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await User.create({
+      fullname,
+      email,
+      password: hashedPassword,
+    });
+
+    generateToken(newUser._id, res);
+
+    res.status(201).json({
+      id: newUser._id,
+      fullname: newUser.fullname,
+      email: newUser.email,
+    });
+  }  catch (error) {
+    console.error('Error in register controller:', error.message);
+    res.status(500).json({
+      message: 'Kullanıcı oluşturulurken hata oluştu',
+      error: error.message,
+    });
+  }
+};
 
 
+export const login = async (req, res) => {
+  const { email, password } = req.body;
 
-// export const register = async (req, res) => {
-//   try {
-//     const { fullname, email, password, bio } = req.body;
-//     if (!fullname || !email || !password)
-//       return res.status(400).json({ message: "Tüm alanları doldurunuz" });
+  try {
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email ve şifre gereklidir' });
+    }
 
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser)
-//       return res.status(400).json({ message: "Email kullanılmaktadır" });
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(400).json({ message: 'Kullanıcı bulunamadı' });
+    }
 
-//     const hashed = await hashPassword(password);
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ message: 'Hatalı şifre' });
+    }
 
-//     const user = await User.create({ fullname, email, password: hashed, bio });
+    generateToken(user._id, res);
 
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-//       expiresIn: "1d",
-//     });
+    res.status(200).json({
+      id: user._id,
+      fullname: user.fullname,
+      email: user.email,
+    });
+  } catch (error) {
+    console.error('Error in login controller:', error.message);
+    res.status(500).json({
+      message: 'Giriş yapılırken hata oluştu',
+      error: error.message,
+    });
+  }
+};
 
-//     res.status(201).json({ id: user._id, fullname: user.fullname, email: user.email, token });
-//   } catch (err) {
-//     res.status(500).json({ message: "Kayıt sırasında hata oluştu", error: err.message });
-//   }
-// };
-
-// export const login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     if (!email || !password)
-//       return res.status(400).json({ message: "Email ve şifre gereklidir" });
-
-//     const user = await User.findOne({ email });
-//     if (!user) return res.status(400).json({ message: "Kullanıcı bulunamadı" });
-
-//     const isMatch = await comparePassword(password, user.password);
-//     if (!isMatch) return res.status(400).json({ message: "Hatalı şifre" });
-
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-
-//     res.status(200).json({ id: user._id, fullname: user.fullname, email: user.email, token });
-//   } catch (err) {
-//     res.status(500).json({ message: "Giriş sırasında hata oluştu", error: err.message });
-//   }
-// };
+export const logout = (req, res) => {
+  res.clearCookie('jwt');
+  res.status(200).json({ message: 'Çıkış yapıldı' });
+};
