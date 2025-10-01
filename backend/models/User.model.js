@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minlength: 6,
+      minlength: 8,
     },
     title: {
       type: String,
@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
       maxlength: 500, 
       default: "",
     },
+    socialLinks: {
+    linkedin: String,
+    github: String,
+  },
     profileImage: {
       type: String,
       default: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
