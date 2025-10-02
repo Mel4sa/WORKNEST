@@ -1,10 +1,18 @@
-import jwt from "jsonwebtoken";
+/* // ? mevcut kod bloğunu yeniden kullanabileceğimiz genel amaçlı bir yardımcı sınıf
+import jwt from 'jsonwebtoken';
+export const generateToken = (id, res) => {
+  const token = jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '7d', // 7 gün geçerli token
+  });
+  // Cookie'ye token'ı yazma
+  res.cookie('jwt', token, {
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 gün
+    httpOnly: true, //Cookie, sadece HTTP istekleriyle erişilebilir, JavaScript ile erişilemez.
+    sameSite: 'strict', // Cookie, sadece HTTPS üzerinden gönderilir (geliştirme ortamı dışında)
+    secure: process.env.NODE_ENV !== 'development',
+  });
 
-export const generateToken = (user) => {
-  // user objesi genelde { id, email } gibi bilgileri içerir
-  return jwt.sign(
-    { id: user._id, email: user.email },
-    process.env.JWT_SECRET, // .env dosyanda JWT_SECRET olmalı
-    { expiresIn: "7d" }     // Token 7 gün geçerli
-  );
+  return token;
 };
+// ? mevcut kod bloğunu yeniden kullanabileceğimiz genel amaçlı bir yardımcı sınıf
+ */
