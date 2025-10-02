@@ -29,19 +29,46 @@ function Login() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)",
+        position: "relative",
+        backgroundColor: "#1c1c1c",
+        overflow: "hidden",
       }}
     >
+      {/* SVG arka plan */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: 0,
+          opacity: 0.1,
+        }}
+      >
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 800 600"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <circle cx="100" cy="100" r="80" fill="#ca5125" />
+          <circle cx="400" cy="200" r="120" fill="#915d56" />
+          <circle cx="700" cy="500" r="100" fill="#ca5125" />
+          <circle cx="200" cy="450" r="60" fill="#915d56" />
+        </svg>
+      </Box>
+
+      {/* Login form */}
       <Card
         sx={{
           width: 400,
           borderRadius: 5,
           p: 2,
           backgroundColor: "rgba(255,255,255,0.95)",
-          backdropFilter: "blur(6px)",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-          transition: "all 0.3s ease",
-          "&:hover": { transform: "scale(1.02)" },
+          boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         <CardContent sx={{ p: 4 }}>
@@ -85,9 +112,7 @@ function Login() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -108,14 +133,15 @@ function Login() {
               variant="contained"
               size="large"
               sx={{
-                backgroundColor: "#8d6e63",
+                backgroundColor: "#ca5125ff",
                 color: "#ffffff",
                 borderRadius: "50px",
                 py: 1.2,
                 fontWeight: "bold",
+                textTransform: "none",
                 transition: "all 0.3s ease",
                 "&:hover": {
-                  backgroundColor: "#a1887f",
+                  backgroundColor: "#ca5125ff",
                   transform: "scale(1.05)",
                   boxShadow: "0 6px 16px rgba(0,0,0,0.25)",
                 },
@@ -125,26 +151,16 @@ function Login() {
               Giriş Yap
             </Button>
 
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
               <Button
                 onClick={() => navigate("/signin")}
-                sx={{
-                  fontSize: "0.9rem",
-                  color: "#424242",
-                  textTransform: "none",
-                }}
+                sx={{ fontSize: "0.9rem", color: "#424242", textTransform: "none" }}
               >
                 Kayıt Ol
               </Button>
               <Button
                 onClick={() => setOpenForgot(true)}
-                sx={{
-                  fontSize: "0.9rem",
-                  color: "#f44336",
-                  textTransform: "none",
-                }}
+                sx={{ fontSize: "0.9rem", color: "#f44336", textTransform: "none" }}
               >
                 Şifremi Unuttum?
               </Button>
@@ -168,39 +184,17 @@ function Login() {
             p: 4,
           }}
         >
-          <Typography
-            variant="h6"
-            fontWeight="bold"
-            color="#212121"
-            textAlign="center"
-            gutterBottom
-          >
+          <Typography variant="h6" fontWeight="bold" textAlign="center" gutterBottom>
             Şifremi Unuttum
           </Typography>
-          <Typography
-            variant="body2"
-            textAlign="center"
-            color="text.secondary"
-            mb={2}
-          >
+          <Typography variant="body2" textAlign="center" color="text.secondary" mb={2}>
             Şifrenizi sıfırlamak için e-posta adresinizi giriniz.
           </Typography>
-          <TextField
-            label="E-posta"
-            type="email"
-            fullWidth
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
+          <TextField label="E-posta" type="email" fullWidth variant="outlined" sx={{ mb: 2 }} />
           <Button
             fullWidth
             variant="contained"
-            sx={{
-              backgroundColor: "#8d6e63",
-              borderRadius: "50px",
-              fontWeight: "bold",
-              "&:hover": { backgroundColor: "#a1887f" },
-            }}
+            sx={{ backgroundColor: "#ca5125ff", borderRadius: "50px", fontWeight: "bold", "&:hover": { backgroundColor: "#ca5125ff" } }}
             onClick={() => setOpenForgot(false)}
           >
             Gönder

@@ -1,4 +1,13 @@
-import { Box, Button, TextField, Typography, Card, CardContent, InputAdornment, IconButton } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Card,
+  CardContent,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
 import { useState } from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -19,17 +28,45 @@ function SignIn() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)",
+        position: "relative",
+        backgroundColor: "#1c1c1c",
+        overflow: "hidden",
       }}
     >
+      {/* SVG arka plan */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: 0,
+          opacity: 0.1,
+        }}
+      >
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 800 600"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <circle cx="150" cy="100" r="80" fill="#ca5125" />
+          <circle cx="450" cy="250" r="120" fill="#915d56" />
+          <circle cx="700" cy="500" r="100" fill="#ca5125" />
+          <circle cx="200" cy="450" r="60" fill="#915d56" />
+        </svg>
+      </Box>
+
       <Card
         sx={{
-          width: 450,
+          width: 400, // Login ile aynı genişlik
           borderRadius: 5,
-          p: 3,
+          p: 2,
           backgroundColor: "rgba(255,255,255,0.95)",
-          backdropFilter: "blur(6px)",
-          boxShadow: "0 12px 36px rgba(0,0,0,0.15)",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.25)", // Login ile aynı gölge
+          position: "relative",
+          zIndex: 1,
           transition: "all 0.3s ease",
           "&:hover": {
             transform: "scale(1.03)",
@@ -37,15 +74,37 @@ function SignIn() {
           },
         }}
       >
-        <CardContent>
-          <Typography variant="h5" textAlign="center" fontWeight="bold" color="#000000ff" gutterBottom>
+        <CardContent sx={{ p: 4 }}>
+          <Typography
+            variant="h5"
+            textAlign="center"
+            fontWeight="bold"
+            color="#212121"
+            gutterBottom
+          >
             Kayıt Ol
           </Typography>
 
-          <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}>
-            <TextField label="Ad Soyad" fullWidth sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }} />
+          <Box
+            component="form"
+            sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}
+          >
+            <TextField
+              label="Ad Soyad"
+              fullWidth
+              sx={{
+                "& .MuiOutlinedInput-root": { borderRadius: "50px" },
+              }}
+            />
 
-            <TextField label="E-posta" type="email" fullWidth sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }} />
+            <TextField
+              label="E-posta"
+              type="email"
+              fullWidth
+              sx={{
+                "& .MuiOutlinedInput-root": { borderRadius: "50px" },
+              }}
+            />
 
             <TextField
               label="Şifre"
@@ -60,7 +119,9 @@ function SignIn() {
                   </InputAdornment>
                 ),
               }}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }}
+              sx={{
+                "& .MuiOutlinedInput-root": { borderRadius: "50px" },
+              }}
             />
 
             <TextField
@@ -70,28 +131,35 @@ function SignIn() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <IconButton
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
                       {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }}
+              sx={{
+                "& .MuiOutlinedInput-root": { borderRadius: "50px" },
+              }}
             />
 
             <Button
+              fullWidth
               variant="contained"
               size="large"
               sx={{
-                backgroundColor: "#8d6e63",
+                backgroundColor: "#915d56d3",
                 color: "#fff",
                 borderRadius: "50px",
-                py: 1.3,
+                py: 1.2,
                 fontWeight: "bold",
-                textTransform: "uppercase",
+                textTransform: "none",
                 transition: "all 0.3s ease",
                 "&:hover": {
-                  backgroundColor: "#a1887f",
+                  backgroundColor: "#915d56d3",
                   transform: "scale(1.05)",
                   boxShadow: "0 12px 36px rgba(0,0,0,0.3)",
                 },

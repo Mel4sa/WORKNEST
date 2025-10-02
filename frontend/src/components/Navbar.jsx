@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, Button, Box } from "@mui/material";
+import { Box, Button, Typography, AppBar, Toolbar } from "@mui/material";
 import { Link } from "react-router-dom";
 
 function Navbar() {
@@ -6,33 +6,61 @@ function Navbar() {
     <AppBar
       position="sticky"
       sx={{
-        background: "linear-gradient(90deg, #2c2c2c, #555555, #c9c1c1ff)", 
-        boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+        backgroundColor: "rgba(0,0,0,0.3)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
         transition: "all 0.4s ease",
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Link to="/" style={{ textDecoration: "none" }}>
-          <Box sx={{ color: "#ffffff", fontWeight: "bold", fontSize: "1.5rem", letterSpacing: 2 }}>
-            WORKNEST
-          </Box>
-        </Link>
+  <Box
+    sx={{
+      display: "inline-block",
+      cursor: "pointer",
+      "&:hover": { transform: "scale(1.05)" },
+      transition: "transform 0.3s",
+    }}
+  >
+    <Typography
+      variant="h5"
+      sx={{
+        fontFamily: "'Anton', sans-serif", // kalın ve modern font
+        fontSize: "2rem",
+        color: "#fff",
+        position: "relative",
+        letterSpacing: "2px",
+        textTransform: "uppercase",
+        textShadow: `
+          2px 2px 0 #FF6A00,
+          4px 4px 0 #FFB347,
+          6px 6px 0 #FFD700
+        `,
+        WebkitTextFillColor: "#fff",
+        transition: "all 0.3s ease",
+      }}
+    >
+      WORKNEST
+    </Typography>
+  </Box>
+</Link>
 
         <Box sx={{ display: "flex", gap: 3 }}>
           {[
             { label: "Ana Sayfa", path: "/" },
-            { label: "Profilim", path: "/profile" },
+            { label: "AI Analyzer", path: "/ai-analyzer" },
             { label: "Projelerim", path: "/projects" },
             { label: "Davetlerim", path: "/invites" },
+            { label: "Profilim", path: "/profile" },
           ].map((item) => (
             <Button
               key={item.label}
               component={Link}
               to={item.path}
               sx={{
-                color: "#f5f5f5",
-                fontWeight: 500,
-                transition: "0.3s",
+                color: "#ffffff",
+                fontWeight: "bold", // Bold yapıldı
+                textTransform: "none",
+                backgroundColor: "transparent",
                 "&:hover": {
                   backgroundColor: "rgba(255,255,255,0.15)",
                   transform: "scale(1.05)",
@@ -46,42 +74,39 @@ function Navbar() {
 
         <Box sx={{ display: "flex", gap: 2 }}>
           <Button
-  component={Link}
-  to="/signin"
-  variant="outlined"
-  sx={{
-    color: "#ffffff",
-    borderColor: "#ffffff",
-    borderRadius: "50px",
-    padding: "6px 24px",
-    textTransform: "uppercase",
-    fontWeight: "bold",
-    backgroundColor: "rgba(0,0,0,0.25)", 
-    transition: "0.3s",
-    "&:hover": {
-      backgroundColor: "rgba(0,0,0,0.4)",
-      transform: "scale(1.05)",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-    },
-  }}
->
-  Kayıt Ol
-</Button>
+            component={Link}
+            to="/signin"
+            variant="contained"
+            sx={{
+              backgroundColor: "#915d56",
+              color: "#ffffff",
+              borderRadius: "50px",
+              padding: "6px 24px",
+              textTransform: "none",
+              fontWeight: "bold",
+              "&:hover": {
+                backgroundColor: "#7a4b45",
+                transform: "scale(1.05)",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              },
+            }}
+          >
+            Kayıt Ol
+          </Button>
 
           <Button
             component={Link}
             to="/login"
             variant="contained"
             sx={{
-              backgroundColor: "#8d6e63", 
+              backgroundColor: "#ca5125",
               color: "#ffffff",
               borderRadius: "50px",
               padding: "6px 24px",
-              textTransform: "uppercase",
+              textTransform: "none",
               fontWeight: "bold",
-              transition: "0.3s",
               "&:hover": {
-                backgroundColor: "#a1887f", 
+                backgroundColor: "#a03e1b",
                 transform: "scale(1.05)",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
               },

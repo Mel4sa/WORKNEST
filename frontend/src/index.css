@@ -14,3 +14,18 @@ body {
   font-family: 'Poppins', sans-serif;
   background-color: #f5f5f5;
 }
+
+.elegant-logo {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 2rem; 
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.5); 
+  transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+
+.elegant-logo:hover {
+  transform: scale(1.08);
+  text-shadow: 4px 4px 12px rgba(0,0,0,0.7);
+}
