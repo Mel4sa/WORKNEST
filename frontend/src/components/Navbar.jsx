@@ -6,43 +6,43 @@ function Navbar() {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "rgba(0,0,0,0.3)",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+        backgroundColor: "transparent", // Tamamen saydam
+        boxShadow: "none",
+        backdropFilter: "blur(6px)", // Hafif blur efekti
         transition: "all 0.4s ease",
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Link to="/" style={{ textDecoration: "none" }}>
-  <Box
-    sx={{
-      display: "inline-block",
-      cursor: "pointer",
-      "&:hover": { transform: "scale(1.05)" },
-      transition: "transform 0.3s",
-    }}
-  >
-    <Typography
-      variant="h5"
-      sx={{
-        fontFamily: "'Anton', sans-serif", // kalın ve modern font
-        fontSize: "2rem",
-        color: "#fff",
-        position: "relative",
-        letterSpacing: "2px",
-        textTransform: "uppercase",
-        textShadow: `
-          2px 2px 0 #FF6A00,
-          4px 4px 0 #FFB347,
-          6px 6px 0 #FFD700
-        `,
-        WebkitTextFillColor: "#fff",
-        transition: "all 0.3s ease",
-      }}
-    >
-      WORKNEST
-    </Typography>
-  </Box>
-</Link>
+          <Box
+            sx={{
+              display: "inline-block",
+              cursor: "pointer",
+              "&:hover": { transform: "scale(1.05)" },
+              transition: "transform 0.3s",
+            }}
+          >
+            <Typography
+              variant="h5"
+              sx={{
+                fontFamily: "'Anton', sans-serif",
+                fontSize: "2rem",
+                color: "#000", // Siyah yazı
+                position: "relative",
+                letterSpacing: "2px",
+                textTransform: "uppercase",
+                textShadow: `
+                  1px 1px 0 #ccc,
+                  2px 2px 0 #bbb
+                `, // Hafif gölge ile okunabilirlik
+                WebkitTextFillColor: "#000",
+                transition: "all 0.3s ease",
+              }}
+            >
+              WORKNEST
+            </Typography>
+          </Box>
+        </Link>
 
         <Box sx={{ display: "flex", gap: 3 }}>
           {[
@@ -57,12 +57,12 @@ function Navbar() {
               component={Link}
               to={item.path}
               sx={{
-                color: "#ffffff",
-                fontWeight: "bold", // Bold yapıldı
+                color: "#000", // Siyah yazı
+                fontWeight: "bold",
                 textTransform: "none",
                 backgroundColor: "transparent",
                 "&:hover": {
-                  backgroundColor: "rgba(255,255,255,0.15)",
+                  backgroundColor: "rgba(0,0,0,0.05)",
                   transform: "scale(1.05)",
                 },
               }}
@@ -79,7 +79,7 @@ function Navbar() {
             variant="contained"
             sx={{
               backgroundColor: "#915d56",
-              color: "#ffffff",
+              color: "#fff",
               borderRadius: "50px",
               padding: "6px 24px",
               textTransform: "none",
@@ -99,8 +99,8 @@ function Navbar() {
             to="/login"
             variant="contained"
             sx={{
-              backgroundColor: "#ca5125",
-              color: "#ffffff",
+              backgroundColor: "#d7401eff",
+              color: "#fff",
               borderRadius: "50px",
               padding: "6px 24px",
               textTransform: "none",

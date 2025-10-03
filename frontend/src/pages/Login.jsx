@@ -133,7 +133,7 @@ function Login() {
               variant="contained"
               size="large"
               sx={{
-                backgroundColor: "#ca5125ff",
+                backgroundColor: "#d7401eff",
                 color: "#ffffff",
                 borderRadius: "50px",
                 py: 1.2,
@@ -141,7 +141,7 @@ function Login() {
                 textTransform: "none",
                 transition: "all 0.3s ease",
                 "&:hover": {
-                  backgroundColor: "#ca5125ff",
+                  backgroundColor: "#d7401eff",
                   transform: "scale(1.05)",
                   boxShadow: "0 6px 16px rgba(0,0,0,0.25)",
                 },
@@ -194,7 +194,7 @@ function Login() {
           <Button
             fullWidth
             variant="contained"
-            sx={{ backgroundColor: "#ca5125ff", borderRadius: "50px", fontWeight: "bold", "&:hover": { backgroundColor: "#ca5125ff" } }}
+            sx={{ backgroundColor: "#d7401eff", borderRadius: "50px", fontWeight: "bold", "&:hover": { backgroundColor: "#d7401eff" } }}
             onClick={() => setOpenForgot(false)}
           >
             Gönder
