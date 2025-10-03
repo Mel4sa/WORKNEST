@@ -44,13 +44,20 @@ const useAuthStore = create((set) => ({
     }
   },
 
-  logout: () => {
-    set({
+ logout: async () => {
+  try {
+    await axiosInstance.post('/auth/logout'); 
+    set({ 
       user: null,
+      authUser: null,
       isLoggedIn: false,
       error: null,
-    });
-  },
+    }); 
+  } catch (error) {
+    console.log('Logout error:', error);
+    throw error;
+  }
+},
 }));
 
 export default useAuthStore;
