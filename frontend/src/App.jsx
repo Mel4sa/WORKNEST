@@ -8,7 +8,7 @@ import SignIn from "./pages/SignIn";
 import Login from "./pages/Login";
 import AIAnalyzer from "./pages/AIAnalyzer"; 
 
-function AppWrapper() {
+function AppRoutes() {
   const location = useLocation();
   const hideNavbarPaths = ["/login", "/signin"];
 
@@ -31,7 +31,7 @@ function AppWrapper() {
 function App() {
   return (
     <Router>
-      <AppWrapper />
+      <AppRoutes />
     </Router>
   );
 }

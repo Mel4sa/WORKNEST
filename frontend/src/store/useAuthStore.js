@@ -8,16 +8,15 @@ const useAuthStore = create((set) => ({
 
   login: async (email, password) => {
     try {
-      const response = await axiosInstance.post("login", { email, password });
+      const response = await axiosInstance.post("auth/login", { email, password });
 
-      // Backend'den user bilgisi veya token döndüğünü varsayalım
       set({
-        user: response.data.user || null,
+        user: response.data.user || { email }, // backend'den kullanıcı bilgisi gelirse kullan
         isLoggedIn: true,
         error: null,
       });
 
-      return true; // login başarılı
+      return true;
     } catch (err) {
       console.error(err.response?.data || err.message);
       set({
@@ -25,7 +24,23 @@ const useAuthStore = create((set) => ({
         isLoggedIn: false,
         error: err.response?.data?.message || "Giriş başarısız!",
       });
-      return false; // login başarısız
+      return false;
+    }
+  },
+
+  register: async (fullname, email, password) => {
+    try {
+      await axiosInstance.post("auth/register", { fullname, email, password });
+
+      set({ error: null });
+
+      return true; // kayıt başarılı
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      set({
+        error: err.response?.data?.message || "Kayıt başarısız!",
+      });
+      return false;
     }
   },
 
@@ -35,7 +50,6 @@ const useAuthStore = create((set) => ({
       isLoggedIn: false,
       error: null,
     });
-    // istersen burada backend logout endpoint de çağrılabilir
   },
 }));
 
