@@ -6,9 +6,9 @@ function Navbar() {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "transparent", // Tamamen saydam
+        backgroundColor: "transparent", 
         boxShadow: "none",
-        backdropFilter: "blur(6px)", // Hafif blur efekti
+        backdropFilter: "blur(6px)", 
         transition: "all 0.4s ease",
       }}
     >
@@ -27,14 +27,14 @@ function Navbar() {
               sx={{
                 fontFamily: "'Anton', sans-serif",
                 fontSize: "2rem",
-                color: "#000", // Siyah yazı
+                color: "#000", 
                 position: "relative",
                 letterSpacing: "2px",
                 textTransform: "uppercase",
                 textShadow: `
                   1px 1px 0 #ccc,
                   2px 2px 0 #bbb
-                `, // Hafif gölge ile okunabilirlik
+                `, 
                 WebkitTextFillColor: "#000",
                 transition: "all 0.3s ease",
               }}
@@ -57,7 +57,7 @@ function Navbar() {
               component={Link}
               to={item.path}
               sx={{
-                color: "#000", // Siyah yazı
+                color: "#000", 
                 fontWeight: "bold",
                 textTransform: "none",
                 backgroundColor: "transparent",

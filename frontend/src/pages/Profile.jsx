@@ -10,15 +10,15 @@ import {
   Paper,
   IconButton,
 } from "@mui/material";
-import { PhotoCamera } from "@mui/icons-material";
+import { PhotoCamera, School } from "@mui/icons-material";
+import UniversitySelect from "../components/UniversitySelect";
 
 export default function ProfilePage() {
-
-  
   const [profilePic, setProfilePic] = useState(null);
   const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState("");
   const [bio, setBio] = useState("");
+  const [university, setUniversity] = useState("");
 
   const handleAddSkill = () => {
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
@@ -32,14 +32,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        py: 6,
-        px: 3,
-        backgroundColor: "#ffffff", // Sayfa arka planı beyaz
-      }}
-    >
+    <Box sx={{ minHeight: "100vh", py: 6, px: 3, backgroundColor: "#fefefe" }}>
       <Paper
         sx={{
           maxWidth: 900,
@@ -48,7 +41,10 @@ export default function ProfilePage() {
           borderRadius: 4,
           boxShadow: "0 12px 36px rgba(0,0,0,0.15)",
           transition: "all 0.3s ease",
-          "&:hover": { transform: "scale(1.01)", boxShadow: "0 16px 48px rgba(0,0,0,0.2)" },
+          "&:hover": {
+            transform: "scale(1.01)",
+            boxShadow: "0 16px 48px rgba(0,0,0,0.2)",
+          },
         }}
       >
         {/* Profil Üst Bilgi */}
@@ -60,7 +56,7 @@ export default function ProfilePage() {
               sx={{
                 width: 120,
                 height: 120,
-                border: "3px solid #915d56", // Kayıt Ol butonuyla aynı renk
+                border: "3px solid #915d56",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
               }}
             />
@@ -88,16 +84,34 @@ export default function ProfilePage() {
             </IconButton>
           </Box>
 
-          <Box>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>
               Melisa Simsek
             </Typography>
             <Typography variant="subtitle1" sx={{ color: "gray", mt: 0.5, fontWeight: 500 }}>
               Frontend Developer
             </Typography>
-            <Typography variant="body2" sx={{ color: "gray", mt: 0.5 }}>
-              EĞİTİM : Bilgisayar Mühendisliği, XYZ Üniversitesi
-            </Typography>
+
+            {/* Eğitim alanı */}
+            {university ? (
+              <Chip
+                icon={<School />}
+                label={university}
+                onDelete={() => setUniversity("")}
+                sx={{
+                  mt: 1.5,
+                  borderRadius: "30px",
+                  backgroundColor: "#f5f5f5",
+                  color: "#333",
+                  fontWeight: 600,
+                  height: 40,
+                }}
+              />
+            ) : (
+              <Box sx={{ mt: 1.5 }}>
+                <UniversitySelect value={university} onChange={setUniversity} />
+              </Box>
+            )}
           </Box>
         </Box>
 
@@ -117,6 +131,7 @@ export default function ProfilePage() {
             sx={{
               "& .MuiOutlinedInput-root": {
                 color: "#000",
+                borderRadius: "20px",
                 "& fieldset": { borderColor: "#915d56" },
                 "&:hover fieldset": { borderColor: "#7a4b45" },
                 "&.Mui-focused fieldset": { borderColor: "#7a4b45" },
@@ -138,6 +153,7 @@ export default function ProfilePage() {
                 onDelete={() => handleDeleteSkill(skill)}
                 sx={{
                   mb: 1,
+                  borderRadius: "20px",
                   backgroundColor: "#915d56",
                   color: "#fff",
                   fontWeight: "bold",
@@ -155,6 +171,7 @@ export default function ProfilePage() {
               sx={{
                 "& .MuiOutlinedInput-root": {
                   color: "#000",
+                  borderRadius: "20px",
                   "& fieldset": { borderColor: "#915d56" },
                   "&:hover fieldset": { borderColor: "#7a4b45" },
                   "&.Mui-focused fieldset": { borderColor: "#7a4b45" },
@@ -166,6 +183,7 @@ export default function ProfilePage() {
               sx={{
                 backgroundColor: "#915d56",
                 color: "#fff",
+                borderRadius: "20px",
                 "&:hover": { backgroundColor: "#7a4b45" },
               }}
               onClick={handleAddSkill}

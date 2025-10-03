@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -9,17 +11,31 @@ import {
   IconButton,
   Modal,
 } from "@mui/material";
-import { useState } from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+
+import useAuthStore from "../store/useAuthStore";
 
 function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [openForgot, setOpenForgot] = useState(false);
-  const navigate = useNavigate();
 
-  const handleLogin = () => {
-    navigate("/profile");
+  const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
+  const error = useAuthStore((state) => state.error);
+
+  const handleLogin = async () => {
+    console.log("Login attempt:", { email, password });
+
+    const success = await login(email, password);
+
+    console.log("Login success:", success);
+    console.log("Store state user:", useAuthStore.getState().user);
+
+    if (success) {
+      navigate("/profile");
+    }
   };
 
   return (
@@ -93,6 +109,8 @@ function Login() {
               type="email"
               variant="outlined"
               fullWidth
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "50px",
@@ -109,10 +127,14 @@ function Login() {
               type={showPassword ? "text" : "password"}
               variant="outlined"
               fullWidth
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -128,6 +150,12 @@ function Login() {
                 },
               }}
             />
+
+            {error && (
+              <Typography color="error" textAlign="center">
+                {error}
+              </Typography>
+            )}
 
             <Button
               variant="contained"
@@ -151,16 +179,26 @@ function Login() {
               Giriş Yap
             </Button>
 
-            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
+            >
               <Button
                 onClick={() => navigate("/signin")}
-                sx={{ fontSize: "0.9rem", color: "#424242", textTransform: "none" }}
+                sx={{
+                  fontSize: "0.9rem",
+                  color: "#424242",
+                  textTransform: "none",
+                }}
               >
                 Kayıt Ol
               </Button>
               <Button
                 onClick={() => setOpenForgot(true)}
-                sx={{ fontSize: "0.9rem", color: "#f44336", textTransform: "none" }}
+                sx={{
+                  fontSize: "0.9rem",
+                  color: "#f44336",
+                  textTransform: "none",
+                }}
               >
                 Şifremi Unuttum?
               </Button>
@@ -184,17 +222,38 @@ function Login() {
             p: 4,
           }}
         >
-          <Typography variant="h6" fontWeight="bold" textAlign="center" gutterBottom>
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            textAlign="center"
+            gutterBottom
+          >
             Şifremi Unuttum
           </Typography>
-          <Typography variant="body2" textAlign="center" color="text.secondary" mb={2}>
+          <Typography
+            variant="body2"
+            textAlign="center"
+            color="text.secondary"
+            mb={2}
+          >
             Şifrenizi sıfırlamak için e-posta adresinizi giriniz.
           </Typography>
-          <TextField label="E-posta" type="email" fullWidth variant="outlined" sx={{ mb: 2 }} />
+          <TextField
+            label="E-posta"
+            type="email"
+            fullWidth
+            variant="outlined"
+            sx={{ mb: 2 }}
+          />
           <Button
             fullWidth
             variant="contained"
-            sx={{ backgroundColor: "#d7401eff", borderRadius: "50px", fontWeight: "bold", "&:hover": { backgroundColor: "#d7401eff" } }}
+            sx={{
+              backgroundColor: "#d7401eff",
+              borderRadius: "50px",
+              fontWeight: "bold",
+              "&:hover": { backgroundColor: "#d7401eff" },
+            }}
             onClick={() => setOpenForgot(false)}
           >
             Gönder
