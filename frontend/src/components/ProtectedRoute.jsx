@@ -1,14 +1,27 @@
 import { Navigate, Outlet } from "react-router-dom";
-import useAuthStore from "../store/useAuthStore";
+import { useEffect, useState } from "react";
+import axios from "../lib/axios";
 
 export default function ProtectedRoute() {
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Eğer giriş yapılmamışsa login sayfasına yönlendir
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await axios.get("/auth/check");
+        setIsLoggedIn(true);
+      } catch {
+        setIsLoggedIn(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
-  // Giriş yapılmışsa içeriği göster
+  if (loading) return <div>Yükleniyor...</div>;
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+
   return <Outlet />;
 }
