@@ -12,14 +12,29 @@ import {
 import { useState } from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authStore"; // ✅ zustand store'u bağladık
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [openForgot, setOpenForgot] = useState(false);
-  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleLogin = () => {
-    navigate("/profile");
+  const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login); // ✅ zustand'dan login fonksiyonu
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      await login(email, password); // backend'e istek atar & token kaydeder
+      navigate("/profile"); // başarılıysa profil sayfasına yönlendir
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError("E-posta veya şifre hatalı");
+    }
   };
 
   return (
@@ -82,10 +97,17 @@ function Login() {
             Giriş Yap
           </Typography>
 
+          {error && (
+            <Typography color="error" textAlign="center" mb={2}>
+              {error}
+            </Typography>
+          )}
+
           <Box
             component="form"
             noValidate
             autoComplete="off"
+            onSubmit={handleLogin}
             sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}
           >
             <TextField
@@ -93,6 +115,8 @@ function Login() {
               type="email"
               variant="outlined"
               fullWidth
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "50px",
@@ -109,6 +133,8 @@ function Login() {
               type={showPassword ? "text" : "password"}
               variant="outlined"
               fullWidth
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -130,6 +156,7 @@ function Login() {
             />
 
             <Button
+              type="submit"
               variant="contained"
               size="large"
               sx={{
@@ -146,7 +173,6 @@ function Login() {
                   boxShadow: "0 6px 16px rgba(0,0,0,0.25)",
                 },
               }}
-              onClick={handleLogin}
             >
               Giriş Yap
             </Button>
