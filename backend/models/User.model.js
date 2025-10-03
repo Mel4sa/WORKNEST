@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   skills: { type: [String], default: [] },
   bio: { type: String, maxlength: 500, default: "" },
   socialLinks: { linkedin: String, github: String },
-  profileImage: { type: String, default: "https://cdn-icons-png.flaticon.com/512/847/847969.png" },
+  profileImage: { type: String, default: "/Users/elifors/Desktop/profil fotoğrafı.webp" },
   projects: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project" }]
 }, { timestamps: true });
 

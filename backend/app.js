@@ -9,21 +9,15 @@ dotenv.config();
 
 const app = express();
 
-// CORS ayarı (frontend ile credential uyumlu)
+// CORS ayarı 
 app.use(cors({
-  origin: "http://localhost:5173", // frontend URL
-  credentials: true,               // cookie ve auth header’ı izin ver
+  origin: "http://localhost:5173", 
+  credentials: true,              
 }));
 
 app.use(express.json());
 app.use(cookieParser());
 
-// Request log middleware
-app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.url}`);
-  console.log('📦 Body:', req.body);
-  next();
-});
 
 // Routes
 app.use("/api/auth", authRoutes);

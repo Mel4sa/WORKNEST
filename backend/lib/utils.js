@@ -1,4 +1,4 @@
-/* // ? mevcut kod bloğunu yeniden kullanabileceğimiz genel amaçlı bir yardımcı sınıf
+// ? mevcut kod bloğunu yeniden kullanabileceğimiz genel amaçlı bir yardımcı sınıf
 import jwt from 'jsonwebtoken';
 export const generateToken = (id, res) => {
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -15,4 +15,3 @@ export const generateToken = (id, res) => {
   return token;
 };
 // ? mevcut kod bloğunu yeniden kullanabileceğimiz genel amaçlı bir yardımcı sınıf
- */
