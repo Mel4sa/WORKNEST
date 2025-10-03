@@ -79,3 +79,15 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Sunucu hatası", error: error.message });
   }
 };
+
+
+//  LOGOUT
+export const logout = (req, res) => {
+  try {
+    res.cookie("jwt", "", { maxAge: 0 }); // cookie'yi hemen sıfırla (JWT'yi temizle)
+    res.status(200).json({ message: "Çıkış başarılı" });
+  } catch (error) {
+    console.error("❌ Logout hatası:", error);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
