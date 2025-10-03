@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -8,9 +10,7 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import { useState } from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 
 function SignIn() {
@@ -36,10 +36,10 @@ function SignIn() {
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
-        backgroundColor: "#1c1c1c",
+        background: "linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)",
+        overflow: "hidden",
       }}
     >
-      {/* SVG arka plan */}
       <Box
         sx={{
           position: "absolute",
@@ -48,7 +48,7 @@ function SignIn() {
           width: "100%",
           height: "100%",
           zIndex: 0,
-          opacity: 0.1,
+          opacity: 0.15,
         }}
       >
         <svg width="100%" height="100%" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
@@ -59,7 +59,6 @@ function SignIn() {
         </svg>
       </Box>
 
-      {/* Kayıt formu */}
       <Card
         sx={{
           width: 400,
@@ -76,7 +75,14 @@ function SignIn() {
             Kayıt Ol
           </Typography>
 
-          <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}>
+          <Box
+            component="form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSignUp();
+            }}
+            sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}
+          >
             <TextField
               label="Ad Soyad"
               fullWidth
@@ -119,6 +125,7 @@ function SignIn() {
             )}
 
             <Button
+              type="submit"
               fullWidth
               variant="contained"
               size="large"
@@ -131,7 +138,6 @@ function SignIn() {
                 textTransform: "none",
                 "&:hover": { transform: "scale(1.05)", boxShadow: "0 12px 36px rgba(0,0,0,0.3)" },
               }}
-              onClick={handleSignUp}
             >
               Kayıt Ol
             </Button>

@@ -12,7 +12,6 @@ import {
   Modal,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-
 import useAuthStore from "../store/useAuthStore";
 
 function Login() {
@@ -26,16 +25,8 @@ function Login() {
   const error = useAuthStore((state) => state.error);
 
   const handleLogin = async () => {
-    console.log("Login attempt:", { email, password });
-
     const success = await login(email, password);
-
-    console.log("Login success:", success);
-    console.log("Store state user:", useAuthStore.getState().user);
-
-    if (success) {
-      navigate("/profile");
-    }
+    if (success) navigate("/profile");
   };
 
   return (
@@ -46,11 +37,11 @@ function Login() {
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
-        backgroundColor: "#1c1c1c",
+        background: "linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)", // Açık degrade arka plan
         overflow: "hidden",
       }}
     >
-      {/* SVG arka plan */}
+      {/* SVG Arka Plan */}
       <Box
         sx={{
           position: "absolute",
@@ -59,7 +50,7 @@ function Login() {
           width: "100%",
           height: "100%",
           zIndex: 0,
-          opacity: 0.1,
+          opacity: 0.15,
         }}
       >
         <svg
@@ -75,7 +66,7 @@ function Login() {
         </svg>
       </Box>
 
-      {/* Login form */}
+      {/* Login Form */}
       <Card
         sx={{
           width: 400,
@@ -98,10 +89,15 @@ function Login() {
             Giriş Yap
           </Typography>
 
+          {/* Form */}
           <Box
             component="form"
             noValidate
             autoComplete="off"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
             sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}
           >
             <TextField
@@ -158,6 +154,7 @@ function Login() {
             )}
 
             <Button
+              type="submit"
               variant="contained"
               size="large"
               sx={{
@@ -174,14 +171,11 @@ function Login() {
                   boxShadow: "0 6px 16px rgba(0,0,0,0.25)",
                 },
               }}
-              onClick={handleLogin}
             >
               Giriş Yap
             </Button>
 
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
               <Button
                 onClick={() => navigate("/signin")}
                 sx={{
@@ -207,7 +201,7 @@ function Login() {
         </CardContent>
       </Card>
 
-      {/* Şifremi Unuttum Pop-up */}
+      {/* Şifremi Unuttum Modal */}
       <Modal open={openForgot} onClose={() => setOpenForgot(false)}>
         <Box
           sx={{
