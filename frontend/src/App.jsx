@@ -9,7 +9,6 @@ import Login from "./pages/Login";
 import AIAnalyzer from "./pages/AIAnalyzer"; 
 import useAuthStore from "./store/useAuthStore";
 
-// Giriş yapılmamış kullanıcılar için koruma
 function ProtectedRoute() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   if (!isLoggedIn) {
@@ -18,7 +17,6 @@ function ProtectedRoute() {
   return <Outlet />;
 }
 
-// Giriş yapılmış kullanıcılar için public sayfaları engelleme
 function PublicRoute() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   if (isLoggedIn) {
@@ -35,23 +33,17 @@ function AppRoutes() {
     <>
       {!hideNavbarPaths.includes(location.pathname) && <Navbar />}
       <Routes>
-        <Route path="/" element={<Home />} />
-
-        {/* Korunan sayfalar */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<Profile />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/invites" element={<Invites />} />
           <Route path="/ai-analyzer" element={<AIAnalyzer />} />
         </Route>
-
-        {/* Public sayfalar */}
         <Route element={<PublicRoute />}>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/login" element={<Login />} />
         </Route>
-
-        {/* Bilinmeyen tüm yollar login sayfasına yönlendirilsin */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>
