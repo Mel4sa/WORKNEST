@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState} from "react";
 import {
   Box,
   Typography,
@@ -9,16 +9,21 @@ import {
   Stack,
   MenuItem,
   Select,
+  IconButton,
 } from "@mui/material";
-import { School, Person } from "@mui/icons-material";
+import { School, Person, Check } from "@mui/icons-material";
 import universities from "../data/universities.json";
+import useAuthStore from "../store/useAuthStore";
 
 export default function ProfilePage() {
+  const user = useAuthStore((state) => state.user);
+
   const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState("");
   const [bio, setBio] = useState("");
   const [university, setUniversity] = useState("");
   const [department, setDepartment] = useState("");
+  const [role, setRole] = useState(user?.role || "Frontend Developer");
 
   const handleAddSkill = () => {
     const trimmedSkill = newSkill.trim();
@@ -32,6 +37,11 @@ export default function ProfilePage() {
     setSkills(skills.filter((skill) => skill !== skillToDelete));
   };
 
+  const handleRoleSave = () => {
+    // Opsiyonel: backend'e güncelleme isteği atabilirsiniz
+    console.log("Saved role:", role);
+  };
+
   return (
     <Box sx={{ minHeight: "100vh", py: 8, px: 4, backgroundColor: "#fefefe" }}>
       <Box
@@ -41,8 +51,10 @@ export default function ProfilePage() {
           p: 5,
           borderRadius: 5,
           boxShadow: "0 16px 48px rgba(0,0,0,0.15)",
+          backgroundColor: "#fff",
         }}
       >
+        {/* Profil üst kısmı */}
         <Box
           sx={{
             display: "flex",
@@ -64,13 +76,51 @@ export default function ProfilePage() {
           </Avatar>
 
           <Box sx={{ flex: 1 }}>
+            {/* Fullname */}
             <Typography variant="h3" sx={{ fontWeight: 700 }}>
-              Melisa Simsek
-            </Typography>
-            <Typography variant="h6" sx={{ color: "gray", mt: 1 }}>
-              Frontend Developer
+              {user?.fullname || "Kullanıcı"}
             </Typography>
 
+            {/* Editable role/job */}
+            <Box sx={{ display: "flex", alignItems: "center", mt: 1, gap: 1 }}>
+              <TextField
+                placeholder="Frontend Developer"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                variant="outlined"
+                size="small"
+                sx={{
+                  maxWidth: 300,
+                  "& .MuiOutlinedInput-root": {
+                    fontWeight: 500,
+                    color: "#333",
+                    borderRadius: "16px",
+                    backgroundColor: "#f5f5f5",
+                    "& fieldset": { borderColor: "#ccc" },
+                    "&:hover fieldset": { borderColor: "#915d56" },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#915d56",
+                      boxShadow: "0 0 8px rgba(145,93,86,0.3)",
+                    },
+                  },
+                }}
+              />
+              <IconButton
+                color="primary"
+                onClick={handleRoleSave}
+                sx={{
+                  bgcolor: "#915d56",
+                  "&:hover": { bgcolor: "#7a4b45" },
+                  color: "#fff",
+                  borderRadius: "12px",
+                  p: 1,
+                }}
+              >
+                <Check />
+              </IconButton>
+            </Box>
+
+            {/* Üniversite & bölüm */}
             <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
               {university ? (
                 <Chip
@@ -142,6 +192,7 @@ export default function ProfilePage() {
           </Box>
         </Box>
 
+        {/* Biyografi */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
             Biyografi
@@ -166,6 +217,7 @@ export default function ProfilePage() {
           />
         </Box>
 
+        {/* Yetenekler */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
             Yeteneklerim
