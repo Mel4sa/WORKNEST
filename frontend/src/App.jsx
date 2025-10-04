@@ -49,11 +49,12 @@ function AppRoutes() {
 
         {/* Korunan sayfalar */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/invites" element={<Invites />} />
-          <Route path="/ai-analyzer" element={<AIAnalyzer />} />
-        </Route>
+  <Route path="/home" element={<Home />} /> {/* ← Home route eklendi */}
+  <Route path="/profile" element={<Profile />} />
+  <Route path="/projects" element={<Projects />} />
+  <Route path="/invites" element={<Invites />} />
+  <Route path="/ai-analyzer" element={<AIAnalyzer />} />
+</Route>
 
         {/* Public sayfalar */}
         <Route element={<PublicRoute />}>

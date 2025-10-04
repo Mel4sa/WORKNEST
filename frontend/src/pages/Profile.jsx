@@ -12,13 +12,17 @@ import {
 } from "@mui/material";
 import { School, Person } from "@mui/icons-material";
 import universities from "../data/universities.json";
+import useAuthStore from "../store/useAuthStore";
 
 export default function ProfilePage() {
+  const user = useAuthStore((state) => state.user);
+
   const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState("");
   const [bio, setBio] = useState("");
   const [university, setUniversity] = useState("");
   const [department, setDepartment] = useState("");
+  const [role, setRole] = useState(user?.role || "");
 
   const handleAddSkill = () => {
     const trimmedSkill = newSkill.trim();
@@ -41,8 +45,10 @@ export default function ProfilePage() {
           p: 5,
           borderRadius: 5,
           boxShadow: "0 16px 48px rgba(0,0,0,0.15)",
+          backgroundColor: "#fff",
         }}
       >
+        {/* Profil üst kısmı */}
         <Box
           sx={{
             display: "flex",
@@ -64,13 +70,41 @@ export default function ProfilePage() {
           </Avatar>
 
           <Box sx={{ flex: 1 }}>
+            {/* Fullname */}
             <Typography variant="h3" sx={{ fontWeight: 700 }}>
-              Melisa Simsek
-            </Typography>
-            <Typography variant="h6" sx={{ color: "gray", mt: 1 }}>
-              Frontend Developer
+              {user?.fullname || "Kullanıcı"}
             </Typography>
 
+            {/* Role kısmı - sade modern metin alanı */}
+            <Box
+              sx={{
+                mt: 1.5,
+                borderBottom: "2px dotted #915d56",
+                display: "inline-block",
+                minWidth: "220px",
+                pb: 0.5,
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Title"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                style={{
+                  width: "100%",
+                  fontSize: "1.1rem",
+                  fontWeight: 500,
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  color: "#333",
+                  fontFamily: "inherit",
+                  textAlign: "left",
+                }}
+              />
+            </Box>
+
+            {/* Üniversite & bölüm */}
             <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
               {university ? (
                 <Chip
@@ -142,6 +176,7 @@ export default function ProfilePage() {
           </Box>
         </Box>
 
+        {/* Biyografi */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
             Biyografi
@@ -166,6 +201,7 @@ export default function ProfilePage() {
           />
         </Box>
 
+        {/* Yetenekler */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
             Yeteneklerim

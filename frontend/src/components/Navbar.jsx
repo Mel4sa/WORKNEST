@@ -27,7 +27,8 @@ function Navbar() {
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Link to="/" style={{ textDecoration: "none" }}>
+        {/* Worknest yazısı / logo */}
+        <Link to="/home" style={{ textDecoration: "none" }}>
           <Typography
             variant="h5"
             sx={{
@@ -46,9 +47,10 @@ function Navbar() {
           </Typography>
         </Link>
 
+        {/* Menü Linkleri */}
         <Box sx={{ display: "flex", gap: 3 }}>
           {[
-            { label: "Ana Sayfa", path: "/" },
+            { label: "Ana Sayfa", path: "/home" }, // artık /home
             { label: "AI Analyzer", path: "/ai-analyzer" },
             { label: "Projelerim", path: "/projects" },
             { label: "Davetlerim", path: "/invites" },
@@ -74,6 +76,7 @@ function Navbar() {
           ))}
         </Box>
 
+        {/* Auth butonları */}
         <Box sx={{ display: "flex", gap: 2 }}>
           {!user && (
             <Button
