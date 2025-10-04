@@ -38,41 +38,48 @@ export default function Login() {
     if (success) navigate("/profile");
   };
 
-  // 🔸 Şifre sıfırlama maili gönderme fonksiyonu
-  const handleForgot = async () => {
+const handleForgot = async () => {
   if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
 
   setLoading(true);
+  setMessage("");       // Önce mesajı temizle
+  setModalError("");    // Önce hata mesajını temizle
+
   try {
-    // 1️⃣ Backend'e istek → reset linki al
-const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
-console.log("Backend response:", res.data);
+    const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
+    console.log("Backend response:", res.data);
 
-const resetLink = res.data.resetLink;
-const fullname = res.data.fullname; // artık backend’den geliyor
+    const resetLink = res.data.resetLink;
+    const fullname = res.data.fullname || forgotEmail;
 
-const emailResponse = await emailjs.send(
-  import.meta.env.VITE_YOUR_SERVICE_ID,
-  import.meta.env.VITE_YOUR_TEMPLATE_ID,
-  {
-    to_email: forgotEmail,
-    fullname: fullname,     // template ile birebir eşleşiyor
-    reset_link: resetLink,  // template ile birebir eşleşiyor
-  },
-  import.meta.env.VITE_YOUR_PUBLIC_KEY
-);
-
-console.log("EmailJS Response:", emailResponse);
+    await emailjs.send(
+      import.meta.env.VITE_YOUR_SERVICE_ID,
+      import.meta.env.VITE_YOUR_TEMPLATE_ID,
+      {
+        to_email: forgotEmail,
+        fullname,
+        reset_link: resetLink,
+      },
+      import.meta.env.VITE_YOUR_PUBLIC_KEY
+    );
 
     setMessage("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et!");
     setForgotEmail("");
   } catch (err) {
-    console.error("Şifre sıfırlama hatası:", err); // 🔹 Hata logu
-    setModalError("Böyle bir kullanıcı bulunamadı veya mail gönderilemedi.");
+    console.error("Şifre sıfırlama hatası:", err);
+
+    // Axios yanıtı varsa mesajı buradan al
+    const msg =
+      err.response?.status === 404
+        ? "Böyle bir kullanıcı bulunamadı."
+        : "Mail gönderilemedi, lütfen tekrar deneyin.";
+
+    setModalError(msg);
   } finally {
     setLoading(false);
   }
 };
+
 
 
   return (
