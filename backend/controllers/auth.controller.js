@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import User from "../models/user.model.js";
 
 // REGISTER
@@ -92,72 +93,59 @@ export const logout = (req, res) => {
   }
 };
 
-/* 
-// Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
-// 🔹 Forgot Password
+
+// forgotPassword fonksiyonu (backend)
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
-
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
 
-    // Token oluştur (15 dk geçerli)
-    const resetToken = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "15m" }
-    );
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 dk
+    await user.save();
 
-    // Mail içeriği
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Şifre Sıfırlama",
-      html: `<p>Şifrenizi sıfırlamak için linke tıklayın:</p>
-             <a href="${resetUrl}">${resetUrl}</a>
-             <p>Link 15 dakika geçerlidir.</p>`,
-    };
+    const resetLink = `http://localhost:5173/ResetPassword/${resetToken}`;
 
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: "Şifre sıfırlama maili gönderildi" });
-
+    // ✨ fullname artık dönüyoruz
+    res.status(200).json({
+      message: "Şifre sıfırlama linki oluşturuldu",
+      resetLink,
+      fullname: user.fullname || user.email, // fullname yoksa email göster
+    });
   } catch (error) {
-    console.error("Forgot Password hatası:", error.message);
-    res.status(500).json({ message: "Sunucu hatası" });
+    console.error("ForgotPassword hatası:", error.message);
+    res.status(500).json({ message: "Sunucu hatası", error: error.message });
   }
 };
 
-// 🔹 Reset Password
+
+
+
 export const resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
+  const { token } = req.params;
+  const { password } = req.body;
 
   try {
-    if (!token || !newPassword)
-      return res.status(400).json({ message: "Eksik bilgiler" });
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }, // token geçerli mi kontrol
+    });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId);
-    if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    if (!user) return res.status(400).json({ message: "Geçersiz veya süresi dolmuş token." });
 
-    // Yeni şifreyi hashle ve kaydet
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Şifreyi hashle ve kaydet
+    const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
     await user.save();
 
-    res.status(200).json({ message: "Şifre başarıyla güncellendi" });
-
+    res.status(200).json({ message: "Şifre başarıyla değiştirildi" });
   } catch (error) {
-    console.error("Reset Password hatası:", error.message);
-    res.status(500).json({ message: "Sunucu hatası" });
+    console.error("ResetPassword hatası:", error.message);
+    res.status(500).json({ message: "Sunucu hatası", error: error.message });
   }
-}; */
+};

@@ -13,21 +13,67 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import useAuthStore from "../store/useAuthStore";
+import emailjs from "@emailjs/browser";
+import axiosInstance from "../lib/axios";
 
-function Login() {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+
   const [openForgot, setOpenForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [modalError, setModalError] = useState("");
 
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
-  const error = useAuthStore((state) => state.error);
+  const loginError = useAuthStore((state) => state.error);
+
 
   const handleLogin = async () => {
     const success = await login(email, password);
     if (success) navigate("/profile");
   };
+
+  // 🔸 Şifre sıfırlama maili gönderme fonksiyonu
+  const handleForgot = async () => {
+  if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
+
+  setLoading(true);
+  try {
+    // 1️⃣ Backend'e istek → reset linki al
+const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
+console.log("Backend response:", res.data);
+
+const resetLink = res.data.resetLink;
+const fullname = res.data.fullname; // artık backend’den geliyor
+
+const emailResponse = await emailjs.send(
+  import.meta.env.VITE_YOUR_SERVICE_ID,
+  import.meta.env.VITE_YOUR_TEMPLATE_ID,
+  {
+    to_email: forgotEmail,
+    fullname: fullname,     // template ile birebir eşleşiyor
+    reset_link: resetLink,  // template ile birebir eşleşiyor
+  },
+  import.meta.env.VITE_YOUR_PUBLIC_KEY
+);
+
+console.log("EmailJS Response:", emailResponse);
+
+    setMessage("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et!");
+    setForgotEmail("");
+  } catch (err) {
+    console.error("Şifre sıfırlama hatası:", err); // 🔹 Hata logu
+    setModalError("Böyle bir kullanıcı bulunamadı veya mail gönderilemedi.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Box
@@ -37,7 +83,7 @@ function Login() {
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
-        background: "linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)", // Açık degrade arka plan
+        background: "linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)",
         overflow: "hidden",
       }}
     >
@@ -53,12 +99,7 @@ function Login() {
           opacity: 0.15,
         }}
       >
-        <svg
-          width="100%"
-          height="100%"
-          viewBox="0 0 800 600"
-          preserveAspectRatio="xMidYMid slice"
-        >
+        <svg width="100%" height="100%" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
           <circle cx="100" cy="100" r="80" fill="#ca5125" />
           <circle cx="400" cy="200" r="120" fill="#915d56" />
           <circle cx="700" cy="500" r="100" fill="#ca5125" />
@@ -66,7 +107,7 @@ function Login() {
         </svg>
       </Box>
 
-      {/* Login Form */}
+      {/* Login Card */}
       <Card
         sx={{
           width: 400,
@@ -79,17 +120,11 @@ function Login() {
         }}
       >
         <CardContent sx={{ p: 4 }}>
-          <Typography
-            variant="h5"
-            textAlign="center"
-            fontWeight="bold"
-            color="#212121"
-            gutterBottom
-          >
+          <Typography variant="h5" textAlign="center" fontWeight="bold" color="#212121" gutterBottom>
             Giriş Yap
           </Typography>
 
-          {/* Form */}
+          {/* Login Form */}
           <Box
             component="form"
             noValidate
@@ -103,96 +138,49 @@ function Login() {
             <TextField
               label="E-posta"
               type="email"
-              variant="outlined"
               fullWidth
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "50px",
-                  color: "#212121",
-                  "& fieldset": { borderColor: "#bdbdbd" },
-                  "&:hover fieldset": { borderColor: "#757575" },
-                  "&.Mui-focused fieldset": { borderColor: "#424242" },
-                },
-              }}
             />
 
             <TextField
               label="Şifre"
               type={showPassword ? "text" : "password"}
-              variant="outlined"
               fullWidth
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "50px",
-                  color: "#212121",
-                  "& fieldset": { borderColor: "#bdbdbd" },
-                  "&:hover fieldset": { borderColor: "#757575" },
-                  "&.Mui-focused fieldset": { borderColor: "#424242" },
-                },
-              }}
             />
 
-            {error && (
+            {loginError && (
               <Typography color="error" textAlign="center">
-                {error}
+                {loginError}
               </Typography>
             )}
 
             <Button
               type="submit"
               variant="contained"
-              size="large"
-              sx={{
-                backgroundColor: "#d7401eff",
-                color: "#ffffff",
-                borderRadius: "50px",
-                py: 1.2,
-                fontWeight: "bold",
-                textTransform: "none",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor: "#d7401eff",
-                  transform: "scale(1.05)",
-                  boxShadow: "0 6px 16px rgba(0,0,0,0.25)",
-                },
-              }}
+              sx={{ backgroundColor: "#d7401e", borderRadius: "50px", py: 1.2, fontWeight: "bold" }}
             >
               Giriş Yap
             </Button>
 
             <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
-              <Button
-                onClick={() => navigate("/signin")}
-                sx={{
-                  fontSize: "0.9rem",
-                  color: "#424242",
-                  textTransform: "none",
-                }}
-              >
+              <Button onClick={() => navigate("/signin")} sx={{ fontSize: "0.9rem" }}>
                 Kayıt Ol
               </Button>
               <Button
                 onClick={() => setOpenForgot(true)}
-                sx={{
-                  fontSize: "0.9rem",
-                  color: "#f44336",
-                  textTransform: "none",
-                }}
+                sx={{ fontSize: "0.9rem", color: "#f44336" }}
               >
                 Şifremi Unuttum?
               </Button>
@@ -201,7 +189,7 @@ function Login() {
         </CardContent>
       </Card>
 
-      {/* Şifremi Unuttum Modal */}
+      {/* 🔸 Şifremi Unuttum Modal */}
       <Modal open={openForgot} onClose={() => setOpenForgot(false)}>
         <Box
           sx={{
@@ -216,46 +204,50 @@ function Login() {
             p: 4,
           }}
         >
-          <Typography
-            variant="h6"
-            fontWeight="bold"
-            textAlign="center"
-            gutterBottom
-          >
+          <Typography variant="h6" fontWeight="bold" textAlign="center" gutterBottom>
             Şifremi Unuttum
           </Typography>
-          <Typography
-            variant="body2"
-            textAlign="center"
-            color="text.secondary"
-            mb={2}
-          >
+
+          <Typography variant="body2" textAlign="center" color="text.secondary" mb={2}>
             Şifrenizi sıfırlamak için e-posta adresinizi giriniz.
           </Typography>
+
           <TextField
             label="E-posta"
             type="email"
             fullWidth
-            variant="outlined"
             sx={{ mb: 2 }}
+            value={forgotEmail}
+            onChange={(e) => setForgotEmail(e.target.value)}
           />
+
+          {modalError && (
+            <Typography color="error" textAlign="center" sx={{ mb: 1 }}>
+              {modalError}
+            </Typography>
+          )}
+          {message && (
+            <Typography color="success.main" textAlign="center" sx={{ mb: 1 }}>
+              {message}
+            </Typography>
+          )}
+
           <Button
             fullWidth
             variant="contained"
+            disabled={loading}
             sx={{
-              backgroundColor: "#d7401eff",
+              backgroundColor: "#d7401e",
               borderRadius: "50px",
               fontWeight: "bold",
-              "&:hover": { backgroundColor: "#d7401eff" },
+              "&:hover": { backgroundColor: "#d7401e" },
             }}
-            onClick={() => setOpenForgot(false)}
+            onClick={handleForgot}
           >
-            Gönder
+            {loading ? "Gönderiliyor..." : "Gönder"}
           </Button>
         </Box>
       </Modal>
     </Box>
   );
 }
-
-export default Login;

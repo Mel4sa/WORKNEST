@@ -13,6 +13,8 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import axiosInstance from "../lib/axios";
 
+
+
 export default function ResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -33,13 +35,11 @@ export default function ResetPassword() {
     }
 
     try {
-      await axiosInstance.post(`/auth/reset-password/${token}`, { password });
-      setMessage("Şifreniz başarıyla değiştirildi! Yönlendiriliyorsunuz...");
-      setError("");
+      const res = await axiosInstance.post(`/auth/reset-password/${token}`, { password });
+      setMessage(res.data.message || "Şifreniz başarıyla değiştirildi! Yönlendiriliyorsunuz...");
       setTimeout(() => navigate("/login"), 2000);
     } catch {
       setError("Geçersiz veya süresi dolmuş bağlantı.");
-      setMessage("");
     }
   };
 
