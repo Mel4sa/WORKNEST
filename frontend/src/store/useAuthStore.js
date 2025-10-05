@@ -4,29 +4,35 @@ import axiosInstance from "../lib/axios";
 const useAuthStore = create((set) => ({
   user: null,
   isLoggedIn: false,
+  token: null,
   error: null,
 
+  setUser: (user) => set({ user }),
+
   login: async (email, password) => {
-    try {
-      const response = await axiosInstance.post("auth/login", { email, password });
+  try {
+    const response = await axiosInstance.post("auth/login", { email, password });
 
-      set({
-        user: response.data.user || { email }, // backend'den kullanıcı bilgisi gelirse kullan
-        isLoggedIn: true,
-        error: null,
-      });
+    set({
+      user: response.data.user || { email },
+      isLoggedIn: true,
+      token: response.data.token, 
+      error: null,
+    });
 
-      return true;
-    } catch (err) {
-      console.error(err.response?.data || err.message);
-      set({
-        user: null,
-        isLoggedIn: false,
-        error: err.response?.data?.message || "Giriş başarısız!",
-      });
-      return false;
-    }
-  },
+    return true;
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    set({
+      user: null,
+      isLoggedIn: false,
+      token: null, 
+      error: err.response?.data?.message || "Giriş başarısız!",
+    });
+    return false;
+  }
+},
+
 
   register: async (fullname, email, password) => {
     try {

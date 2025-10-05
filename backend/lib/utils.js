@@ -1,17 +1,24 @@
-// ? mevcut kod bloğunu yeniden kullanabileceğimiz genel amaçlı bir yardımcı sınıf
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+
 export const generateToken = (id, res) => {
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '7d', // 7 gün geçerli token
+    expiresIn: '7d',
   });
-  // Cookie'ye token'ı yazma
   res.cookie('jwt', token, {
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 gün
-    httpOnly: true, //Cookie, sadece HTTP istekleriyle erişilebilir, JavaScript ile erişilemez.
-    sameSite: 'strict', // Cookie, sadece HTTPS üzerinden gönderilir (geliştirme ortamı dışında)
-    secure: process.env.NODE_ENV !== 'development',
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
   });
-
   return token;
 };
-// ? mevcut kod bloğunu yeniden kullanabileceğimiz genel amaçlı bir yardımcı sınıf
+
+export const hashPassword = async (password) => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+};
+
+export const comparePassword = async (enteredPassword, hashedPassword) => {
+  return bcrypt.compare(enteredPassword, hashedPassword);
+};
