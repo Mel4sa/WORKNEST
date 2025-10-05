@@ -21,7 +21,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-
   const [openForgot, setOpenForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,55 +31,55 @@ export default function Login() {
   const login = useAuthStore((state) => state.login);
   const loginError = useAuthStore((state) => state.error);
 
-
+  // 🔹 Kullanıcı girişi
   const handleLogin = async () => {
     const success = await login(email, password);
     if (success) navigate("/profile");
   };
 
-const handleForgot = async () => {
-  if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
+  // 🔹 Şifremi unuttum işlemi
+  const handleForgot = async () => {
+    if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
 
-  setLoading(true);
-  setMessage("");       // Önce mesajı temizle
-  setModalError("");    // Önce hata mesajını temizle
+    setLoading(true);
+    setMessage("");
+    setModalError("");
 
-  try {
-    const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
-    console.log("Backend response:", res.data);
+    try {
+      // Backend'den reset link al
+      const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
+      console.log("Backend response:", res.data);
 
-    const resetLink = res.data.resetLink;
-    const fullname = res.data.fullname || forgotEmail;
+      const resetLink = res.data.resetLink;
+      const fullname = res.data.fullname || forgotEmail;
 
-    await emailjs.send(
-      import.meta.env.VITE_YOUR_SERVICE_ID,
-      import.meta.env.VITE_YOUR_TEMPLATE_ID,
-      {
-        to_email: forgotEmail,
-        fullname,
-        reset_link: resetLink,
-      },
-      import.meta.env.VITE_YOUR_PUBLIC_KEY
-    );
+      // 🔹 EmailJS ile mail gönderimi (string olarak)
+      await emailjs.send(
+        "service_0k1us0k",      // Dashboard’daki Service ID
+        "template_7qzjmeg",     // Dashboard’daki Template ID
+        {
+          to_email: forgotEmail,
+          fullname,
+          reset_link: resetLink,
+        },
+        "KPLVEjR4CEVp-5jl2"     // Dashboard’daki Public Key
+      );
 
-    setMessage("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et!");
-    setForgotEmail("");
-  } catch (err) {
-    console.error("Şifre sıfırlama hatası:", err);
+      setMessage("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et!");
+      setForgotEmail("");
+    } catch (err) {
+      console.error("Şifre sıfırlama hatası:", err);
 
-    // Axios yanıtı varsa mesajı buradan al
-    const msg =
-      err.response?.status === 404
-        ? "Böyle bir kullanıcı bulunamadı."
-        : "Mail gönderilemedi, lütfen tekrar deneyin.";
+      const msg =
+        err.response?.status === 404
+          ? "Böyle bir kullanıcı bulunamadı."
+          : "Mail gönderilemedi, lütfen tekrar deneyin.";
 
-    setModalError(msg);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+      setModalError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box

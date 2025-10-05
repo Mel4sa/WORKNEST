@@ -235,7 +235,7 @@ export default function ProfilePage() {
         onClose={() => setOpen(false)}
         PaperProps={{ sx: { width: 420, borderRadius: 4, p: 3, backgroundColor: "#fff", boxShadow: "0 8px 40px rgba(0,0,0,0.2)" } }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#915d56", textAlign: "center", mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: "#000000ff", textAlign: "center", mb: 2 }}>
           Hesap Ayarları
         </Typography>
         <Divider sx={{ mb: 2 }} />
