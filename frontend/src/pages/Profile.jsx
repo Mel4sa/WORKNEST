@@ -16,17 +16,20 @@ import {
 import { School, Person, Settings } from "@mui/icons-material";
 import universities from "../data/universities.json";
 import useAuthStore from "../store/useAuthStore";
+import axiosInstance from "../lib/axios"; // axiosInstance kullan
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
+  // const { token } = useAuthStore.getState(); // login sonrası token
 
-  // Profil state
-  const [skills, setSkills] = useState([]);
-  const [newSkill, setNewSkill] = useState("");
-  const [bio, setBio] = useState("");
-  const [university, setUniversity] = useState("");
-  const [department, setDepartment] = useState("");
-  const [role, setRole] = useState(user?.role || "");
+// Profil state
+const [skills, setSkills] = useState(user?.skills || []);
+const [newSkill, setNewSkill] = useState("");
+const [bio, setBio] = useState(user?.bio || "");
+const [university, setUniversity] = useState(user?.university || "");
+const [department, setDepartment] = useState(user?.department || "");
+const [role, setRole] = useState(user?.title || "");
+
 
   // Ayarlar popup state
   const [open, setOpen] = useState(false);
@@ -49,27 +52,41 @@ export default function ProfilePage() {
     setSkills(skills.filter((skill) => skill !== skillToDelete));
   };
 
-  // Popup işlemleri
+  const handleSaveProfile = async () => {
+  const { token, setUser } = useAuthStore.getState(); // store’dan token ve setUser al
+  const profileData = {
+    university,
+    department,
+    title: role,
+    skills,
+    bio,
+  };
+
+  try {
+    const res = await axiosInstance.put("/user/update", profileData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("Profil güncellendi:", res.data);
+
+    // Store'u güncelle
+    setUser(res.data.user); 
+  } catch (err) {
+    console.error("Profil güncelleme hatası:", err.response?.data || err.message);
+  }
+};
+
+
+
   const handleChangePassword = () => {
     console.log("Eski şifre:", oldPassword);
     console.log("Yeni şifre:", newPassword);
-    // API isteği ile şifre değiştirme
   };
-
-  const handleChangeUsername = () => {
-    console.log("Yeni kullanıcı adı:", newUsername);
-    // API isteği
-  };
-
-  const handleChangeEmail = () => {
-    console.log("Yeni email:", newEmail);
-    // API isteği
-  };
-
-  const handleDeleteAccount = () => {
-    console.log("Hesap silme isteği");
-    // API isteği
-  };
+  const handleChangeUsername = () => console.log("Yeni kullanıcı adı:", newUsername);
+  const handleChangeEmail = () => console.log("Yeni email:", newEmail);
+  const handleDeleteAccount = () => console.log("Hesap silme isteği");
 
   return (
     <Box sx={{ minHeight: "100vh", py: 8, px: 4, backgroundColor: "#fefefe" }}>
@@ -224,6 +241,22 @@ export default function ProfilePage() {
               onClick={handleAddSkill}
             >
               Ekle
+            </Button>
+          </Box>
+          <Box sx={{ textAlign: "center", mt: 4 }}>
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "#915d56",
+                borderRadius: "25px",
+                px: 4,
+                py: 1,
+                fontSize: "1rem",
+                "&:hover": { backgroundColor: "#7a4b45" },
+              }}
+              onClick={handleSaveProfile}
+            >
+              Profili Kaydet
             </Button>
           </Box>
         </Box>
