@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { GitHub, LinkedIn, CameraAlt } from "@mui/icons-material";
+
 import {
   Box,
   Typography,
@@ -12,24 +14,25 @@ import {
   IconButton,
   Dialog,
   Divider,
+  InputAdornment,
 } from "@mui/material";
 import { School, Person, Settings } from "@mui/icons-material";
 import universities from "../data/universities.json";
 import useAuthStore from "../store/useAuthStore";
-import axiosInstance from "../lib/axios"; // axiosInstance kullan
+import axiosInstance from "../lib/axios";
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
-  // const { token } = useAuthStore.getState(); // login sonrası token
 
-// Profil state
-const [skills, setSkills] = useState(user?.skills || []);
-const [newSkill, setNewSkill] = useState("");
-const [bio, setBio] = useState(user?.bio || "");
-const [university, setUniversity] = useState(user?.university || "");
-const [department, setDepartment] = useState(user?.department || "");
-const [role, setRole] = useState(user?.title || "");
-
+  // Profil state
+  const [skills, setSkills] = useState(user?.skills || []);
+  const [newSkill, setNewSkill] = useState("");
+  const [bio, setBio] = useState(user?.bio || "");
+  const [university, setUniversity] = useState(user?.university || "");
+  const [department, setDepartment] = useState(user?.department || "");
+  const [role, setRole] = useState(user?.title || "");
+  const [github, setGithub] = useState(user?.github || "");
+  const [linkedin, setLinkedin] = useState(user?.linkedin || "");
 
   // Ayarlar popup state
   const [open, setOpen] = useState(false);
@@ -39,7 +42,7 @@ const [role, setRole] = useState(user?.title || "");
   const [newUsername, setNewUsername] = useState("");
   const [newEmail, setNewEmail] = useState("");
 
-  // Yetenekler
+  // Yetenek ekleme
   const handleAddSkill = () => {
     const trimmedSkill = newSkill.trim();
     if (trimmedSkill && !skills.includes(trimmedSkill)) {
@@ -52,51 +55,51 @@ const [role, setRole] = useState(user?.title || "");
     setSkills(skills.filter((skill) => skill !== skillToDelete));
   };
 
+  // Profil kaydetme
   const handleSaveProfile = async () => {
-  const { token, setUser } = useAuthStore.getState(); // store’dan token ve setUser al
-  const profileData = {
-    university,
-    department,
-    title: role,
-    skills,
-    bio,
+    const { token, setUser } = useAuthStore.getState();
+    const profileData = {
+      university,
+      department,
+      title: role,
+      skills,
+      bio,
+      github,
+      linkedin,
+    };
+
+    try {
+      const res = await axiosInstance.put("/user/update", profileData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(res.data.user);
+      console.log("Profil güncellendi:", res.data);
+    } catch (err) {
+      console.error("Profil güncelleme hatası:", err.response?.data || err.message);
+    }
   };
 
-  try {
-    const res = await axiosInstance.put("/user/update", profileData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log("Profil güncellendi:", res.data);
-
-    // Store'u güncelle
-    setUser(res.data.user); 
-  } catch (err) {
-    console.error("Profil güncelleme hatası:", err.response?.data || err.message);
-  }
-};
-
-
-
-  const handleChangePassword = () => {
-    console.log("Eski şifre:", oldPassword);
-    console.log("Yeni şifre:", newPassword);
-  };
+  // Ayarlar fonksiyonları
+  const handleChangePassword = () => console.log("Yeni şifre:", newPassword);
   const handleChangeUsername = () => console.log("Yeni kullanıcı adı:", newUsername);
   const handleChangeEmail = () => console.log("Yeni email:", newEmail);
   const handleDeleteAccount = () => console.log("Hesap silme isteği");
 
+  // Profil fotoğrafını değiştirme
+  const handleChangeProfilePhoto = () => {
+    console.log("Profil fotoğrafını değiştir");
+    // Buraya file picker veya modal açma fonksiyonunu ekleyebilirsin
+  };
+
   return (
-    <Box sx={{ minHeight: "100vh", py: 8, px: 4, backgroundColor: "#fefefe" }}>
+    <Box sx={{ minHeight: "100vh", py: 8, px: 4, backgroundColor: "#fafafa" }}>
       <Box
         sx={{
           maxWidth: 900,
           mx: "auto",
           p: 5,
           borderRadius: 5,
-          boxShadow: "0 16px 48px rgba(0,0,0,0.15)",
+          boxShadow: "0 16px 48px rgba(0,0,0,0.1)",
           backgroundColor: "#fff",
           position: "relative",
         }}
@@ -108,8 +111,8 @@ const [role, setRole] = useState(user?.title || "");
             position: "absolute",
             top: 24,
             right: 24,
-            color: "#915d56",
-            "&:hover": { color: "#7a4b45" },
+            color: "#d35400",
+            "&:hover": { color: "#a84300" },
           }}
         >
           <Settings fontSize="large" />
@@ -117,19 +120,57 @@ const [role, setRole] = useState(user?.title || "");
 
         {/* Profil üst kısmı */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap", mb: 5 }}>
-          <Avatar
-            sx={{ width: 140, height: 140, border: "3px solid #915d56", bgcolor: "#915d56" }}
-          >
-            <Person sx={{ fontSize: 70, color: "#fff" }} />
-          </Avatar>
+          
+          {/* Avatar ve Kamera Overlay */}
+          <Box
+  sx={{
+    position: "relative",
+    width: 140,
+    height: 140,
+    borderRadius: "50%",
+    overflow: "hidden", // daireyi tamamen keser ve overlay tam oturur
+    "&:hover .cameraOverlay": { opacity: 1 },
+    cursor: "pointer",
+  }}
+  onClick={handleChangeProfilePhoto}
+>
+  <Avatar
+    sx={{
+      width: "100%",
+      height: "100%",
+      border: "3px solid #d35400",
+      bgcolor: "#d35400",
+    }}
+  >
+    <Person sx={{ fontSize: 70, color: "#fff" }} />
+  </Avatar>
 
+  <Box
+    className="cameraOverlay"
+    sx={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      bgcolor: "rgba(0,0,0,0.4)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      opacity: 0,
+      transition: "opacity 0.3s",
+    }}
+  >
+    <CameraAlt sx={{ color: "#fff", fontSize: 40 }} />
+  </Box>
+</Box>
           <Box sx={{ flex: 1 }}>
             <Typography variant="h3" sx={{ fontWeight: 700 }}>
               {user?.fullname || "Kullanıcı"}
             </Typography>
 
             {/* Role / Title */}
-            <Box sx={{ mt: 1.5, borderBottom: "2px dotted #915d56", display: "inline-block", minWidth: "220px", pb: 0.5 }}>
+            <Box sx={{ mt: 1.5, borderBottom: "2px dotted #d35400", display: "inline-block", minWidth: "220px", pb: 0.5 }}>
               <input
                 type="text"
                 placeholder="Title"
@@ -156,7 +197,14 @@ const [role, setRole] = useState(user?.title || "");
                   icon={<School />}
                   label={university}
                   onDelete={() => setUniversity("")}
-                  sx={{ flex: 1, borderRadius: "28px", backgroundColor: "#f5f5f5", color: "#333", fontWeight: 600, height: 50 }}
+                  sx={{
+                    flex: 1,
+                    borderRadius: "28px",
+                    backgroundColor: "#f5f5f5",
+                    color: "#333",
+                    fontWeight: 600,
+                    height: 50,
+                  }}
                 />
               ) : (
                 <Select
@@ -168,10 +216,15 @@ const [role, setRole] = useState(user?.title || "");
                     minWidth: 250,
                     height: 50,
                     borderRadius: "28px",
-                    "& .MuiSelect-select": { display: "flex", alignItems: "center", fontSize: "1rem", fontWeight: 500, color: university ? "#000" : "gray", pl: 2 },
-                    "& fieldset": { borderColor: "#915d56" },
-                    "&:hover fieldset": { borderColor: "#7a4b45" },
-                    "&.Mui-focused fieldset": { borderColor: "#7a4b45" },
+                    "& .MuiSelect-select": {
+                      display: "flex",
+                      alignItems: "center",
+                      fontSize: "1rem",
+                      fontWeight: 500,
+                      color: university ? "#000" : "gray",
+                      pl: 2,
+                    },
+                    "& fieldset": { borderColor: "#d35400" },
                   }}
                 >
                   <MenuItem value="" disabled>Üniversite</MenuItem>
@@ -189,7 +242,11 @@ const [role, setRole] = useState(user?.title || "");
                 sx={{
                   flex: 1,
                   height: 50,
-                  "& .MuiOutlinedInput-root": { height: 50, color: "#000", borderRadius: "28px", "& fieldset": { borderColor: "#915d56" }, "&:hover fieldset": { borderColor: "#7a4b45" }, "&.Mui-focused fieldset": { borderColor: "#7a4b45" } },
+                  "& .MuiOutlinedInput-root": {
+                    height: 50,
+                    borderRadius: "28px",
+                    "& fieldset": { borderColor: "#d35400" },
+                  },
                 }}
               />
             </Box>
@@ -197,7 +254,7 @@ const [role, setRole] = useState(user?.title || "");
         </Box>
 
         {/* Biyografi */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>Biyografi</Typography>
           <TextField
             fullWidth
@@ -208,13 +265,61 @@ const [role, setRole] = useState(user?.title || "");
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             sx={{
-              "& .MuiOutlinedInput-root": { color: "#000", borderRadius: "20px", "& fieldset": { borderColor: "#915d56" }, "&:hover fieldset": { borderColor: "#7a4b45" }, "&.Mui-focused fieldset": { borderColor: "#7a4b45" } },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "20px",
+                "& fieldset": { borderColor: "#d35400" },
+              },
             }}
           />
         </Box>
 
+        {/* Sosyal Linkler */}
+        <Box sx={{ mb: 4 }}>
+  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+    Sosyal Bağlantılar
+  </Typography>
+
+  <Stack spacing={2}>
+    <TextField
+      placeholder="https://github.com/kullanici"
+      value={github}
+      onChange={(e) => setGithub(e.target.value)}
+      variant="outlined"
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <GitHub sx={{ color: "#333" }} />
+          </InputAdornment>
+        ),
+      }}
+      sx={{
+        "& fieldset": { borderColor: "#d35400" },
+        borderRadius: "20px",
+      }}
+    />
+
+    <TextField
+      placeholder="https://linkedin.com/in/kullanici"
+      value={linkedin}
+      onChange={(e) => setLinkedin(e.target.value)}
+      variant="outlined"
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <LinkedIn sx={{ color: "#0A66C2" }} />
+          </InputAdornment>
+        ),
+      }}
+      sx={{
+        "& fieldset": { borderColor: "#d35400" },
+        borderRadius: "20px",
+      }}
+    />
+  </Stack>
+</Box>
+
         {/* Yetenekler */}
-        <Box sx={{ mb: 2 }}>
+        <Box>
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>Yeteneklerim</Typography>
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
             {skills.map((skill) => (
@@ -222,7 +327,7 @@ const [role, setRole] = useState(user?.title || "");
                 key={skill}
                 label={skill}
                 onDelete={() => handleDeleteSkill(skill)}
-                sx={{ mb: 1, borderRadius: "20px", backgroundColor: "#915d56", color: "#fff", fontWeight: "bold" }}
+                sx={{ mb: 1, borderRadius: "20px", backgroundColor: "#d35400", color: "#fff" }}
               />
             ))}
           </Stack>
@@ -233,26 +338,32 @@ const [role, setRole] = useState(user?.title || "");
               size="small"
               value={newSkill}
               onChange={(e) => setNewSkill(e.target.value)}
-              sx={{ "& .MuiOutlinedInput-root": { color: "#000", borderRadius: "20px", "& fieldset": { borderColor: "#915d56" }, "&:hover fieldset": { borderColor: "#7a4b45" }, "&.Mui-focused fieldset": { borderColor: "#7a4b45" } } }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "20px",
+                  "& fieldset": { borderColor: "#d35400" },
+                },
+              }}
             />
             <Button
               variant="contained"
-              sx={{ backgroundColor: "#915d56", color: "#fff", borderRadius: "20px", "&:hover": { backgroundColor: "#7a4b45" } }}
+              sx={{ backgroundColor: "#d35400", borderRadius: "20px", "&:hover": { backgroundColor: "#a84300" } }}
               onClick={handleAddSkill}
             >
               Ekle
             </Button>
           </Box>
+
           <Box sx={{ textAlign: "center", mt: 4 }}>
             <Button
               variant="contained"
               sx={{
-                backgroundColor: "#915d56",
+                backgroundColor: "#d35400",
                 borderRadius: "25px",
                 px: 4,
                 py: 1,
                 fontSize: "1rem",
-                "&:hover": { backgroundColor: "#7a4b45" },
+                "&:hover": { backgroundColor: "#a84300" },
               }}
               onClick={handleSaveProfile}
             >
@@ -266,9 +377,9 @@ const [role, setRole] = useState(user?.title || "");
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
-        PaperProps={{ sx: { width: 420, borderRadius: 4, p: 3, backgroundColor: "#fff", boxShadow: "0 8px 40px rgba(0,0,0,0.2)" } }}
+        PaperProps={{ sx: { width: 420, borderRadius: 4, p: 3, backgroundColor: "#fff" } }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#000000ff", textAlign: "center", mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, textAlign: "center", mb: 2 }}>
           Hesap Ayarları
         </Typography>
         <Divider sx={{ mb: 2 }} />
@@ -286,9 +397,9 @@ const [role, setRole] = useState(user?.title || "");
               onClick={() => setActiveTab(tab.key)}
               sx={{
                 fontWeight: 600,
-                color: activeTab === tab.key ? "#915d56" : "#777",
+                color: activeTab === tab.key ? "#d35400" : "#777",
                 cursor: "pointer",
-                borderBottom: activeTab === tab.key ? "2px solid #915d56" : "none",
+                borderBottom: activeTab === tab.key ? "2px solid #d35400" : "none",
                 pb: 0.5,
                 transition: "all 0.2s",
               }}
@@ -302,14 +413,14 @@ const [role, setRole] = useState(user?.title || "");
         {activeTab === "username" && (
           <Box>
             <TextField fullWidth label="Yeni Kullanıcı Adı" sx={{ mb: 2 }} variant="outlined" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
-            <Button fullWidth variant="contained" sx={{ background: "#915d56" }} onClick={handleChangeUsername}>Kaydet</Button>
+            <Button fullWidth variant="contained" sx={{ background: "#d35400" }} onClick={handleChangeUsername}>Kaydet</Button>
           </Box>
         )}
 
         {activeTab === "email" && (
           <Box>
             <TextField fullWidth label="Yeni E-posta" sx={{ mb: 2 }} variant="outlined" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-            <Button fullWidth variant="contained" sx={{ background: "#915d56" }} onClick={handleChangeEmail}>Güncelle</Button>
+            <Button fullWidth variant="contained" sx={{ background: "#d35400" }} onClick={handleChangeEmail}>Güncelle</Button>
           </Box>
         )}
 
@@ -317,7 +428,7 @@ const [role, setRole] = useState(user?.title || "");
           <Box>
             <TextField fullWidth label="Eski Şifre" type="password" sx={{ mb: 2 }} variant="outlined" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} />
             <TextField fullWidth label="Yeni Şifre" type="password" sx={{ mb: 2 }} variant="outlined" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-            <Button fullWidth variant="contained" sx={{ background: "#915d56" }} onClick={handleChangePassword}>Şifreyi Değiştir</Button>
+            <Button fullWidth variant="contained" sx={{ background: "#d35400" }} onClick={handleChangePassword}>Şifreyi Değiştir</Button>
           </Box>
         )}
 
