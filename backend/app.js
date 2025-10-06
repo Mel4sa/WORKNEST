@@ -1,13 +1,15 @@
+import dotenv from "dotenv";
 import express from "express";
 import cookieParser from 'cookie-parser';
-import dotenv from "dotenv";
 import cors from "cors";
+
 
 import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
 import connectDB from "./config/db.js";
 
 dotenv.config();
+
 
 const app = express();
 
@@ -23,7 +25,6 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
-
 
 app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));
 

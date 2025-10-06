@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   GitHub,
   LinkedIn,
@@ -50,6 +50,10 @@ export default function ProfilePage() {
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
 
+  // Profil fotoğrafı state
+  const fileInputRef = useRef(null);
+  const [preview, setPreview] = useState("");
+
   // Ayarlar popup state
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("username");
@@ -76,8 +80,35 @@ export default function ProfilePage() {
       setRole(user.title || "");
       setGithub(user.github || "");
       setLinkedin(user.linkedin || "");
+      setPreview(user.profileImage || "");
     }
   }, [user]);
+
+  // --- Profil fotoğrafı değiştirme ---
+  const handleChangeProfilePhoto = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPreview(URL.createObjectURL(file));
+
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    try {
+      await axiosInstance.post("/user/upload-photo", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      await fetchUser(); // yüklemeden sonra güncel user çek
+    } catch (err) {
+      console.error("Profil fotoğrafı yüklenemedi:", err.response?.data || err.message);
+    }
+  };
 
   // --- Popup kapanınca input’ları sıfırla ---
   const handleClosePopup = () => {
@@ -128,7 +159,7 @@ export default function ProfilePage() {
   const handleChangeUsername = () => console.log("Yeni kullanıcı adı:", newUsername);
   const handleChangeEmail = () => console.log("Yeni email:", newEmail);
   const handleDeleteAccount = () => console.log("Hesap silme isteği");
-  const handleChangeProfilePhoto = () => console.log("Profil fotoğrafını değiştir");
+
 
   return (
     <Box sx={{ minHeight: "100vh", py: 8, px: 4, backgroundColor: "#fafafa" }}>
@@ -165,7 +196,8 @@ export default function ProfilePage() {
             }}
             onClick={handleChangeProfilePhoto}
           >
-            <Avatar
+                       <Avatar
+              src={preview || undefined}
               sx={{
                 width: "100%",
                 height: "100%",
@@ -173,7 +205,7 @@ export default function ProfilePage() {
                 bgcolor: "#003fd3ff",
               }}
             >
-              <Person sx={{ fontSize: 70, color: "#fff" }} />
+              {!preview && <Person sx={{ fontSize: 70, color: "#fff" }} />}
             </Avatar>
             <Box
               className="cameraOverlay"
@@ -194,6 +226,14 @@ export default function ProfilePage() {
               <CameraAlt sx={{ color: "#fff", fontSize: 40 }} />
             </Box>
           </Box>
+
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
 
           <Box sx={{ flex: 1 }}>
             <Typography variant="h3" sx={{ fontWeight: 700 }}>

@@ -1,4 +1,6 @@
 import User from "../models/user.model.js";
+import cloudinary from "../lib/cloudinary.js";
+import fs from "fs";
 
 // Profil güncelleme
 export const updateProfile = async (req, res) => {
@@ -37,5 +39,39 @@ export const getMe = async (req, res) => {
   } catch (error) {
     console.error("Fetch user hatası:", error);
     res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
+
+export const uploadPhoto = async (req, res) => {
+  try {
+    const file = req.file;
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: "profile_photos",
+    });
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { profileImage: result.secure_url },
+      { new: true }
+    );
+
+    fs.unlinkSync(file.path);
+    res.json({ url: user.profileImage });
+  } catch (err) {
+    res.status(500).json({ message: "Fotoğraf yüklenemedi", error: err.message });
+  }
+};
+
+export const deletePhoto = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { profileImage: "" },
+      { new: true }
+    );
+    res.json({ message: "Fotoğraf silindi" });
+  } catch (err) {
+    res.status(500).json({ message: "Silme işlemi başarısız", error: err.message });
   }
 };
