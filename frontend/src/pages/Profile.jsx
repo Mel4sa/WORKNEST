@@ -130,7 +130,7 @@ export default function ProfilePage() {
           maxWidth: 900,
           mx: "auto",
           p: 5,
-          borderRadius: "50px",
+          borderRadius: "10px",
           boxShadow: "0 16px 48px rgba(0,0,0,0.1)",
           backgroundColor: "#fff",
           position: "relative",
@@ -211,14 +211,14 @@ export default function ProfilePage() {
                   icon={<School />}
                   label={university}
                   onDelete={() => setUniversity("")}
-                  sx={{ flex: 1, borderRadius: "50px", backgroundColor: "#f5f5f5", color: "#333", fontWeight: 600, height: 50 }}
+                  sx={{ flex: 1, borderRadius: "10px", backgroundColor: "#f5f5f5", color: "#333", fontWeight: 600, height: 50 }}
                 />
               ) : (
                 <Select
                   value={university}
                   onChange={(e) => setUniversity(e.target.value)}
                   displayEmpty
-                  sx={{ flex: 1, minWidth: 250, height: 50, borderRadius: "50px", "& .MuiSelect-select": { display: "flex", alignItems: "center", fontSize: "1rem", fontWeight: 500, color: university ? "#000" : "gray", pl: 2 }, "& fieldset": { borderColor: "#003fd3ff" } }}
+                  sx={{ flex: 1, minWidth: 250, height: 50, borderRadius: "10px", "& .MuiSelect-select": { display: "flex", alignItems: "center", fontSize: "1rem", fontWeight: 500, color: university ? "#000" : "gray", pl: 2 }, "& fieldset": { borderColor: "#003fd3ff" } }}
                 >
                   <MenuItem value="" disabled>Üniversite</MenuItem>
                   {universities.map((uni) => <MenuItem key={uni} value={uni}>{uni}</MenuItem>)}
@@ -229,7 +229,7 @@ export default function ProfilePage() {
                 variant="outlined"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                sx={{ flex: 1, height: 50, "& .MuiOutlinedInput-root": { height: 50, borderRadius: "50px", "& fieldset": { borderColor: "#003fd3ff" } } }}
+                sx={{ flex: 1, height: 50, "& .MuiOutlinedInput-root": { height: 50, borderRadius: "10px", "& fieldset": { borderColor: "#003fd3ff" } } }}
               />
             </Box>
           </Box>
@@ -246,7 +246,7 @@ export default function ProfilePage() {
             variant="outlined"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px", "& fieldset": { borderColor: "#003fd3ff" } } }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", "& fieldset": { borderColor: "#003fd3ff" } } }}
           />
         </Box>
 
@@ -260,7 +260,7 @@ export default function ProfilePage() {
               onChange={(e) => setGithub(e.target.value)}
               variant="outlined"
               InputProps={{ startAdornment: <InputAdornment position="start"><GitHub sx={{ color: "#333" }} /></InputAdornment> }}
-              sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "50px" }}
+              sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "10px" }}
             />
             <TextField
               placeholder="https://linkedin.com/in/kullanici"
@@ -268,7 +268,7 @@ export default function ProfilePage() {
               onChange={(e) => setLinkedin(e.target.value)}
               variant="outlined"
               InputProps={{ startAdornment: <InputAdornment position="start"><LinkedIn sx={{ color: "#0A66C2" }} /></InputAdornment> }}
-              sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "50px" }}
+              sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "10px" }}
             />
           </Stack>
         </Box>
@@ -281,7 +281,7 @@ export default function ProfilePage() {
           </Stack>
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
             <TextField label="Yeni Yetenek Ekle" variant="outlined" size="small" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px", "& fieldset": { borderColor: "#003fd3ff" } } }} />
-            <Button variant="contained" sx={{ backgroundColor: "#003fd3ff", borderRadius: "50px", "&:hover": { backgroundColor: "#002fa0" } }} onClick={handleAddSkill}>Ekle</Button>
+            <Button variant="contained" sx={{ backgroundColor: "#003fd3ff", borderRadius: "10px", "&:hover": { backgroundColor: "#002fa0" } }} onClick={handleAddSkill}>Ekle</Button>
           </Box>
           <Box sx={{ textAlign: "center", mt: 4 }}>
             <Button variant="contained" sx={{ backgroundColor: isProfileChanged ? "#003fd3ff" : "#ccc", borderRadius: "50px", px: 4, py: 1, fontSize: "1rem", "&:hover": { backgroundColor: isProfileChanged ? "#002fa0" : "#ccc" } }} disabled={!isProfileChanged} onClick={handleSaveProfile}>Profili Kaydet</Button>
