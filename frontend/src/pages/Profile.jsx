@@ -66,7 +66,7 @@ export default function ProfilePage() {
   // Sayfa yüklenince kullanıcı verilerini çek
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [fetchUser]); // fetchUser dependency eklendi
 
   // Kullanıcı verilerini state’e yükle
   useEffect(() => {
@@ -136,6 +136,7 @@ export default function ProfilePage() {
           position: "relative",
         }}
       >
+        {/* Ayarlar butonu */}
         <IconButton
           onClick={() => setOpen(true)}
           sx={{ position: "absolute", top: 24, right: 24, color: "#003fd3ff" }}
@@ -223,7 +224,13 @@ export default function ProfilePage() {
                   {universities.map((uni) => <MenuItem key={uni} value={uni}>{uni}</MenuItem>)}
                 </Select>
               )}
-              <TextField placeholder="Bölüm" variant="outlined" value={department} onChange={(e) => setDepartment(e.target.value)} sx={{ flex: 1, height: 50, "& .MuiOutlinedInput-root": { height: 50, borderRadius: "50px", "& fieldset": { borderColor: "#003fd3ff" } } }} />
+              <TextField
+                placeholder="Bölüm"
+                variant="outlined"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                sx={{ flex: 1, height: 50, "& .MuiOutlinedInput-root": { height: 50, borderRadius: "50px", "& fieldset": { borderColor: "#003fd3ff" } } }}
+              />
             </Box>
           </Box>
         </Box>
@@ -231,15 +238,38 @@ export default function ProfilePage() {
         {/* Biyografi */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>Biyografi</Typography>
-          <TextField fullWidth multiline minRows={3} placeholder="Kendiniz hakkında kısa bir bio yazın..." variant="outlined" value={bio} onChange={(e) => setBio(e.target.value)} sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px", "& fieldset": { borderColor: "#003fd3ff" } } }} />
+          <TextField
+            fullWidth
+            multiline
+            minRows={3}
+            placeholder="Kendiniz hakkında kısa bir bio yazın..."
+            variant="outlined"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px", "& fieldset": { borderColor: "#003fd3ff" } } }}
+          />
         </Box>
 
         {/* Sosyal Bağlantılar */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>Sosyal Bağlantılar</Typography>
           <Stack spacing={2}>
-            <TextField placeholder="https://github.com/kullanici" value={github} onChange={(e) => setGithub(e.target.value)} variant="outlined" InputProps={{ startAdornment: <InputAdornment position="start"><GitHub sx={{ color: "#333" }} /></InputAdornment> }} sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "50px" }} />
-            <TextField placeholder="https://linkedin.com/in/kullanici" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} variant="outlined" InputProps={{ startAdornment: <InputAdornment position="start"><LinkedIn sx={{ color: "#0A66C2" }} /></InputAdornment> }} sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "50px" }} />
+            <TextField
+              placeholder="https://github.com/kullanici"
+              value={github}
+              onChange={(e) => setGithub(e.target.value)}
+              variant="outlined"
+              InputProps={{ startAdornment: <InputAdornment position="start"><GitHub sx={{ color: "#333" }} /></InputAdornment> }}
+              sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "50px" }}
+            />
+            <TextField
+              placeholder="https://linkedin.com/in/kullanici"
+              value={linkedin}
+              onChange={(e) => setLinkedin(e.target.value)}
+              variant="outlined"
+              InputProps={{ startAdornment: <InputAdornment position="start"><LinkedIn sx={{ color: "#0A66C2" }} /></InputAdornment> }}
+              sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "50px" }}
+            />
           </Stack>
         </Box>
 
