@@ -38,6 +38,12 @@ export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
 
+  const fetchUser = useAuthStore((state) => state.fetchUser);
+  useEffect(() => {
+  fetchUser(); // sayfa yüklenince user verilerini çek
+}, []);
+
+
   // Profil state
   const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState("");
@@ -87,20 +93,18 @@ export default function ProfilePage() {
     setSkills(skills.filter((skill) => skill !== skillToDelete));
   };
 
-  // Profil kaydetme
-  const handleSaveProfile = async () => {
+const handleSaveProfile = async () => {
+  try {
     const profileData = { university, department, title: role, skills, bio, github, linkedin };
+    const res = await axiosInstance.put("/user/update", profileData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    useAuthStore.getState().setUser(res.data.user); // güncellenmiş user
+  } catch (err) {
+    console.error("Profil güncelleme hatası:", err.response?.data || err.message);
+  }
+};
 
-    try {
-      const res = await axiosInstance.put("/user/update", profileData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      useAuthStore.getState().setUser(res.data.user); // Kullanıcı state’ini güncelle
-      setSaveMessageOpen(true);
-    } catch (err) {
-      console.error("Profil güncelleme hatası:", err.response?.data || err.message);
-    }
-  };
 
   // Ayarlar popup fonksiyonları
   const handleChangePassword = () => console.log("Yeni şifre:", newPassword);

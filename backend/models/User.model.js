@@ -39,9 +39,13 @@ const userSchema = new mongoose.Schema(
       maxlength: 500,
       default: ""
     },
-    socialLinks: {
-      linkedin: String,
-      github: String
+    github: {
+      type: String,
+      default: ""
+    },
+    linkedin: {
+      type: String,
+      default: ""
     },
     profileImage: {
       type: String,
