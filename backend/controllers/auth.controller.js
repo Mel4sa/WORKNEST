@@ -95,7 +95,6 @@ export const logout = (req, res) => {
 
 
 
-// forgotPassword fonksiyonu (backend)
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   try {
