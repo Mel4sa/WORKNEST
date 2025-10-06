@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {aaaaaaa
+import {
   Box,
   Button,
   TextField,
@@ -37,49 +37,41 @@ export default function Login() {
     if (success) navigate("/profile");
   };
 
-  // 🔹 Şifremi unuttum işlemi
+  // 🔸 Şifre sıfırlama maili gönderme fonksiyonu
   const handleForgot = async () => {
-    if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
+  if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
 
-    setLoading(true);
-    setMessage("");
-    setModalError("");
+  setLoading(true);
+  try {
+    // 1️⃣ Backend'e istek → reset linki al
+const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
+console.log("Backend response:", res.data);
 
-    try {
-      // Backend'den reset link al
-      const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
-      console.log("Backend response:", res.data);
+const resetLink = res.data.resetLink;
+const fullname = res.data.fullname; // artık backend’den geliyor
 
-      const resetLink = res.data.resetLink;
-      const fullname = res.data.fullname || forgotEmail;
+const emailResponse = await emailjs.send(
+  import.meta.env.VITE_YOUR_SERVICE_ID,
+  import.meta.env.VITE_YOUR_TEMPLATE_ID,
+  {
+    to_email: forgotEmail,
+    fullname: fullname,     // template ile birebir eşleşiyor
+    reset_link: resetLink,  // template ile birebir eşleşiyor
+  },
+  import.meta.env.VITE_YOUR_PUBLIC_KEY
+);
 
-      // 🔹 EmailJS ile mail gönderimi (string olarak)
-      await emailjs.send(
-        "service_0k1us0k",      // Dashboard’daki Service ID
-        "template_7qzjmeg",     // Dashboard’daki Template ID
-        {
-          to_email: forgotEmail,
-          fullname,
-          reset_link: resetLink,
-        },
-        "KPLVEjR4CEVp-5jl2"     // Dashboard’daki Public Key
-      );
+console.log("EmailJS Response:", emailResponse);
 
-      setMessage("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et!");
-      setForgotEmail("");
-    } catch (err) {
-      console.error("Şifre sıfırlama hatası:", err);
-
-      const msg =
-        err.response?.status === 404
-          ? "Böyle bir kullanıcı bulunamadı."
-          : "Mail gönderilemedi, lütfen tekrar deneyin.";
-
-      setModalError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setMessage("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et!");
+    setForgotEmail("");
+  } catch (err) {
+    console.error("Şifre sıfırlama hatası:", err); // 🔹 Hata logu
+    setModalError("Böyle bir kullanıcı bulunamadı veya mail gönderilemedi.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box
