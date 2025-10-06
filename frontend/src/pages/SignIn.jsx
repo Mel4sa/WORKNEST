@@ -10,7 +10,7 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Visibility, VisibilityOff, CheckCircle, Cancel } from "@mui/icons-material";
 import useAuthStore from "../store/useAuthStore";
 
 function SignIn() {
@@ -23,7 +23,15 @@ function SignIn() {
   const register = useAuthStore((state) => state.register);
   const error = useAuthStore((state) => state.error);
 
+  // Şifre kurallarını kontrol et
+  const passwordRules = {
+    length: password.length >= 8 && password.length <= 20,
+    uppercase: /[A-Z]/.test(password),
+    symbol: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+  };
+
   const handleSignUp = async () => {
+    if (!Object.values(passwordRules).every(Boolean)) return;
     const success = await register(fullname, email, password);
     if (success) navigate("/login");
   };
@@ -40,6 +48,7 @@ function SignIn() {
         overflow: "hidden",
       }}
     >
+      {/* Arka Plan SVG */}
       <Box
         sx={{
           position: "absolute",
@@ -59,6 +68,7 @@ function SignIn() {
         </svg>
       </Box>
 
+      {/* Kart */}
       <Card
         sx={{
           width: 400,
@@ -118,6 +128,22 @@ function SignIn() {
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }}
             />
 
+            {/* Şifre Kuralları */}
+            <Box sx={{ mt: -2 }}>
+              <RuleItem
+                text="8-20 karakter arası olmalı"
+                valid={passwordRules.length}
+              />
+              <RuleItem
+                text="En az 1 büyük harf içermeli"
+                valid={passwordRules.uppercase}
+              />
+              <RuleItem
+                text="En az 1 özel karakter (!@#$%^&*) içermeli"
+                valid={passwordRules.symbol}
+              />
+            </Box>
+
             {error && (
               <Typography color="error" textAlign="center">
                 {error}
@@ -129,6 +155,7 @@ function SignIn() {
               fullWidth
               variant="contained"
               size="large"
+              disabled={!Object.values(passwordRules).every(Boolean)}
               sx={{
                 backgroundColor: "#915d56d3",
                 color: "#fff",
@@ -136,7 +163,10 @@ function SignIn() {
                 py: 1.2,
                 fontWeight: "bold",
                 textTransform: "none",
-                "&:hover": { transform: "scale(1.05)", boxShadow: "0 12px 36px rgba(0,0,0,0.3)" },
+                "&:hover": {
+                  transform: "scale(1.05)",
+                  boxShadow: "0 12px 36px rgba(0,0,0,0.3)",
+                },
               }}
             >
               Kayıt Ol
@@ -144,6 +174,22 @@ function SignIn() {
           </Box>
         </CardContent>
       </Card>
+    </Box>
+  );
+}
+
+// ✅ Kuralların yanındaki ikon satırı
+function RuleItem({ text, valid }) {
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+      {valid ? (
+        <CheckCircle sx={{ color: "green", fontSize: 18 }} />
+      ) : (
+        <Cancel sx={{ color: "red", fontSize: 18 }} />
+      )}
+      <Typography variant="body2" color={valid ? "green" : "text.secondary"}>
+        {text}
+      </Typography>
     </Box>
   );
 }

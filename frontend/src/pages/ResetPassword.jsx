@@ -9,11 +9,11 @@ import {
   CardContent,
   InputAdornment,
   IconButton,
+  List,
+  ListItem,
 } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Visibility, VisibilityOff, CheckCircle, Cancel } from "@mui/icons-material";
 import axiosInstance from "../lib/axios";
-
-
 
 export default function ResetPassword() {
   const { token } = useParams();
@@ -26,20 +26,71 @@ export default function ResetPassword() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  const [expired, setExpired] = useState(false);
+  const [email, setEmail] = useState("");
+  const [resendMessage, setResendMessage] = useState("");
+
+  const rules = {
+    length: password.length >= 8 && password.length <= 20,
+    upper: /[A-Z]/.test(password),
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+  };
+
+  const isPasswordValid = Object.values(rules).every(Boolean);
+  const isMatching = password === confirm && confirm.length > 0;
+  const canSubmit = isPasswordValid && isMatching;
+
+  // --- Şifre sıfırlama işlemi ---
   const handleReset = async (e) => {
     e.preventDefault();
-
-    if (password !== confirm) {
-      setError("Şifreler eşleşmiyor!");
+    if (!canSubmit) {
+      setError("Şifre belirtilen kurallara uygun olmalı ve eşleşmelidir!");
       return;
     }
 
     try {
-      const res = await axiosInstance.post(`/auth/reset-password/${token}`, { password });
+      const res = await axiosInstance.post(
+        `http://localhost:5000/auth/reset-password/${token}`, 
+        { password }
+      );
       setMessage(res.data.message || "Şifreniz başarıyla değiştirildi! Yönlendiriliyorsunuz...");
       setTimeout(() => navigate("/login"), 2000);
-    } catch {
-      setError("Geçersiz veya süresi dolmuş bağlantı.");
+    } catch (err) {
+      if (err.response?.status === 400 || err.response?.status === 404) {
+        setExpired(true);
+        setError("Şifre sıfırlama bağlantınız geçersiz veya süresi dolmuş.");
+      } else {
+        setError("Bir hata oluştu. Lütfen tekrar deneyin.");
+      }
+    }
+  };
+
+  // --- Yeni link gönderme işlemi ---
+  const handleResend = async () => {
+    if (!email.trim()) {
+      setResendMessage("Lütfen e-posta adresinizi girin.");
+      return;
+    }
+
+    try {
+      const res = await axiosInstance.post(
+        "http://localhost:5000/auth/resend-reset-link", 
+        { email: email.trim() }
+      );
+      setResendMessage(res.data.message || "Yeni şifre sıfırlama linki gönderildi!");
+      setError("");
+    } catch (err) {
+      if (err.response) {
+        if (err.response.status === 404) {
+          setResendMessage("E-posta bulunamadı. Lütfen doğru adres girin.");
+        } else if (err.response.status === 400) {
+          setResendMessage("Geçersiz istek. Lütfen tekrar deneyin.");
+        } else {
+          setResendMessage("Bir hata oluştu. Lütfen tekrar deneyin.");
+        }
+      } else {
+        setResendMessage("Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edin.");
+      }
     }
   };
 
@@ -55,35 +106,14 @@ export default function ResetPassword() {
         overflow: "hidden",
       }}
     >
-      {/* SVG Arka Plan */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: 0,
-          opacity: 0.15,
-        }}
-      >
-        <svg width="100%" height="100%" viewBox="0 0 800 600">
-          <circle cx="100" cy="100" r="80" fill="#ca5125" />
-          <circle cx="400" cy="200" r="120" fill="#915d56" />
-          <circle cx="700" cy="500" r="100" fill="#ca5125" />
-          <circle cx="200" cy="450" r="60" fill="#915d56" />
-        </svg>
-      </Box>
-
       <Card
         sx={{
-          width: 400,
+          width: 420,
           borderRadius: 5,
           p: 2,
           backgroundColor: "rgba(255,255,255,0.95)",
           boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
           position: "relative",
-          zIndex: 1,
         }}
       >
         <CardContent sx={{ p: 4 }}>
@@ -97,90 +127,108 @@ export default function ResetPassword() {
             Yeni Şifre Belirle
           </Typography>
 
-          <Box
-            component="form"
-            onSubmit={handleReset}
-            sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}
-          >
-            <TextField
-              label="Yeni Şifre"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              fullWidth
-              required
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
+          {!expired ? (
+            <Box component="form" onSubmit={handleReset} sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}>
+              <TextField
+                label="Yeni Şifre"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                fullWidth
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }}
+              />
+
+              <Box sx={{ mt: -2 }}>
+                <Typography variant="body2" sx={{ color: "#555", mb: 0.5 }}>
+                  Şifreniz şu kurallara uymalı:
+                </Typography>
+                <List dense sx={{ color: "#424242", fontSize: "0.9rem" }}>
+                  <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {rules.length ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />}
+                    8–20 karakter arasında olmalı
+                  </ListItem>
+                  <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {rules.upper ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />}
+                    En az bir büyük harf içermeli
+                  </ListItem>
+                  <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {rules.special ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />}
+                    En az bir özel karakter içermeli (!@#$%^&*)
+                  </ListItem>
+                </List>
+              </Box>
+
+              <TextField
+                label="Yeni Şifre (Tekrar)"
+                type={showConfirm ? "text" : "password"}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                fullWidth
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowConfirm(!showConfirm)}>
+                        {showConfirm ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }}
+              />
+
+              {error && <Typography color="error" textAlign="center">{error}</Typography>}
+              {message && <Typography color="success.main" textAlign="center">{message}</Typography>}
+
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={!canSubmit}
+                sx={{
+                  backgroundColor: canSubmit ? "#d7401eff" : "#ccc",
                   borderRadius: "50px",
-                  "& fieldset": { borderColor: "#bdbdbd" },
-                  "&:hover fieldset": { borderColor: "#757575" },
-                  "&.Mui-focused fieldset": { borderColor: "#424242" },
-                },
-              }}
-            />
-
-            <TextField
-              label="Yeni Şifre (Tekrar)"
-              type={showConfirm ? "text" : "password"}
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              fullWidth
-              required
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowConfirm(!showConfirm)}>
-                      {showConfirm ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "50px",
-                  "& fieldset": { borderColor: "#bdbdbd" },
-                  "&:hover fieldset": { borderColor: "#757575" },
-                  "&.Mui-focused fieldset": { borderColor: "#424242" },
-                },
-              }}
-            />
-
-            {error && (
-              <Typography color="error" textAlign="center">
-                {error}
+                  py: 1.2,
+                  fontWeight: "bold",
+                  "&:hover": { backgroundColor: canSubmit ? "#d7401eff" : "#ccc" },
+                }}
+              >
+                Şifreyi Güncelle
+              </Button>
+            </Box>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+              <Typography textAlign="center" color="error" variant="body2">
+                Şifre sıfırlama bağlantınız süresi dolmuş veya geçersiz.
               </Typography>
-            )}
-            {message && (
-              <Typography color="success.main" textAlign="center">
-                {message}
-              </Typography>
-            )}
-
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{
-                backgroundColor: "#d7401eff",
-                borderRadius: "50px",
-                py: 1.2,
-                fontWeight: "bold",
-                "&:hover": { backgroundColor: "#d7401eff" },
-              }}
-            >
-              Şifreyi Güncelle
-            </Button>
-          </Box>
+              <TextField
+                label="E-posta adresiniz"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                fullWidth
+              />
+              <Button
+                variant="contained"
+                sx={{ backgroundColor: "#d7401eff", "&:hover": { backgroundColor: "#b3361a" } }}
+                onClick={handleResend}
+              >
+                Yeni Link Gönder
+              </Button>
+              {resendMessage && <Typography textAlign="center" color="success.main">{resendMessage}</Typography>}
+            </Box>
+          )}
         </CardContent>
       </Card>
     </Box>
   );
-}            
+}
