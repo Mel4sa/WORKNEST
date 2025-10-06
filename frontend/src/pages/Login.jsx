@@ -187,64 +187,108 @@ console.log("EmailJS Response:", emailResponse);
       </Card>
 
       {/* 🔸 Şifremi Unuttum Modal */}
-      <Modal open={openForgot} onClose={() => setOpenForgot(false)}>
+<Modal open={openForgot} onClose={() => setOpenForgot(false)}>
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: 400,
+      bgcolor: "background.paper",
+      borderRadius: 3,
+      boxShadow: 24,
+      p: 4,
+      textAlign: "center",
+    }}
+  >
+    {!message ? (
+      <>
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          Şifremi Unuttum
+        </Typography>
+
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          Şifrenizi sıfırlamak için e-posta adresinizi giriniz.
+        </Typography>
+
+        <TextField
+          label="E-posta"
+          type="email"
+          fullWidth
+          sx={{ mb: 2 }}
+          value={forgotEmail}
+          onChange={(e) => setForgotEmail(e.target.value)}
+        />
+
+        {modalError && (
+          <Typography color="error" sx={{ mb: 1 }}>
+            {modalError}
+          </Typography>
+        )}
+
+        <Button
+          fullWidth
+          variant="contained"
+          disabled={loading}
+          sx={{
+            backgroundColor: "#d7401e",
+            borderRadius: "50px",
+            fontWeight: "bold",
+            "&:hover": { backgroundColor: "#d7401e" },
+          }}
+          onClick={handleForgot}
+        >
+          {loading ? "Gönderiliyor..." : "Gönder"}
+        </Button>
+      </>
+    ) : (
+      // ✅ Başarı ekranı
+      <>
         <Box
           sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            borderRadius: 3,
-            boxShadow: 24,
-            p: 4,
+            width: 60,
+            height: 60,
+            borderRadius: "50%",
+            backgroundColor: "#dff5e0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mx: "auto",
+            mb: 2,
           }}
         >
-          <Typography variant="h6" fontWeight="bold" textAlign="center" gutterBottom>
-            Şifremi Unuttum
+          <Typography variant="h4" color="success.main">
+            ✔
           </Typography>
-
-          <Typography variant="body2" textAlign="center" color="text.secondary" mb={2}>
-            Şifrenizi sıfırlamak için e-posta adresinizi giriniz.
-          </Typography>
-
-          <TextField
-            label="E-posta"
-            type="email"
-            fullWidth
-            sx={{ mb: 2 }}
-            value={forgotEmail}
-            onChange={(e) => setForgotEmail(e.target.value)}
-          />
-
-          {modalError && (
-            <Typography color="error" textAlign="center" sx={{ mb: 1 }}>
-              {modalError}
-            </Typography>
-          )}
-          {message && (
-            <Typography color="success.main" textAlign="center" sx={{ mb: 1 }}>
-              {message}
-            </Typography>
-          )}
-
-          <Button
-            fullWidth
-            variant="contained"
-            disabled={loading}
-            sx={{
-              backgroundColor: "#d7401e",
-              borderRadius: "50px",
-              fontWeight: "bold",
-              "&:hover": { backgroundColor: "#d7401e" },
-            }}
-            onClick={handleForgot}
-          >
-            {loading ? "Gönderiliyor..." : "Gönder"}
-          </Button>
         </Box>
-      </Modal>
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          Başarılı
+        </Typography>
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.
+        </Typography>
+
+        <Button
+          fullWidth
+          variant="contained"
+          sx={{
+            backgroundColor: "#d7401e",
+            borderRadius: "50px",
+            fontWeight: "bold",
+            "&:hover": { backgroundColor: "#d7401e" },
+          }}
+          onClick={() => {
+            setOpenForgot(false);
+            setMessage("");
+          }}
+        >
+          Giriş Yap
+        </Button>
+      </>
+    )}
+  </Box>
+</Modal>
     </Box>
   );
 }
