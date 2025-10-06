@@ -186,8 +186,16 @@ console.log("EmailJS Response:", emailResponse);
         </CardContent>
       </Card>
 
-      {/* 🔸 Şifremi Unuttum Modal */}
-<Modal open={openForgot} onClose={() => setOpenForgot(false)}>
+     {/* // 🔹 Şifremi Unuttum Modal kısmı */}
+<Modal
+  open={openForgot}
+  onClose={() => {
+    setOpenForgot(false);
+    setForgotEmail("");
+    setMessage("");
+    setModalError("");
+  }}
+>
   <Box
     sx={{
       position: "absolute",
@@ -219,6 +227,12 @@ console.log("EmailJS Response:", emailResponse);
           sx={{ mb: 2 }}
           value={forgotEmail}
           onChange={(e) => setForgotEmail(e.target.value)}
+          // 🔹 Enter tuşuna basınca handleForgot çağrılır
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleForgot();
+            }
+          }}
         />
 
         {modalError && (
@@ -243,7 +257,6 @@ console.log("EmailJS Response:", emailResponse);
         </Button>
       </>
     ) : (
-      // ✅ Başarı ekranı
       <>
         <Box
           sx={{
@@ -280,7 +293,9 @@ console.log("EmailJS Response:", emailResponse);
           }}
           onClick={() => {
             setOpenForgot(false);
+            setForgotEmail("");
             setMessage("");
+            setModalError("");
           }}
         >
           Giriş Yap

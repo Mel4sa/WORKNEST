@@ -9,10 +9,10 @@ function Navbar() {
 
   const handleAuthButton = () => {
     if (user) {
-      logout(); // store'dan çıkış yap
-      navigate("/login"); // login sayfasına dön
+      logout();
+      navigate("/login");
     } else {
-      navigate("/login"); // giriş yap sayfasına yönlendir
+      navigate("/login");
     }
   };
 
@@ -26,23 +26,16 @@ function Navbar() {
         transition: "all 0.4s ease",
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        {/* Worknest yazısı / logo */}
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        {/* WORKNEST Logo */}
         <Link to="/home" style={{ textDecoration: "none" }}>
-          <Typography
-            variant="h5"
-            sx={{
-              fontFamily: "'Anton', sans-serif",
-              fontSize: "2rem",
-              color: "#000",
-              letterSpacing: "2px",
-              textTransform: "uppercase",
-              textShadow: `1px 1px 0 #ccc, 2px 2px 0 #bbb`,
-              WebkitTextFillColor: "#000",
-              transition: "all 0.3s ease",
-              cursor: "pointer",
-            }}
-          >
+          <Typography variant="h5" className="elegant-logo">
             WORKNEST
           </Typography>
         </Link>
@@ -50,7 +43,7 @@ function Navbar() {
         {/* Menü Linkleri */}
         <Box sx={{ display: "flex", gap: 3 }}>
           {[
-            { label: "Ana Sayfa", path: "/home" }, // artık /home
+            { label: "Ana Sayfa", path: "/home" },
             { label: "AI Analyzer", path: "/ai-analyzer" },
             { label: "Projelerim", path: "/projects" },
             { label: "Davetlerim", path: "/invites" },
@@ -76,7 +69,7 @@ function Navbar() {
           ))}
         </Box>
 
-        {/* Auth butonları */}
+        {/* Giriş / Kayıt / Çıkış Butonları */}
         <Box sx={{ display: "flex", gap: 2 }}>
           {!user && (
             <Button
@@ -105,7 +98,7 @@ function Navbar() {
             variant="contained"
             onClick={handleAuthButton}
             sx={{
-              backgroundColor: user ? "#f44336" : "#d7401eff",
+              backgroundColor: user ? "#f44336" : "#d7401e",
               color: "#fff",
               borderRadius: "50px",
               padding: "6px 24px",
