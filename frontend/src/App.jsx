@@ -1,11 +1,13 @@
+import { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
-  useLocation,
   Navigate,
   Outlet,
+  useLocation,
 } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -14,41 +16,32 @@ import Invites from "./pages/Invites";
 import SignIn from "./pages/SignIn";
 import Login from "./pages/Login";
 import AIAnalyzer from "./pages/AIAnalyzer";
-import ResetPassword from "./pages/ResetPassword"; // 
+import ResetPassword from "./pages/ResetPassword";
+
 import useAuthStore from "./store/useAuthStore";
 
 function ProtectedRoute() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
-  return <Outlet />;
+  return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
 function PublicRoute() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  if (isLoggedIn) {
-    return <Navigate to="/profile" replace />;
-  }
-  return <Outlet />;
+  return isLoggedIn ? <Navigate to="/profile" replace /> : <Outlet />;
 }
 
 function AppRoutes() {
   const location = useLocation();
-
   const hideNavbarPaths = ["/login", "/signin"];
   const shouldHideNavbar =
     hideNavbarPaths.includes(location.pathname.toLowerCase()) ||
     location.pathname.toLowerCase().startsWith("/reset-password");
-
 
   return (
     <>
       {!shouldHideNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-
-        {/* Korunan sayfalar */}
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
@@ -57,15 +50,12 @@ function AppRoutes() {
           <Route path="/ai-analyzer" element={<AIAnalyzer />} />
         </Route>
 
-        {/* Public sayfalar */}
         <Route element={<PublicRoute />}>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/login" element={<Login />} />
         </Route>
 
-        {/* Şifre sıfırlama route’u artık ayrı */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>
@@ -73,6 +63,13 @@ function AppRoutes() {
 }
 
 function App() {
+  const fetchUser = useAuthStore((state) => state.fetchUser);
+
+  // ✅ App açılır açılmaz kullanıcıyı çek
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
   return (
     <Router>
       <AppRoutes />

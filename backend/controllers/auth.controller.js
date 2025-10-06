@@ -62,8 +62,10 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "365d" }
     );
+
+    const { password: _, ...userData } = user.toObject();
 
     res.status(200).json({
       message: "Giriş başarılı",
@@ -119,8 +121,6 @@ const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
     res.status(500).json({ message: "Sunucu hatası", error: error.message });
   }
 };
-
-
 
 
 export const resetPassword = async (req, res) => {

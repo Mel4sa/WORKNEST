@@ -5,6 +5,6 @@ import { protectRoute } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 router.put("/update", protectRoute, updateProfile);
-
+router.get("/me", protectRoute, getMe);
 
 export default router;

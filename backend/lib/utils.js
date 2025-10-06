@@ -3,10 +3,10 @@ import bcrypt from 'bcryptjs';
 
 export const generateToken = (id, res) => {
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '7d',
+    expiresIn: '365d',
   });
   res.cookie('jwt', token, {
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    maxAge: 1000 * 60 * 60 * 24 * 365, // 365 days
     httpOnly: true,
     sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
