@@ -98,14 +98,14 @@ function Navbar() {
             variant="contained"
             onClick={handleAuthButton}
             sx={{
-              backgroundColor: user ? "#f44336" : "#d7401e",
+              backgroundColor: user ? "#f61000ff" : "#ff0000ff",
               color: "#fff",
               borderRadius: "50px",
               padding: "6px 24px",
               textTransform: "none",
               fontWeight: "bold",
               "&:hover": {
-                backgroundColor: user ? "#d32f2f" : "#a03e1b",
+                backgroundColor: user ? "#ff0000ff" : "#ff0000ff",
                 transform: "scale(1.05)",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
               },
