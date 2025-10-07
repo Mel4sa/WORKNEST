@@ -246,10 +246,10 @@ console.log("EmailJS Response:", emailResponse);
           variant="contained"
           disabled={loading}
           sx={{
-            backgroundColor: "#d7401e",
+            backgroundColor: "#003fd3ff",
             borderRadius: "50px",
             fontWeight: "bold",
-            "&:hover": { backgroundColor: "#d7401e" },
+            "&:hover": { backgroundColor: "#003fd3ff" },
           }}
           onClick={handleForgot}
         >
@@ -286,10 +286,10 @@ console.log("EmailJS Response:", emailResponse);
           fullWidth
           variant="contained"
           sx={{
-            backgroundColor: "#d7401e",
+            backgroundColor: "#003fd3ff",
             borderRadius: "50px",
             fontWeight: "bold",
-            "&:hover": { backgroundColor: "#d7401e" },
+            "&:hover": { backgroundColor: "#003fd3ff" },
           }}
           onClick={() => {
             setOpenForgot(false);
