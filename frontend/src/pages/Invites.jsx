@@ -7,58 +7,46 @@ import {
   Stack,
   CircularProgress,
 } from "@mui/material";
-import useAuthStore from "../store/useAuthStore";
-import axiosInstance from "../lib/axios";
 
 export default function InvitesPage() {
-  const token = useAuthStore((state) => state.token);
-  const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Davetleri backend'den çek
-  useEffect(() => {
-    const fetchInvites = async () => {
-      try {
-        const res = await axiosInstance.get("/invites", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setInvites(res.data.invites || []);
-      } catch (err) {
-        console.error("Davetler alınamadı:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Örnek davet verileri
+  const invites = [
+    {
+      id: 1,
+      senderName: "Ahmet Yılmaz",
+      senderAvatar: "https://i.pravatar.cc/150?img=1",
+      projectName: "Yeni Web Sitesi",
+    },
+    {
+      id: 2,
+      senderName: "Elif Demir",
+      senderAvatar: "https://i.pravatar.cc/150?img=2",
+      projectName: "Mobil Uygulama Tasarımı",
+    },
+    {
+      id: 3,
+      senderName: "Mehmet Can",
+      senderAvatar: "https://i.pravatar.cc/150?img=3",
+      projectName: "Backend API Projesi",
+    },
+  ];
 
-    fetchInvites();
-  }, [token]);
+  // Loading simülasyonu
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1000); // 1 saniye sonra loading biter
+    return () => clearTimeout(timer);
+  }, []);
 
   // Kabul et
-  const handleAccept = async (inviteId) => {
-    try {
-      await axiosInstance.post(
-        `/invites/${inviteId}/accept`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setInvites(invites.filter((inv) => inv.id !== inviteId));
-    } catch (err) {
-      console.error("Kabul hatası:", err);
-    }
+  const handleAccept = (inviteId) => {
+    alert(`Davet ${inviteId} kabul edildi!`);
   };
 
   // Reddet
-  const handleDecline = async (inviteId) => {
-    try {
-      await axiosInstance.post(
-        `/invites/${inviteId}/decline`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setInvites(invites.filter((inv) => inv.id !== inviteId));
-    } catch (err) {
-      console.error("Reddetme hatası:", err);
-    }
+  const handleDecline = (inviteId) => {
+    alert(`Davet ${inviteId} reddedildi!`);
   };
 
   if (loading)
