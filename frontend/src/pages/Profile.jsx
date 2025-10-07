@@ -66,6 +66,7 @@ export default function ProfilePage() {
 
   // Snackbar
   const [saveMessageOpen, setSaveMessageOpen] = useState(false);
+  const [saveMessageText, setSaveMessageText] = useState("");
 
   useEffect(() => {
     fetchUser();
@@ -161,7 +162,9 @@ export default function ProfilePage() {
       oldPassword,
       newPassword,
     });
-    console.log("✅ Şifre güncellendi");
+    setSaveMessageText("Şifre başarıyla güncellendi!");
+    setSaveMessageOpen(true);
+    handleClosePopup();
   } catch (err) {
     console.error("❌ Şifre güncellenemedi:", err.response?.data || err.message);
   }
@@ -170,33 +173,36 @@ export default function ProfilePage() {
 const handleChangeUsername = async () => {
   try {
     await axiosInstance.put("/user/change-username", { newUsername });
-    console.log("✅ Kullanıcı adı güncellendi");
+    setSaveMessageText("Kullanıcı adı başarıyla güncellendi!");
+    setSaveMessageOpen(true);
+    handleClosePopup();
   } catch (err) {
     console.error("❌ Kullanıcı adı güncellenemedi:", err.response?.data || err.message);
   }
 };
 
-
 const handleChangeEmail = async () => {
   try {
     await axiosInstance.put("/user/change-email", { newEmail });
-    console.log("✅ Email güncellendi");
+    setSaveMessageText("E-posta başarıyla güncellendi!");
+    setSaveMessageOpen(true);
+    handleClosePopup();
   } catch (err) {
-    console.error("❌ Email güncellenemedi:", err.response?.data || err.message);
+    console.error("❌ E-posta güncellenemedi:", err.response?.data || err.message);
   }
 };
 
 const handleDeleteAccount = async () => {
   try {
     await axiosInstance.delete("/user/delete-account");
-    console.log("✅ Hesap silindi");
-    // yönlendirme yapabilirsin mesela: navigate("/login")
+    setSaveMessageText("Hesap başarıyla silindi!");
+    setSaveMessageOpen(true);
+    handleClosePopup();
+    // örn. navigate("/login");
   } catch (err) {
     console.error("❌ Hesap silinemedi:", err.response?.data || err.message);
   }
 };
-
-
   return (
     <Box sx={{ minHeight: "100vh", py: 8, px: 4, backgroundColor: "#fafafa" }}>
       <Box
@@ -496,6 +502,14 @@ const handleDeleteAccount = async () => {
         <Snackbar open={saveMessageOpen} autoHideDuration={3000} onClose={() => setSaveMessageOpen(false)}>
           <Alert severity="success">Profil başarıyla güncellendi!</Alert>
         </Snackbar>
+
+        <Snackbar
+  open={saveMessageOpen}
+  autoHideDuration={3000}
+  onClose={() => setSaveMessageOpen(false)}
+>
+  <Alert severity="success">{saveMessageText}</Alert>
+</Snackbar>
 
         {/* Ayarlar Popup */}
         <Dialog
