@@ -40,7 +40,7 @@ export default function ProfilePage() {
   const setUser = useAuthStore((state) => state.setUser);
   const fetchUser = useAuthStore((state) => state.fetchUser);
 
-  // Profil state
+  // --- Profil state ---
   const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState("");
   const [bio, setBio] = useState("");
@@ -50,11 +50,11 @@ export default function ProfilePage() {
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
 
-  // Profil fotoğrafı state
+  // Profil fotoğrafı
   const fileInputRef = useRef(null);
   const [preview, setPreview] = useState("");
 
-  // Ayarlar popup state
+  // Ayarlar popup
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("username");
   const [oldPassword, setOldPassword] = useState("");
@@ -86,9 +86,7 @@ export default function ProfilePage() {
   }, [user]);
 
   // --- Profil fotoğrafı değiştirme ---
-  const handleChangeProfilePhoto = () => {
-    fileInputRef.current.click();
-  };
+  const handleChangeProfilePhoto = () => fileInputRef.current.click();
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -105,7 +103,7 @@ export default function ProfilePage() {
           "Content-Type": "multipart/form-data",
         },
       });
-      await fetchUser(); // yüklemeden sonra güncel user çek
+      await fetchUser();
     } catch (err) {
       console.error("Profil fotoğrafı yüklenemedi:", err.response?.data || err.message);
     }
@@ -122,6 +120,7 @@ export default function ProfilePage() {
     setShowNewPassword(false);
   };
 
+  // --- Yetenek ekle/sil ---
   const handleAddSkill = () => {
     const trimmedSkill = newSkill.trim();
     if (trimmedSkill && !skills.includes(trimmedSkill)) {
@@ -134,6 +133,7 @@ export default function ProfilePage() {
     setSkills(skills.filter((skill) => skill !== skillToDelete));
   };
 
+  // --- Profil kaydet ---
   const handleSaveProfile = async () => {
     const profileData = { university, department, title: role, skills, bio, github, linkedin };
     try {
@@ -141,6 +141,7 @@ export default function ProfilePage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data.user);
+      setSaveMessageText("Profil başarıyla güncellendi!");
       setSaveMessageOpen(true);
     } catch (err) {
       console.error("Profil güncelleme hatası:", err.response?.data || err.message);
@@ -156,53 +157,52 @@ export default function ProfilePage() {
     linkedin !== (user?.linkedin || "") ||
     skills.join(",") !== (user?.skills || []).join(",");
 
-    const handleChangePassword = async () => {
-  try {
-    await axiosInstance.put("/user/change-password", {
-      oldPassword,
-      newPassword,
-    });
-    setSaveMessageText("Şifre başarıyla güncellendi!");
-    setSaveMessageOpen(true);
-    handleClosePopup();
-  } catch (err) {
-    console.error("❌ Şifre güncellenemedi:", err.response?.data || err.message);
-  }
-};
+  // --- Ayarlar fonksiyonları ---
+  const handleChangePassword = async () => {
+    try {
+      await axiosInstance.put("/user/change-password", { oldPassword, newPassword });
+      setSaveMessageText("Şifre başarıyla güncellendi!");
+      setSaveMessageOpen(true);
+      handleClosePopup();
+    } catch (err) {
+      console.error("Şifre güncellenemedi:", err.response?.data || err.message);
+    }
+  };
 
-const handleChangeUsername = async () => {
-  try {
-    await axiosInstance.put("/user/change-username", { newUsername });
-    setSaveMessageText("Kullanıcı adı başarıyla güncellendi!");
-    setSaveMessageOpen(true);
-    handleClosePopup();
-  } catch (err) {
-    console.error("❌ Kullanıcı adı güncellenemedi:", err.response?.data || err.message);
-  }
-};
+  const handleChangeUsername = async () => {
+    try {
+      await axiosInstance.put("/user/change-username", { newUsername });
+      setSaveMessageText("Kullanıcı adı başarıyla güncellendi!");
+      setSaveMessageOpen(true);
+      handleClosePopup();
+    } catch (err) {
+      console.error("Kullanıcı adı güncellenemedi:", err.response?.data || err.message);
+    }
+  };
 
-const handleChangeEmail = async () => {
-  try {
-    await axiosInstance.put("/user/change-email", { newEmail });
-    setSaveMessageText("E-posta başarıyla güncellendi!");
-    setSaveMessageOpen(true);
-    handleClosePopup();
-  } catch (err) {
-    console.error("❌ E-posta güncellenemedi:", err.response?.data || err.message);
-  }
-};
+  const handleChangeEmail = async () => {
+    try {
+      await axiosInstance.put("/user/change-email", { newEmail });
+      setSaveMessageText("E-posta başarıyla güncellendi!");
+      setSaveMessageOpen(true);
+      handleClosePopup();
+    } catch (err) {
+      console.error("E-posta güncellenemedi:", err.response?.data || err.message);
+    }
+  };
 
-const handleDeleteAccount = async () => {
-  try {
-    await axiosInstance.delete("/user/delete-account");
-    setSaveMessageText("Hesap başarıyla silindi!");
-    setSaveMessageOpen(true);
-    handleClosePopup();
-    // örn. navigate("/login");
-  } catch (err) {
-    console.error("❌ Hesap silinemedi:", err.response?.data || err.message);
-  }
-};
+  const handleDeleteAccount = async () => {
+    try {
+      await axiosInstance.delete("/user/delete-account");
+      setSaveMessageText("Hesap başarıyla silindi!");
+      setSaveMessageOpen(true);
+      handleClosePopup();
+      // navigate("/login"); // opsiyonel
+    } catch (err) {
+      console.error("Hesap silinemedi:", err.response?.data || err.message);
+    }
+  };
+
   return (
     <Box sx={{ minHeight: "100vh", py: 8, px: 4, backgroundColor: "#fafafa" }}>
       <Box
@@ -217,14 +217,11 @@ const handleDeleteAccount = async () => {
         }}
       >
         {/* Ayarlar butonu */}
-        <IconButton
-          onClick={() => setOpen(true)}
-          sx={{ position: "absolute", top: 24, right: 24, color: "#003fd3ff" }}
-        >
+        <IconButton onClick={() => setOpen(true)} sx={{ position: "absolute", top: 24, right: 24, color: "#003fd3ff" }}>
           <Settings fontSize="large" />
         </IconButton>
 
-        {/* Profil Üst Kısmı */}
+        {/* Profil üst kısmı */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap", mb: 5 }}>
           <Box
             sx={{
@@ -238,14 +235,9 @@ const handleDeleteAccount = async () => {
             }}
             onClick={handleChangeProfilePhoto}
           >
-                       <Avatar
+            <Avatar
               src={preview || undefined}
-              sx={{
-                width: "100%",
-                height: "100%",
-                border: "3px solid #003fd3ff",
-                bgcolor: "#003fd3ff",
-              }}
+              sx={{ width: "100%", height: "100%", border: "3px solid #003fd3ff", bgcolor: "#003fd3ff" }}
             >
               {!preview && <Person sx={{ fontSize: 70, color: "#fff" }} />}
             </Avatar>
@@ -269,28 +261,13 @@ const handleDeleteAccount = async () => {
             </Box>
           </Box>
 
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: "none" }}
-            onChange={handleFileChange}
-          />
+          <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} />
 
           <Box sx={{ flex: 1 }}>
             <Typography variant="h3" sx={{ fontWeight: 700 }}>
               {user?.fullname || "Kullanıcı"}
             </Typography>
-
-            <Box
-              sx={{
-                mt: 1.5,
-                borderBottom: "2px dotted #003fd3ff",
-                display: "inline-block",
-                minWidth: 220,
-                pb: 0.5,
-              }}
-            >
+            <Box sx={{ mt: 1.5, borderBottom: "2px dotted #003fd3ff", display: "inline-block", minWidth: 220, pb: 0.5 }}>
               <input
                 type="text"
                 placeholder="Title"
@@ -311,19 +288,7 @@ const handleDeleteAccount = async () => {
 
             <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
               {university ? (
-                <Chip
-                  icon={<School />}
-                  label={university}
-                  onDelete={() => setUniversity("")}
-                  sx={{
-                    flex: 1,
-                    borderRadius: "10px",
-                    backgroundColor: "#f5f5f5",
-                    color: "#333",
-                    fontWeight: 600,
-                    height: 50,
-                  }}
-                />
+                <Chip icon={<School />} label={university} onDelete={() => setUniversity("")} sx={{ flex: 1, borderRadius: "10px", backgroundColor: "#f5f5f5", color: "#333", fontWeight: 600, height: 50 }} />
               ) : (
                 <Select
                   value={university}
@@ -334,14 +299,7 @@ const handleDeleteAccount = async () => {
                     minWidth: 250,
                     height: 50,
                     borderRadius: "10px",
-                    "& .MuiSelect-select": {
-                      display: "flex",
-                      alignItems: "center",
-                      fontSize: "1rem",
-                      fontWeight: 500,
-                      color: university ? "#000" : "gray",
-                      pl: 2,
-                    },
+                    "& .MuiSelect-select": { display: "flex", alignItems: "center", fontSize: "1rem", fontWeight: 500, color: university ? "#000" : "gray", pl: 2 },
                     "& fieldset": { borderColor: "#003fd3ff" },
                   }}
                 >
@@ -360,22 +318,14 @@ const handleDeleteAccount = async () => {
                 variant="outlined"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                sx={{
-                  flex: 1,
-                  height: 50,
-                  "& .MuiOutlinedInput-root": {
-                    height: 50,
-                    borderRadius: "10px",
-                    "& fieldset": { borderColor: "#003fd3ff" },
-                  },
-                }}
+                sx={{ flex: 1, height: 50, "& .MuiOutlinedInput-root": { height: 50, borderRadius: "10px", "& fieldset": { borderColor: "#003fd3ff" } } }}
               />
             </Box>
           </Box>
         </Box>
 
-        {/* Biyografi */}
-        <Box sx={{ mb: 3 }}>
+        {/* Biyografi, sosyal, yetenekler ve kaydetme */}
+        <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
             Biyografi
           </Typography>
@@ -387,18 +337,10 @@ const handleDeleteAccount = async () => {
             variant="outlined"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
-                "& fieldset": { borderColor: "#003fd3ff" },
-              },
-            }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", "& fieldset": { borderColor: "#003fd3ff" } } }}
           />
-        </Box>
 
-        {/* Sosyal Bağlantılar */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, mt: 3 }}>
             Sosyal Bağlantılar
           </Typography>
           <Stack spacing={2}>
@@ -407,13 +349,7 @@ const handleDeleteAccount = async () => {
               value={github}
               onChange={(e) => setGithub(e.target.value)}
               variant="outlined"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <GitHub sx={{ color: "#333" }} />
-                  </InputAdornment>
-                ),
-              }}
+              InputProps={{ startAdornment: <InputAdornment position="start"><GitHub sx={{ color: "#333" }} /></InputAdornment> }}
               sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "10px" }}
             />
             <TextField
@@ -421,75 +357,30 @@ const handleDeleteAccount = async () => {
               value={linkedin}
               onChange={(e) => setLinkedin(e.target.value)}
               variant="outlined"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LinkedIn sx={{ color: "#0A66C2" }} />
-                  </InputAdornment>
-                ),
-              }}
+              InputProps={{ startAdornment: <InputAdornment position="start"><LinkedIn sx={{ color: "#0A66C2" }} /></InputAdornment> }}
               sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "10px" }}
             />
           </Stack>
-        </Box>
 
-        {/* Yetenekler */}
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, mt: 3 }}>
             Yeteneklerim
           </Typography>
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
             {skills.map((skill) => (
-              <Chip
-                key={skill}
-                label={skill}
-                onDelete={() => handleDeleteSkill(skill)}
-                sx={{
-                  mb: 1,
-                  borderRadius: "10px",
-                  backgroundColor: "#003fd3ff",
-                  color: "#fff",
-                }}
-              />
+              <Chip key={skill} label={skill} onDelete={() => handleDeleteSkill(skill)} sx={{ mb: 1, borderRadius: "10px", backgroundColor: "#003fd3ff", color: "#fff" }} />
             ))}
           </Stack>
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            <TextField
-              label="Yeni Yetenek Ekle"
-              variant="outlined"
-              size="small"
-              value={newSkill}
-              onChange={(e) => setNewSkill(e.target.value)}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "10px",
-                  "& fieldset": { borderColor: "#003fd3ff" },
-                },
-              }}
-            />
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "#003fd3ff",
-                borderRadius: "10px",
-                "&:hover": { backgroundColor: "#002fa0" },
-              }}
-              onClick={handleAddSkill}
-            >
+            <TextField label="Yeni Yetenek Ekle" variant="outlined" size="small" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", "& fieldset": { borderColor: "#003fd3ff" } } }} />
+            <Button variant="contained" sx={{ backgroundColor: "#003fd3ff", borderRadius: "10px", "&:hover": { backgroundColor: "#002fa0" } }} onClick={handleAddSkill}>
               Ekle
             </Button>
           </Box>
+
           <Box sx={{ textAlign: "center", mt: 4 }}>
             <Button
               variant="contained"
-              sx={{
-                backgroundColor: isProfileChanged ? "#003fd3ff" : "#ccc",
-                borderRadius: "10px",
-                px: 4,
-                py: 1,
-                fontSize: "1rem",
-                "&:hover": { backgroundColor: isProfileChanged ? "#002fa0" : "#ccc" },
-              }}
+              sx={{ backgroundColor: isProfileChanged ? "#003fd3ff" : "#ccc", borderRadius: "10px", px: 4, py: 1, fontSize: "1rem", "&:hover": { backgroundColor: isProfileChanged ? "#002fa0" : "#ccc" } }}
               disabled={!isProfileChanged}
               onClick={handleSaveProfile}
             >
@@ -498,32 +389,18 @@ const handleDeleteAccount = async () => {
           </Box>
         </Box>
 
-        {/* Kaydetme Snackbar */}
+        {/* Snackbar */}
         <Snackbar open={saveMessageOpen} autoHideDuration={3000} onClose={() => setSaveMessageOpen(false)}>
-          <Alert severity="success">Profil başarıyla güncellendi!</Alert>
+          <Alert severity="success">{saveMessageText}</Alert>
         </Snackbar>
 
-        <Snackbar
-  open={saveMessageOpen}
-  autoHideDuration={3000}
-  onClose={() => setSaveMessageOpen(false)}
->
-  <Alert severity="success">{saveMessageText}</Alert>
-</Snackbar>
-
-        {/* Ayarlar Popup */}
-        <Dialog
-          open={open}
-          onClose={handleClosePopup}
-          PaperProps={{
-            sx: { width: 420, borderRadius: 4, p: 3, backgroundColor: "#fff" },
-          }}
-        >
+        {/* Ayarlar popup */}
+        <Dialog open={open} onClose={handleClosePopup} PaperProps={{ sx: { width: 420, borderRadius: 4, p: 3, backgroundColor: "#fff" } }}>
           <Typography variant="h6" sx={{ fontWeight: 700, textAlign: "center", mb: 2 }}>
             Hesap Ayarları
           </Typography>
           <Divider sx={{ mb: 2 }} />
-
+          {/* Tab menüsü */}
           <Box sx={{ display: "flex", justifyContent: "space-around", mb: 2 }}>
             {[
               { key: "username", label: "Kullanıcı Adı" },
@@ -548,17 +425,10 @@ const handleDeleteAccount = async () => {
             ))}
           </Box>
 
-          {/* İçerik */}
+          {/* Tab içerikleri */}
           {activeTab === "username" && (
             <Box>
-              <TextField
-                fullWidth
-                label="Yeni Kullanıcı Adı"
-                sx={{ mb: 2 }}
-                variant="outlined"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-              />
+              <TextField fullWidth label="Yeni Kullanıcı Adı" sx={{ mb: 2 }} variant="outlined" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
               <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeUsername}>
                 Kaydet
               </Button>
@@ -567,14 +437,7 @@ const handleDeleteAccount = async () => {
 
           {activeTab === "email" && (
             <Box>
-              <TextField
-                fullWidth
-                label="Yeni E-posta"
-                sx={{ mb: 2 }}
-                variant="outlined"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-              />
+              <TextField fullWidth label="Yeni E-posta" sx={{ mb: 2 }} variant="outlined" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
               <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeEmail}>
                 Güncelle
               </Button>
@@ -582,102 +445,29 @@ const handleDeleteAccount = async () => {
           )}
 
           {activeTab === "password" && (
-            <Box
-              component="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleChangePassword();
-              }}
-            >
-              <TextField
-                fullWidth
-                label="Eski Şifre"
-                type={showOldPassword ? "text" : "password"}
-                sx={{ mb: 2 }}
-                variant="outlined"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowOldPassword(!showOldPassword)}>
-                        {showOldPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <TextField
-                fullWidth
-                label="Yeni Şifre"
-                type={showNewPassword ? "text" : "password"}
-                sx={{ mb: 2 }}
-                variant="outlined"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowNewPassword(!showNewPassword)}>
-                        {showNewPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" sx={{ color: "#555", mb: 0.5 }}>
-                  Yeni şifre şu kurallara uymalı:
-                </Typography>
-                <List dense sx={{ color: "#424242", fontSize: "0.9rem" }}>
-                  <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    {newPassword.length >= 8 && newPassword.length <= 20 ? (
-                      <CheckCircle color="success" fontSize="small" />
-                    ) : (
-                      <Cancel color="error" fontSize="small" />
-                    )}
-                    8–20 karakter arasında olmalı
-                  </ListItem>
-                  <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    {/[A-Z]/.test(newPassword) ? (
-                      <CheckCircle color="success" fontSize="small" />
-                    ) : (
-                      <Cancel color="error" fontSize="small" />
-                    )}
-                    En az bir büyük harf içermeli
-                  </ListItem>
-                  <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    {/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? (
-                      <CheckCircle color="success" fontSize="small" />
-                    ) : (
-                      <Cancel color="error" fontSize="small" />
-                    )}
-                    En az bir özel karakter içermeli (!@#$%^&*)
-                  </ListItem>
-                </List>
-              </Box>
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                disabled={
-                  !(
-                    newPassword.length >= 8 &&
-                    newPassword.length <= 20 &&
-                    /[A-Z]/.test(newPassword) &&
-                    /[!@#$%^&*(),.?":{}|<>]/.test(newPassword)
-                  )
-                }
-                sx={{
-                  background: "#003fd3ff",
-                  borderRadius: 2,
-                  py: 1.2,
-                  fontWeight: "bold",
-                  "&:hover": { background: "#002fa0" },
-                  "&:disabled": { background: "#ccc", color: "#666" },
-                  mb: 2,
-                }}
-                onClick={handleChangePassword}
+            <Box component="form" onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}>
+              <TextField fullWidth label="Eski Şifre" type={showOldPassword ? "text" : "password"} sx={{ mb: 2 }} variant="outlined" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)}
+                InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowOldPassword(!showOldPassword)}>{showOldPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+              <TextField fullWidth label="Yeni Şifre" type={showNewPassword ? "text" : "password"} sx={{ mb: 2 }} variant="outlined" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowNewPassword(!showNewPassword)}>{showNewPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+
+              <List dense sx={{ color: "#424242", fontSize: "0.9rem", mb: 2 }}>
+                <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {newPassword.length >= 8 && newPassword.length <= 20 ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />} 8–20 karakter
+                </ListItem>
+                <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+  {/[A-Z]/.test(newPassword) ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />}
+  En az bir büyük harf içermeli
+</ListItem>
+
+<ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+  {/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />}
+  En az bir özel karakter içermeli (!@#$%^&*)
+</ListItem>
+              </List>
+              <Button fullWidth type="submit" variant="contained"
+                disabled={!(newPassword.length >= 8 && newPassword.length <= 20 && /[A-Z]/.test(newPassword) && /[!@#$%^&*(),.?":{}|<>]/.test(newPassword))}
+                sx={{ background: "#003fd3ff", borderRadius: 2, py: 1.2, fontWeight: "bold", "&:hover": { background: "#002fa0" }, "&:disabled": { background: "#ccc", color: "#666" }, mb: 2 }}
               >
                 Şifreyi Değiştir
               </Button>
@@ -686,16 +476,8 @@ const handleDeleteAccount = async () => {
 
           {activeTab === "delete" && (
             <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ mb: 2, color: "#a33" }}>
-                Hesabınızı silmek istediğinize emin misiniz?
-              </Typography>
-              <Button
-                variant="contained"
-                color="error"
-                fullWidth
-                sx={{ borderRadius: 2, mb: 2 }}
-                onClick={handleDeleteAccount}
-              >
+              <Typography sx={{ mb: 2, color: "#a33" }}>Hesabınızı silmek istediğinize emin misiniz?</Typography>
+              <Button variant="contained" color="error" fullWidth sx={{ borderRadius: 2, mb: 2 }} onClick={handleDeleteAccount}>
                 Hesabı Sil
               </Button>
             </Box>
