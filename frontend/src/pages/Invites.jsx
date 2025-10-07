@@ -69,9 +69,7 @@ export default function InvitesPage() {
 
   return (
     <Box sx={{ p: 4, maxWidth: 900, mx: "auto" }}>
-      <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
-        Davetlerim
-      </Typography>
+     
 
       <Paper sx={{ mb: 3 }}>
         <Tabs
