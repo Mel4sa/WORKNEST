@@ -10,6 +10,7 @@ import {
   Cancel,
   Visibility,
   VisibilityOff,
+  Add,
 } from "@mui/icons-material";
 import {
   Box,
@@ -25,10 +26,10 @@ import {
   Dialog,
   Divider,
   InputAdornment,
-  List,
-  ListItem,
   Snackbar,
   Alert,
+  List,
+  ListItem,
 } from "@mui/material";
 import universities from "../data/universities.json";
 import useAuthStore from "../store/useAuthStore";
@@ -49,12 +50,11 @@ export default function ProfilePage() {
   const [role, setRole] = useState("");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
-
-  // Profil fotoğrafı
-  const fileInputRef = useRef(null);
   const [preview, setPreview] = useState("");
 
-  // Ayarlar popup
+  const fileInputRef = useRef(null);
+
+  // --- Ayarlar popup ---
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("username");
   const [oldPassword, setOldPassword] = useState("");
@@ -64,7 +64,7 @@ export default function ProfilePage() {
   const [newUsername, setNewUsername] = useState("");
   const [newEmail, setNewEmail] = useState("");
 
-  // Snackbar
+  // --- Snackbar ---
   const [saveMessageOpen, setSaveMessageOpen] = useState(false);
   const [saveMessageText, setSaveMessageText] = useState("");
 
@@ -85,7 +85,7 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  // --- Profil fotoğrafı değiştirme ---
+  // --- Profil fotoğrafı ---
   const handleChangeProfilePhoto = () => fileInputRef.current.click();
 
   const handleFileChange = async (e) => {
@@ -98,10 +98,7 @@ export default function ProfilePage() {
 
     try {
       await axiosInstance.post("/user/upload-photo", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
       });
       await fetchUser();
     } catch (err) {
@@ -109,28 +106,17 @@ export default function ProfilePage() {
     }
   };
 
-  // --- Popup kapanınca input’ları sıfırla ---
-  const handleClosePopup = () => {
-    setOpen(false);
-    setOldPassword("");
-    setNewPassword("");
-    setNewUsername("");
-    setNewEmail("");
-    setShowOldPassword(false);
-    setShowNewPassword(false);
-  };
-
-  // --- Yetenek ekle/sil ---
+  // --- Skills ekle/sil ---
   const handleAddSkill = () => {
-    const trimmedSkill = newSkill.trim();
-    if (trimmedSkill && !skills.includes(trimmedSkill)) {
-      setSkills([...skills, trimmedSkill]);
+    const skill = newSkill.trim();
+    if (skill && !skills.includes(skill)) {
+      setSkills([...skills, skill]);
       setNewSkill("");
     }
   };
 
   const handleDeleteSkill = (skillToDelete) => {
-    setSkills(skills.filter((skill) => skill !== skillToDelete));
+    setSkills(skills.filter((s) => s !== skillToDelete));
   };
 
   // --- Profil kaydet ---
@@ -197,293 +183,155 @@ export default function ProfilePage() {
       setSaveMessageText("Hesap başarıyla silindi!");
       setSaveMessageOpen(true);
       handleClosePopup();
-      // navigate("/login"); // opsiyonel
     } catch (err) {
       console.error("Hesap silinemedi:", err.response?.data || err.message);
     }
   };
 
-  return (
-    <Box sx={{ minHeight: "100vh", py: 8, px: 4, backgroundColor: "#fafafa" }}>
-      <Box
-        sx={{
-          maxWidth: 900,
-          mx: "auto",
-          p: 5,
-          borderRadius: "10px",
-          boxShadow: "0 16px 48px rgba(0,0,0,0.1)",
-          backgroundColor: "#fff",
-          position: "relative",
-        }}
-      >
-        {/* Ayarlar butonu */}
-        <IconButton onClick={() => setOpen(true)} sx={{ position: "absolute", top: 24, right: 24, color: "#003fd3ff" }}>
-          <Settings fontSize="large" />
-        </IconButton>
+  const handleClosePopup = () => {
+    setOpen(false);
+    setOldPassword("");
+    setNewPassword("");
+    setNewUsername("");
+    setNewEmail("");
+    setShowOldPassword(false);
+    setShowNewPassword(false);
+  };
 
-        {/* Profil üst kısmı */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap", mb: 5 }}>
-          <Box
-            sx={{
-              position: "relative",
-              width: 140,
-              height: 140,
-              borderRadius: "50%",
-              overflow: "hidden",
-              "&:hover .cameraOverlay": { opacity: 1 },
-              cursor: "pointer",
-            }}
-            onClick={handleChangeProfilePhoto}
-          >
-            <Avatar
-              src={preview || undefined}
-              sx={{ width: "100%", height: "100%", border: "3px solid #003fd3ff", bgcolor: "#003fd3ff" }}
-            >
+  return (
+    <Box sx={{ minHeight: "100vh", py: 8, px: 4, bgcolor: "#fafafa" }}>
+      <Box sx={{ maxWidth: 900, mx: "auto", display: "grid", gridTemplateColumns: { xs: "1fr", md: "300px 1fr" }, gap: 6 }}>
+        
+        {/* Sol panel */}
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+          <Box sx={{ position: "relative", width: 140, height: 140, borderRadius: "50%", overflow: "hidden", cursor: "pointer", "&:hover .cameraOverlay": { opacity: 1 }}} onClick={handleChangeProfilePhoto}>
+            <Avatar src={preview || undefined} sx={{ width: "100%", height: "100%", border: "3px solid #003fd3ff", bgcolor: "#003fd3ff" }}>
               {!preview && <Person sx={{ fontSize: 70, color: "#fff" }} />}
             </Avatar>
-            <Box
-              className="cameraOverlay"
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                bgcolor: "rgba(0,0,0,0.4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: 0,
-                transition: "opacity 0.3s",
-              }}
-            >
+            <Box className="cameraOverlay" sx={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", bgcolor: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity 0.3s" }}>
               <CameraAlt sx={{ color: "#fff", fontSize: 40 }} />
             </Box>
           </Box>
-
           <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} />
 
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h3" sx={{ fontWeight: 700 }}>
-              {user?.fullname || "Kullanıcı"}
-            </Typography>
-            <Box sx={{ mt: 1.5, borderBottom: "2px dotted #003fd3ff", display: "inline-block", minWidth: 220, pb: 0.5 }}>
-              <input
-                type="text"
-                placeholder="Title"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                style={{
-                  width: "100%",
-                  fontSize: "1.1rem",
-                  fontWeight: 500,
-                  border: "none",
-                  outline: "none",
-                  background: "transparent",
-                  color: "#333",
-                  fontFamily: "inherit",
-                }}
-              />
-            </Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>{user?.fullname || "Kullanıcı"}</Typography>
+          <TextField placeholder="Pozisyon" value={role} onChange={(e) => setRole(e.target.value)} sx={{ width: "100%", mt: 1 }} />
 
-            <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
-              {university ? (
-                <Chip icon={<School />} label={university} onDelete={() => setUniversity("")} sx={{ flex: 1, borderRadius: "10px", backgroundColor: "#f5f5f5", color: "#333", fontWeight: 600, height: 50 }} />
-              ) : (
-                <Select
-                  value={university}
-                  onChange={(e) => setUniversity(e.target.value)}
-                  displayEmpty
-                  sx={{
-                    flex: 1,
-                    minWidth: 250,
-                    height: 50,
-                    borderRadius: "10px",
-                    "& .MuiSelect-select": { display: "flex", alignItems: "center", fontSize: "1rem", fontWeight: 500, color: university ? "#000" : "gray", pl: 2 },
-                    "& fieldset": { borderColor: "#003fd3ff" },
-                  }}
-                >
-                  <MenuItem value="" disabled>
-                    Üniversite
-                  </MenuItem>
-                  {universities.map((uni) => (
-                    <MenuItem key={uni} value={uni}>
-                      {uni}
-                    </MenuItem>
-                  ))}
-                </Select>
-              )}
-              <TextField
-                placeholder="Bölüm"
-                variant="outlined"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                sx={{ flex: 1, height: 50, "& .MuiOutlinedInput-root": { height: 50, borderRadius: "10px", "& fieldset": { borderColor: "#003fd3ff" } } }}
-              />
+          <Stack direction="row" spacing={1}>
+            {github && <IconButton href={github} target="_blank"><GitHub /></IconButton>}
+            {linkedin && <IconButton href={linkedin} target="_blank"><LinkedIn color="primary" /></IconButton>}
+          </Stack>
+
+          <Box sx={{ width: "100%" }}>
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>Yetenekler</Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              {skills.map(skill => (
+                <Chip key={skill} label={skill} onDelete={() => handleDeleteSkill(skill)} sx={{ mb: 1, borderRadius: "10px", bgcolor: "#003fd3ff", color: "#fff" }} />
+              ))}
+            </Stack>
+            <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+              <TextField size="small" fullWidth placeholder="Yeni yetenek" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} />
+              <Button variant="contained" sx={{ minWidth: 40 }} onClick={handleAddSkill}><Add /></Button>
             </Box>
           </Box>
         </Box>
 
-        {/* Biyografi, sosyal, yetenekler ve kaydetme */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-            Biyografi
-          </Typography>
-          <TextField
-            fullWidth
-            multiline
-            minRows={3}
-            placeholder="Kendiniz hakkında kısa bir bio yazın..."
-            variant="outlined"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", "& fieldset": { borderColor: "#003fd3ff" } } }}
-          />
+        {/* Sağ panel */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <Typography variant="h6">Biyografi</Typography>
+          <TextField multiline minRows={4} fullWidth value={bio} onChange={(e) => setBio(e.target.value)} />
 
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, mt: 3 }}>
-            Sosyal Bağlantılar
-          </Typography>
-          <Stack spacing={2}>
-            <TextField
-              placeholder="https://github.com/kullanici"
-              value={github}
-              onChange={(e) => setGithub(e.target.value)}
-              variant="outlined"
-              InputProps={{ startAdornment: <InputAdornment position="start"><GitHub sx={{ color: "#333" }} /></InputAdornment> }}
-              sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "10px" }}
-            />
-            <TextField
-              placeholder="https://linkedin.com/in/kullanici"
-              value={linkedin}
-              onChange={(e) => setLinkedin(e.target.value)}
-              variant="outlined"
-              InputProps={{ startAdornment: <InputAdornment position="start"><LinkedIn sx={{ color: "#0A66C2" }} /></InputAdornment> }}
-              sx={{ "& fieldset": { borderColor: "#003fd3ff" }, borderRadius: "10px" }}
-            />
+          <Typography variant="h6">Üniversite & Bölüm</Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <Select value={university} onChange={(e) => setUniversity(e.target.value)} displayEmpty sx={{ flex: 1 }}>
+              <MenuItem value="" disabled>Üniversite</MenuItem>
+              {universities.map(uni => <MenuItem key={uni} value={uni}>{uni}</MenuItem>)}
+            </Select>
+            <TextField placeholder="Bölüm" value={department} onChange={(e) => setDepartment(e.target.value)} sx={{ flex: 1 }} />
           </Stack>
 
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, mt: 3 }}>
-            Yeteneklerim
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
-            {skills.map((skill) => (
-              <Chip key={skill} label={skill} onDelete={() => handleDeleteSkill(skill)} sx={{ mb: 1, borderRadius: "10px", backgroundColor: "#003fd3ff", color: "#fff" }} />
-            ))}
+          <Typography variant="h6">Sosyal Bağlantılar</Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField placeholder="Github" value={github} onChange={(e) => setGithub(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><GitHub /></InputAdornment> }} sx={{ flex: 1 }} />
+            <TextField placeholder="LinkedIn" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><LinkedIn color="primary" /></InputAdornment> }} sx={{ flex: 1 }} />
           </Stack>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            <TextField label="Yeni Yetenek Ekle" variant="outlined" size="small" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", "& fieldset": { borderColor: "#003fd3ff" } } }} />
-            <Button variant="contained" sx={{ backgroundColor: "#003fd3ff", borderRadius: "10px", "&:hover": { backgroundColor: "#002fa0" } }} onClick={handleAddSkill}>
-              Ekle
-            </Button>
-          </Box>
 
-          <Box sx={{ textAlign: "center", mt: 4 }}>
-            <Button
-              variant="contained"
-              sx={{ backgroundColor: isProfileChanged ? "#003fd3ff" : "#ccc", borderRadius: "10px", px: 4, py: 1, fontSize: "1rem", "&:hover": { backgroundColor: isProfileChanged ? "#002fa0" : "#ccc" } }}
-              disabled={!isProfileChanged}
-              onClick={handleSaveProfile}
-            >
+          <Box sx={{ textAlign: "center" }}>
+            <Button variant="contained" disabled={!isProfileChanged} onClick={handleSaveProfile} sx={{ borderRadius: 2, py: 1.5, px: 4, fontWeight: 600 }}>
               Profili Kaydet
             </Button>
           </Box>
         </Box>
-
-        {/* Snackbar */}
-        <Snackbar open={saveMessageOpen} autoHideDuration={3000} onClose={() => setSaveMessageOpen(false)}>
-          <Alert severity="success">{saveMessageText}</Alert>
-        </Snackbar>
-
-        {/* Ayarlar popup */}
-        <Dialog open={open} onClose={handleClosePopup} PaperProps={{ sx: { width: 420, borderRadius: 4, p: 3, backgroundColor: "#fff" } }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, textAlign: "center", mb: 2 }}>
-            Hesap Ayarları
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          {/* Tab menüsü */}
-          <Box sx={{ display: "flex", justifyContent: "space-around", mb: 2 }}>
-            {[
-              { key: "username", label: "Kullanıcı Adı" },
-              { key: "email", label: "E-posta" },
-              { key: "password", label: "Şifre" },
-              { key: "delete", label: "Sil" },
-            ].map((tab) => (
-              <Typography
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                sx={{
-                  fontWeight: 600,
-                  color: activeTab === tab.key ? "#003fd3ff" : "#777",
-                  cursor: "pointer",
-                  borderBottom: activeTab === tab.key ? "2px solid #003fd3ff" : "none",
-                  pb: 0.5,
-                  transition: "all 0.2s",
-                }}
-              >
-                {tab.label}
-              </Typography>
-            ))}
-          </Box>
-
-          {/* Tab içerikleri */}
-          {activeTab === "username" && (
-            <Box>
-              <TextField fullWidth label="Yeni Kullanıcı Adı" sx={{ mb: 2 }} variant="outlined" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
-              <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeUsername}>
-                Kaydet
-              </Button>
-            </Box>
-          )}
-
-          {activeTab === "email" && (
-            <Box>
-              <TextField fullWidth label="Yeni E-posta" sx={{ mb: 2 }} variant="outlined" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-              <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeEmail}>
-                Güncelle
-              </Button>
-            </Box>
-          )}
-
-          {activeTab === "password" && (
-            <Box component="form" onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}>
-              <TextField fullWidth label="Eski Şifre" type={showOldPassword ? "text" : "password"} sx={{ mb: 2 }} variant="outlined" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)}
-                InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowOldPassword(!showOldPassword)}>{showOldPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
-              <TextField fullWidth label="Yeni Şifre" type={showNewPassword ? "text" : "password"} sx={{ mb: 2 }} variant="outlined" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowNewPassword(!showNewPassword)}>{showNewPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
-
-              <List dense sx={{ color: "#424242", fontSize: "0.9rem", mb: 2 }}>
-                <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  {newPassword.length >= 8 && newPassword.length <= 20 ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />} 8–20 karakter
-                </ListItem>
-                <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-  {/[A-Z]/.test(newPassword) ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />}
-  En az bir büyük harf içermeli
-</ListItem>
-
-<ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-  {/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />}
-  En az bir özel karakter içermeli (!@#$%^&*)
-</ListItem>
-              </List>
-              <Button fullWidth type="submit" variant="contained"
-                disabled={!(newPassword.length >= 8 && newPassword.length <= 20 && /[A-Z]/.test(newPassword) && /[!@#$%^&*(),.?":{}|<>]/.test(newPassword))}
-                sx={{ background: "#003fd3ff", borderRadius: 2, py: 1.2, fontWeight: "bold", "&:hover": { background: "#002fa0" }, "&:disabled": { background: "#ccc", color: "#666" }, mb: 2 }}
-              >
-                Şifreyi Değiştir
-              </Button>
-            </Box>
-          )}
-
-          {activeTab === "delete" && (
-            <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ mb: 2, color: "#a33" }}>Hesabınızı silmek istediğinize emin misiniz?</Typography>
-              <Button variant="contained" color="error" fullWidth sx={{ borderRadius: 2, mb: 2 }} onClick={handleDeleteAccount}>
-                Hesabı Sil
-              </Button>
-            </Box>
-          )}
-        </Dialog>
       </Box>
+
+      {/* Snackbar */}
+      <Snackbar open={saveMessageOpen} autoHideDuration={3000} onClose={() => setSaveMessageOpen(false)}>
+        <Alert severity="success">{saveMessageText}</Alert>
+      </Snackbar>
+
+      {/* Ayarlar popup */}
+      <Dialog open={open} onClose={handleClosePopup} PaperProps={{ sx: { width: 420, borderRadius: 4, p: 3 } }}>
+        <Typography variant="h6" sx={{ textAlign: "center", mb: 2, fontWeight: 700 }}>Hesap Ayarları</Typography>
+        <Divider sx={{ mb: 2 }} />
+        <Box sx={{ display: "flex", justifyContent: "space-around", mb: 2 }}>
+          {[
+            { key: "username", label: "Kullanıcı Adı" },
+            { key: "email", label: "E-posta" },
+            { key: "password", label: "Şifre" },
+            { key: "delete", label: "Sil" },
+          ].map(tab => (
+            <Typography key={tab.key} onClick={() => setActiveTab(tab.key)} sx={{ fontWeight: 600, cursor: "pointer", color: activeTab === tab.key ? "#003fd3ff" : "#777", borderBottom: activeTab === tab.key ? "2px solid #003fd3ff" : "none", pb: 0.5 }}>{tab.label}</Typography>
+          ))}
+        </Box>
+
+        {activeTab === "username" && (
+          <Box>
+            <TextField fullWidth label="Yeni Kullanıcı Adı" sx={{ mb: 2 }} value={newUsername} onChange={e => setNewUsername(e.target.value)} />
+            <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeUsername}>Kaydet</Button>
+          </Box>
+        )}
+
+        {activeTab === "email" && (
+          <Box>
+            <TextField fullWidth label="Yeni E-posta" sx={{ mb: 2 }} value={newEmail} onChange={e => setNewEmail(e.target.value)} />
+            <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeEmail}>Güncelle</Button>
+          </Box>
+        )}
+
+        {activeTab === "password" && (
+          <Box component="form" onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}>
+            <TextField fullWidth label="Eski Şifre" type={showOldPassword ? "text" : "password"} sx={{ mb: 2 }} value={oldPassword} onChange={e => setOldPassword(e.target.value)}
+              InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowOldPassword(!showOldPassword)}>{showOldPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+            <TextField fullWidth label="Yeni Şifre" type={showNewPassword ? "text" : "password"} sx={{ mb: 2 }} value={newPassword} onChange={e => setNewPassword(e.target.value)}
+              InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowNewPassword(!showNewPassword)}>{showNewPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+
+            <List dense sx={{ color: "#424242", fontSize: "0.9rem", mb: 2 }}>
+              <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {newPassword.length >= 8 && newPassword.length <= 20 ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />} 8–20 karakter
+              </ListItem>
+              <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {/[A-Z]/.test(newPassword) ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />} En az bir büyük harf
+              </ListItem>
+              <ListItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />} En az bir özel karakter
+              </ListItem>
+            </List>
+            <Button fullWidth type="submit" variant="contained"
+              disabled={!(newPassword.length >= 8 && newPassword.length <= 20 && /[A-Z]/.test(newPassword) && /[!@#$%^&*(),.?":{}|<>]/.test(newPassword))}
+              sx={{ background: "#003fd3ff", borderRadius: 2, py: 1.2, fontWeight: "bold", "&:hover": { background: "#002fa0" }, "&:disabled": { background: "#ccc", color: "#666" }, mb: 2 }}
+            >
+              Şifreyi Değiştir
+            </Button>
+          </Box>
+        )}
+
+        {activeTab === "delete" && (
+          <Box sx={{ textAlign: "center" }}>
+            <Typography sx={{ mb: 2, color: "#a33" }}>Hesabınızı silmek istediğinize emin misiniz?</Typography>
+            <Button variant="contained" color="error" fullWidth sx={{ borderRadius: 2, mb: 2 }} onClick={handleDeleteAccount}>Hesabı Sil</Button>
+          </Box>
+        )}
+      </Dialog>
     </Box>
   );
 }
