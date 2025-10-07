@@ -34,6 +34,8 @@ import {
 import universities from "../data/universities.json";
 import useAuthStore from "../store/useAuthStore";
 import axiosInstance from "../lib/axios";
+import { useNavigate } from "react-router-dom";
+
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
@@ -70,7 +72,27 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchUser();
-  }, [fetchUser]);
+    
+    // HEIC formatlarını otomatik JPG'ye çevir
+    const convertHeic = async () => {
+      try {
+        const response = await axiosInstance.post("/user/convert-heic", {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Eğer format değiştiyse user'ı tekrar fetch et
+        if (response.data.success) {
+          await fetchUser();
+        }
+      } catch {
+        // Sessizce devam et
+      }
+    };
+    
+    if (token) {
+      convertHeic();
+    }
+  }, [fetchUser, token]);
 
   useEffect(() => {
     if (user) {
@@ -91,6 +113,8 @@ export default function ProfilePage() {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
+    // Geçici preview göster
     setPreview(URL.createObjectURL(file));
 
     const formData = new FormData();
@@ -98,11 +122,28 @@ export default function ProfilePage() {
 
     try {
       await axiosInstance.post("/user/upload-photo", formData, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
       });
-      await fetchUser();
+      
+      // User'ı tekrar fetch et - bu otomatik olarak useEffect'i tetikler
+      const updatedUser = await fetchUser();
+      if (updatedUser && updatedUser.profileImage) {
+        setPreview(updatedUser.profileImage);
+      }
+      
+      setSaveMessageText("Profil fotoğrafı başarıyla güncellendi!");
+      setSaveMessageOpen(true);
+      
     } catch (err) {
-      console.error("Profil fotoğrafı yüklenemedi:", err.response?.data || err.message);
+      console.error("Profil fotoğrafı yükleme hatası:", err.response?.data?.message || err.message);
+      
+      setSaveMessageText("Profil fotoğrafı yüklenirken hata oluştu!");
+      setSaveMessageOpen(true);
+      
+      // Hata durumunda preview'i geri al
+      setPreview(user?.profileImage || "");
     }
   };
 
@@ -177,14 +218,22 @@ export default function ProfilePage() {
     }
   };
 
+  const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
+
   const handleDeleteAccount = async () => {
+    if (!confirm("Hesabını silmek istediğine emin misin? 🫣")) return;
+
     try {
-      await axiosInstance.delete("/user/delete-account");
-      setSaveMessageText("Hesap başarıyla silindi!");
-      setSaveMessageOpen(true);
-      handleClosePopup();
+      await axiosInstance.delete("/user/delete-account", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      logout();            // ✅ Token ve user bilgisini temizle
+      navigate("/login");  // ✅ Giriş ekranına yönlendir
     } catch (err) {
-      console.error("Hesap silinemedi:", err.response?.data || err.message);
+      console.error("Hesap silme hatası:", err.response?.data || err.message);
+      alert("Hesap silinirken bir hata oluştu.");
     }
   };
 
@@ -214,7 +263,12 @@ export default function ProfilePage() {
           </Box>
           <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} />
 
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>{user?.fullname || "Kullanıcı"}</Typography>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>{user?.fullname || "Kullanıcı"}</Typography>
+            <IconButton onClick={() => setOpen(true)} sx={{ bgcolor: "#f5f5f5", "&:hover": { bgcolor: "#e0e0e0" } }}>
+              <Settings />
+            </IconButton>
+          </Box>
           <TextField placeholder="Pozisyon" value={role} onChange={(e) => setRole(e.target.value)} sx={{ width: "100%", mt: 1 }} />
 
           <Stack direction="row" spacing={1}>

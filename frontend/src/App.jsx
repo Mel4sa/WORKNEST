@@ -6,6 +6,7 @@ import {
   Navigate,
   Outlet,
 } from "react-router-dom";
+import { useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -18,16 +19,16 @@ import ResetPassword from "./pages/ResetPassword"; //
 import useAuthStore from "./store/useAuthStore";
 
 function ProtectedRoute() {
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  if (!isLoggedIn) {
+  const token = useAuthStore((state) => state.token);
+  if (!token) {
     return <Navigate to="/login" replace />;
   }
   return <Outlet />;
 }
 
 function PublicRoute() {
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  if (isLoggedIn) {
+  const token = useAuthStore((state) => state.token);
+  if (token) {
     return <Navigate to="/profile" replace />;
   }
   return <Outlet />;
@@ -73,6 +74,12 @@ function AppRoutes() {
 }
 
 function App() {
+  const initialize = useAuthStore((state) => state.initialize);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
   return (
     <Router>
       <AppRoutes />

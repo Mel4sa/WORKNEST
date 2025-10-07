@@ -4,6 +4,7 @@ import axiosInstance from "../lib/axios";
 const useAuthStore = create((set) => ({
   user: null,
   token: localStorage.getItem("token") || null,
+  isLoading: true,
 
   setUser: (user) => set({ user }),
   setToken: (token) => {
@@ -14,15 +15,20 @@ const useAuthStore = create((set) => ({
   fetchUser: async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        set({ isLoading: false });
+        return;
+      }
 
       const res = await axiosInstance.get("/user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      set({ user: res.data });
+      set({ user: res.data, isLoading: false });
+      return res.data; // User datasını return et
     } catch (error) {
       console.error("Fetch user error:", error.response?.data || error.message);
-      set({ user: null });
+      set({ user: null, token: null, isLoading: false });
+      localStorage.removeItem("token");
     }
   },
 
@@ -32,8 +38,8 @@ const useAuthStore = create((set) => ({
 
       set({
         user: response.data.user,
-        isLoggedIn: true,
         token: response.data.token,
+        isLoading: false,
         error: null,
       });
 
@@ -45,7 +51,6 @@ const useAuthStore = create((set) => ({
       console.error(err.response?.data || err.message);
       set({
         user: null,
-        isLoggedIn: false,
         token: null,
         error: err.response?.data?.message || "Giriş başarısız!",
       });
@@ -73,7 +78,19 @@ const useAuthStore = create((set) => ({
 
  logout: () => {
     localStorage.removeItem("token");
-    set({ user: null, isLoggedIn: false, token: null });
+    set({ user: null, token: null, isLoading: false });
+  },
+
+  // Sayfa yüklendiğinde otomatik olarak user bilgisini getir
+  initialize: async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Token varsa user bilgisini getir
+      await useAuthStore.getState().fetchUser();
+    } else {
+      // Token yoksa loading'i false yap
+      set({ isLoading: false });
+    }
   },
 }));
 

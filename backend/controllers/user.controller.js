@@ -46,28 +46,53 @@ export const getMe = async (req, res) => {
 
 export const uploadPhoto = async (req, res) => {
   try {
-    const file = req.file;
-    const result = await cloudinary.uploader.upload(file.path, {
+    if (!req.file) {
+      return res.status(400).json({ message: "Dosya yüklenmedi" });
+    }
+    
+    const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "profile_photos",
+      format: "jpg", // Tüm formatları JPG'ye çevir
+      transformation: [
+        { width: 500, height: 500, crop: "fill" },
+        { quality: "auto", format: "jpg" }
+      ]
     });
 
     const user = await User.findByIdAndUpdate(
-      req.user.id,
+      req.user._id,
       { profileImage: result.secure_url },
       { new: true }
     );
 
-    fs.unlinkSync(file.path);
-    res.json({ url: user.profileImage });
+    // Geçici dosyayı sil
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    res.json({ 
+      message: "Profil fotoğrafı başarıyla yüklendi",
+      user: user 
+    });
   } catch (err) {
-    res.status(500).json({ message: "Fotoğraf yüklenemedi", error: err.message });
+    console.error("Upload Error:", err.message);
+    
+    // Geçici dosyayı temizle
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    res.status(500).json({ 
+      message: "Fotoğraf yüklenemedi", 
+      error: err.message
+    });
   }
 };
 
 export const deletePhoto = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
-      req.user.id,
+      req.user._id, // _id kullan
       { profileImage: "" },
       { new: true }
     );
@@ -141,9 +166,13 @@ export const updatePassword = async (req, res) => {
 // Hesap silme
 export const deleteAccount = async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.user._id);
-    res.json({ message: "Hesap başarıyla silindi" });
-  } catch (err) {
-    res.status(500).json({ message: "Hesap silinemedi", error: err.message });
+    const userId = req.user._id; // _id kullan
+    await User.findByIdAndDelete(userId);
+
+    res.clearCookie("token"); // varsa cookie temizle
+    return res.status(200).json({ message: "Hesap başarıyla silindi" });
+  } catch (error) {
+    console.error("Hesap silme hatası:", error);
+    res.status(500).json({ message: "Hesap silinemedi", error: error.message });
   }
 };
