@@ -13,6 +13,7 @@ export const register = async (req, res) => {
 
     if (password.length < 8 || password.length > 20)
       return res.status(400).json({ message: "Şifre 8-20 karakter arasında olmalıdır" });
+    
 
     const existingUser = await User.findOne({ email });
     if (existingUser)

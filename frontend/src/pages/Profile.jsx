@@ -155,10 +155,46 @@ export default function ProfilePage() {
     linkedin !== (user?.linkedin || "") ||
     skills.join(",") !== (user?.skills || []).join(",");
 
-  const handleChangePassword = () => console.log("Yeni şifre:", newPassword);
-  const handleChangeUsername = () => console.log("Yeni kullanıcı adı:", newUsername);
-  const handleChangeEmail = () => console.log("Yeni email:", newEmail);
-  const handleDeleteAccount = () => console.log("Hesap silme isteği");
+    const handleChangePassword = async () => {
+  try {
+    await axiosInstance.put("/user/change-password", {
+      oldPassword,
+      newPassword,
+    });
+    console.log("✅ Şifre güncellendi");
+  } catch (err) {
+    console.error("❌ Şifre güncellenemedi:", err.response?.data || err.message);
+  }
+};
+
+const handleChangeUsername = async () => {
+  try {
+    await axiosInstance.put("/user/change-username", { newUsername });
+    console.log("✅ Kullanıcı adı güncellendi");
+  } catch (err) {
+    console.error("❌ Kullanıcı adı güncellenemedi:", err.response?.data || err.message);
+  }
+};
+
+
+const handleChangeEmail = async () => {
+  try {
+    await axiosInstance.put("/user/change-email", { newEmail });
+    console.log("✅ Email güncellendi");
+  } catch (err) {
+    console.error("❌ Email güncellenemedi:", err.response?.data || err.message);
+  }
+};
+
+const handleDeleteAccount = async () => {
+  try {
+    await axiosInstance.delete("/user/delete-account");
+    console.log("✅ Hesap silindi");
+    // yönlendirme yapabilirsin mesela: navigate("/login")
+  } catch (err) {
+    console.error("❌ Hesap silinemedi:", err.response?.data || err.message);
+  }
+};
 
 
   return (

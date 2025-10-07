@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import fs from "fs";
+import bcrypt from "bcryptjs";
 
 // Profil güncelleme
 export const updateProfile = async (req, res) => {
@@ -73,5 +74,76 @@ export const deletePhoto = async (req, res) => {
     res.json({ message: "Fotoğraf silindi" });
   } catch (err) {
     res.status(500).json({ message: "Silme işlemi başarısız", error: err.message });
+  }
+};
+
+
+// Kullanıcı adı değiştirme
+export const updateUsername = async (req, res) => {
+  try {
+    const { newUsername } = req.body;
+    if (!newUsername) return res.status(400).json({ message: "Yeni kullanıcı adı gerekli" });
+
+    const user = await User.findById(req.user._id);
+    user.fullname = newUsername;
+    await user.save();
+
+    res.json({ message: "Kullanıcı adı güncellendi", user });
+  } catch (err) {
+    res.status(500).json({ message: "Kullanıcı adı güncellenemedi", error: err.message });
+  }
+};
+
+// Email değiştirme
+export const updateEmail = async (req, res) => {
+  try {
+    const { newEmail } = req.body;
+    if (!newEmail) return res.status(400).json({ message: "Yeni email gerekli" });
+
+    const existing = await User.findOne({ email: newEmail });
+    if (existing) return res.status(400).json({ message: "Bu email zaten kullanımda" });
+
+    const user = await User.findById(req.user._id);
+    user.email = newEmail;
+    await user.save();
+
+    res.json({ message: "Email güncellendi", user });
+  } catch (err) {
+    res.status(500).json({ message: "Email güncellenemedi", error: err.message });
+  }
+};
+
+// Şifre değiştirme
+export const updatePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+
+    // Eski şifreyi kontrol et
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Eski şifre yanlış" });
+
+    // Yeni şifreyi hashle
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Şifre başarıyla güncellendi" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Şifre güncellenemedi", error: err.message });
+  }
+};
+
+
+// Hesap silme
+export const deleteAccount = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.user._id);
+    res.json({ message: "Hesap başarıyla silindi" });
+  } catch (err) {
+    res.status(500).json({ message: "Hesap silinemedi", error: err.message });
   }
 };
