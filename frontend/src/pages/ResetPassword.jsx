@@ -195,11 +195,11 @@ export default function ResetPassword() {
                 variant="contained"
                 disabled={!canSubmit}
                 sx={{
-                  backgroundColor: canSubmit ? "#d7401eff" : "#ccc",
+                  backgroundColor: canSubmit ? "#003fd3ff" : "#ccc",
                   borderRadius: "50px",
                   py: 1.2,
                   fontWeight: "bold",
-                  "&:hover": { backgroundColor: canSubmit ? "#d7401eff" : "#ccc" },
+                  "&:hover": { backgroundColor: canSubmit ? "#003fd3ff" : "#ccc" },
                 }}
               >
                 Şifreyi Güncelle
@@ -219,7 +219,7 @@ export default function ResetPassword() {
               />
               <Button
                 variant="contained"
-                sx={{ backgroundColor: "#d7401eff", "&:hover": { backgroundColor: "#b3361a" } }}
+                sx={{ backgroundColor: "#003fd3ff", "&:hover": { backgroundColor: "#003fd3ff" } }}
                 onClick={handleResend}
               >
                 Yeni Link Gönder
