@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -9,55 +9,84 @@ import {
   Tabs,
   Tab,
   Paper,
+  Snackbar,
+  Alert,
 } from "@mui/material";
+import axiosInstance from "../lib/axios";
+import useAuthStore from "../store/useAuthStore";
 
 export default function InvitesPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState(0); // 0: Alınan, 1: Gönderilen
+  const [receivedInvites, setReceivedInvites] = useState([]);
+  const [sentInvites, setSentInvites] = useState([]);
+  const [message, setMessage] = useState("");
+  const [messageOpen, setMessageOpen] = useState(false);
+  
+  const token = useAuthStore((state) => state.token);
 
-  // Örnek davet verileri
-  const receivedInvites = [
-    {
-      id: 1,
-      senderName: "Ahmet Yılmaz",
-      senderAvatar: "https://i.pravatar.cc/150?img=1",
-      projectName: "Yeni Web Sitesi",
-    },
-    {
-      id: 2,
-      senderName: "Elif Demir",
-      senderAvatar: "https://i.pravatar.cc/150?img=2",
-      projectName: "Mobil Uygulama Tasarımı",
-    },
-  ];
+  // API çağrıları
+  const fetchInvites = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [receivedRes, sentRes] = await Promise.all([
+        axiosInstance.get("/api/invites/received", {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axiosInstance.get("/api/invites/sent", {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      
+      setReceivedInvites(receivedRes.data);
+      setSentInvites(sentRes.data);
+    } catch (error) {
+      console.error("Davetler yüklenemedi:", error);
+      setMessage("Davetler yüklenirken hata oluştu");
+      setMessageOpen(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
-  const sentInvites = [
-    {
-      id: 3,
-      receiverName: "Merve Aksoy",
-      receiverAvatar: "https://i.pravatar.cc/150?img=4",
-      projectName: "E-ticaret Sitesi",
-    },
-    {
-      id: 4,
-      receiverName: "Mehmet Can",
-      receiverAvatar: "https://i.pravatar.cc/150?img=5",
-      projectName: "Backend API Projesi",
-    },
-  ];
-
-  // Loading simülasyonu
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (token) {
+      fetchInvites();
+    }
+  }, [token, fetchInvites]);
 
-  const handleAccept = (inviteId) => {
-    alert(`Davet ${inviteId} kabul edildi!`);
+  const handleAccept = async (inviteId) => {
+    try {
+      await axiosInstance.patch(`/api/invites/respond/${inviteId}`, 
+        { action: "accepted" },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      setMessage("Davet kabul edildi!");
+      setMessageOpen(true);
+      fetchInvites(); // Listeyi yenile
+    } catch (error) {
+      console.error("Davet kabul edilemedi:", error);
+      setMessage("Davet kabul edilirken hata oluştu");
+      setMessageOpen(true);
+    }
   };
 
-  const handleDecline = (inviteId) => {
-    alert(`Davet ${inviteId} reddedildi!`);
+  const handleDecline = async (inviteId) => {
+    try {
+      await axiosInstance.patch(`/api/invites/respond/${inviteId}`, 
+        { action: "declined" },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      setMessage("Davet reddedildi!");
+      setMessageOpen(true);
+      fetchInvites(); // Listeyi yenile
+    } catch (error) {
+      console.error("Davet reddedilemedi:", error);
+      setMessage("Davet reddedilirken hata oluştu");
+      setMessageOpen(true);
+    }
   };
 
   if (loading)
@@ -91,7 +120,7 @@ export default function InvitesPage() {
           <Stack spacing={2}>
             {receivedInvites.map((invite) => (
               <Box
-                key={invite.id}
+                key={invite._id}
                 sx={{
                   p: 2,
                   borderRadius: 2,
@@ -105,33 +134,43 @@ export default function InvitesPage() {
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Avatar src={invite.senderAvatar} />
+                  <Avatar src={invite.sender?.profileImage} />
                   <Box>
                     <Typography sx={{ fontWeight: 600 }}>
-                      {invite.senderName}
+                      {invite.sender?.fullname}
                     </Typography>
                     <Typography color="text.secondary">
-                      {invite.projectName}
+                      {invite.project?.title}
                     </Typography>
                   </Box>
                 </Box>
 
-                <Stack direction="row" spacing={1}>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={() => handleAccept(invite.id)}
+                {invite.status === 'pending' ? (
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={() => handleAccept(invite._id)}
+                    >
+                      Kabul Et
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleDecline(invite._id)}
+                    >
+                      Reddet
+                    </Button>
+                  </Stack>
+                ) : (
+                  <Button 
+                    variant="outlined" 
+                    color={invite.status === 'accepted' ? 'success' : 'error'}
+                    disabled
                   >
-                    Kabul Et
+                    {invite.status === 'accepted' ? 'Kabul Edildi' : 'Reddedildi'}
                   </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleDecline(invite.id)}
-                  >
-                    Reddet
-                  </Button>
-                </Stack>
+                )}
               </Box>
             ))}
           </Stack>
@@ -142,7 +181,7 @@ export default function InvitesPage() {
         <Stack spacing={2}>
           {sentInvites.map((invite) => (
             <Box
-              key={invite.id}
+              key={invite._id}
               sx={{
                 p: 2,
                 borderRadius: 2,
@@ -156,24 +195,39 @@ export default function InvitesPage() {
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Avatar src={invite.receiverAvatar} />
+                <Avatar src={invite.receiver?.profileImage} />
                 <Box>
                   <Typography sx={{ fontWeight: 600 }}>
-                    {invite.receiverName}
+                    {invite.receiver?.fullname}
                   </Typography>
                   <Typography color="text.secondary">
-                    {invite.projectName}
+                    {invite.project?.title}
                   </Typography>
                 </Box>
               </Box>
 
-              <Button variant="outlined" color="primary">
-                Gönderildi
+              <Button 
+                variant="outlined" 
+                color={
+                  invite.status === 'accepted' ? 'success' : 
+                  invite.status === 'declined' ? 'error' : 'primary'
+                }
+              >
+                {invite.status === 'accepted' ? 'Kabul Edildi' : 
+                 invite.status === 'declined' ? 'Reddedildi' : 'Bekliyor'}
               </Button>
             </Box>
           ))}
         </Stack>
       )}
+      
+      <Snackbar 
+        open={messageOpen} 
+        autoHideDuration={3000} 
+        onClose={() => setMessageOpen(false)}
+      >
+        <Alert severity="info">{message}</Alert>
+      </Snackbar>
     </Box>
   );
 }

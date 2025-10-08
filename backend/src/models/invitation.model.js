@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const invitationSchema = new mongoose.Schema({
   project: {
@@ -21,7 +21,7 @@ const invitationSchema = new mongoose.Schema({
   
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'rejected'],
+    enum: ['pending', 'accepted', 'declined'],
     default: 'pending'
   },
   }, {
@@ -30,4 +30,4 @@ const invitationSchema = new mongoose.Schema({
 
 const Invitation = mongoose.model('Invitation', invitationSchema);
 
-module.exports = Invitation;
+export default Invitation;

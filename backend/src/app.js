@@ -3,7 +3,7 @@ import express from "express";
 import cookieParser from 'cookie-parser';
 import cors from "cors";
 
-
+import inviteRoutes from "./routes/invitation.route.js";
 import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
 import connectDB from "./lib/db.js";
@@ -26,6 +26,8 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/invites", inviteRoutes);
+
 
 app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));
 

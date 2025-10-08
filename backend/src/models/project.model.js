@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const projectSchema = new mongoose.Schema({
   title: {
@@ -64,15 +64,6 @@ const projectSchema = new mongoose.Schema({
     type: Date
   },
   
-  budget: {
-    min: Number,
-    max: Number,
-    currency: {
-      type: String,
-      default: 'TL'
-    }
-  },
-  
   isActive: {
     type: Boolean,
     default: true
@@ -84,15 +75,6 @@ const projectSchema = new mongoose.Schema({
     default: 'public'
   },
   
-  images: [{
-    url: String,
-    alt: String
-  }],
-  
-  links: [{
-    title: String,
-    url: String
-  }]
 }, {
   timestamps: true, // createdAt ve updatedAt otomatik eklenir
   toJSON: { virtuals: true },
@@ -103,4 +85,4 @@ const projectSchema = new mongoose.Schema({
 
 const Project = mongoose.model('Project', projectSchema);
 
-module.exports = Project;
+export default Project;
