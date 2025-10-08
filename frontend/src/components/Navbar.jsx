@@ -71,28 +71,8 @@ function Navbar() {
 
         {/* Giriş / Kayıt / Çıkış Butonları */}
         <Box sx={{ display: "flex", gap: 2 }}>
-          {!user && (
-            <Button
-              component={Link}
-              to="/signin"
-              variant="contained"
-              sx={{
-                backgroundColor: "#915d56",
-                color: "#fff",
-                borderRadius: "50px",
-                padding: "6px 24px",
-                textTransform: "none",
-                fontWeight: "bold",
-                "&:hover": {
-                  backgroundColor: "#7a4b45",
-                  transform: "scale(1.05)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                },
-              }}
-            >
-              Kayıt Ol
-            </Button>
-          )}
+          {/* Eğer user varsa sadece Çıkış Yap göster */}
+       
 
           <Button
             variant="contained"
