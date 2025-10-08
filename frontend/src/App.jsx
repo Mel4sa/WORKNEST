@@ -11,11 +11,12 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail"; // Ekledik
 import Invites from "./pages/Invites";
 import SignIn from "./pages/SignIn";
 import Login from "./pages/Login";
 import AIAnalyzer from "./pages/AIAnalyzer";
-import ResetPassword from "./pages/ResetPassword"; // 
+import ResetPassword from "./pages/ResetPassword";
 import useAuthStore from "./store/useAuthStore";
 
 function ProtectedRoute() {
@@ -42,7 +43,6 @@ function AppRoutes() {
     hideNavbarPaths.includes(location.pathname.toLowerCase()) ||
     location.pathname.toLowerCase().startsWith("/reset-password");
 
-
   return (
     <>
       {!shouldHideNavbar && <Navbar />}
@@ -54,6 +54,7 @@ function AppRoutes() {
           <Route path="/home" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} /> 
           <Route path="/invites" element={<Invites />} />
           <Route path="/ai-analyzer" element={<AIAnalyzer />} />
         </Route>
@@ -64,7 +65,7 @@ function AppRoutes() {
           <Route path="/login" element={<Login />} />
         </Route>
 
-        {/* Şifre sıfırlama route’u artık ayrı */}
+        {/* Şifre sıfırlama route’u */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         <Route path="*" element={<Navigate to="/login" replace />} />
