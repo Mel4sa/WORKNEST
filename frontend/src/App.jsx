@@ -11,7 +11,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Projects from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail"; // Ekledik
+import ProjectDetail from "./pages/ProjectDetail"; 
 import Invites from "./pages/Invites";
 import SignIn from "./pages/SignIn";
 import Login from "./pages/Login";

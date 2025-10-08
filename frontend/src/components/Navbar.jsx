@@ -1,4 +1,18 @@
-import { Box, Button, Typography, AppBar, Toolbar } from "@mui/material";
+import { useState } from "react";
+import {
+  Box,
+  Button,
+  Typography,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 
@@ -6,6 +20,7 @@ function Navbar() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleAuthButton = () => {
     if (user) {
@@ -15,6 +30,14 @@ function Navbar() {
       navigate("/login");
     }
   };
+
+  const menuItems = [
+    { label: "Ana Sayfa", path: "/home" },
+    { label: "AI Analyzer", path: "/ai-analyzer" },
+    { label: "Projelerim", path: "/projects" },
+    { label: "Davetlerim", path: "/invites" },
+    { label: "Profilim", path: "/profile" },
+  ];
 
   return (
     <AppBar
@@ -26,29 +49,17 @@ function Navbar() {
         transition: "all 0.4s ease",
       }}
     >
-      <Toolbar
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        {/* WORKNEST Logo */}
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {/* Logo */}
         <Link to="/home" style={{ textDecoration: "none" }}>
           <Typography variant="h5" className="elegant-logo">
             WORKNEST
           </Typography>
         </Link>
 
-        {/* Menü Linkleri */}
-        <Box sx={{ display: "flex", gap: 3 }}>
-          {[
-            { label: "Ana Sayfa", path: "/home" },
-            { label: "AI Analyzer", path: "/ai-analyzer" },
-            { label: "Projelerim", path: "/projects" },
-            { label: "Davetlerim", path: "/invites" },
-            { label: "Profilim", path: "/profile" },
-          ].map((item) => (
+        {/* Büyük ekran menü */}
+        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
+          {menuItems.map((item) => (
             <Button
               key={item.label}
               component={Link}
@@ -61,6 +72,7 @@ function Navbar() {
                 "&:hover": {
                   backgroundColor: "rgba(0,0,0,0.05)",
                   transform: "scale(1.05)",
+                  transition: "all 0.2s ease-in-out",
                 },
               }}
             >
@@ -69,31 +81,106 @@ function Navbar() {
           ))}
         </Box>
 
-        {/* Giriş / Kayıt / Çıkış Butonları */}
-        <Box sx={{ display: "flex", gap: 2 }}>
-          {/* Eğer user varsa sadece Çıkış Yap göster */}
-       
-
-          <Button
-            variant="contained"
-            onClick={handleAuthButton}
-            sx={{
-              backgroundColor: user ? "#f61000ff" : "#ff0000ff",
-              color: "#fff",
-              borderRadius: "50px",
-              padding: "6px 24px",
-              textTransform: "none",
-              fontWeight: "bold",
-              "&:hover": {
-                backgroundColor: user ? "#ff0000ff" : "#ff0000ff",
-                transform: "scale(1.05)",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-              },
-            }}
-          >
-            {user ? "Çıkış Yap" : "Giriş Yap"}
-          </Button>
+        {/* Büyük ekran giriş/çıkış */}
+        <Box sx={{ display: { xs: "none", md: "flex" } }}>
+          {user ? (
+            <Button
+              variant="contained"
+              onClick={handleAuthButton}
+              sx={{
+                backgroundColor: "#ff0000",
+                color: "#fff",
+                borderRadius: "50px",
+                padding: "6px 24px",
+                textTransform: "none",
+                fontWeight: "bold",
+                "&:hover": {
+                  backgroundColor: "#cc0000",
+                  transform: "scale(1.05)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                },
+              }}
+            >
+              Çıkış Yap
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={handleAuthButton}
+              sx={{
+                backgroundColor: "#1976d2",
+                color: "#fff",
+                borderRadius: "50px",
+                padding: "6px 24px",
+                textTransform: "none",
+                fontWeight: "bold",
+                "&:hover": {
+                  backgroundColor: "#1565c0",
+                  transform: "scale(1.05)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                },
+              }}
+            >
+              Giriş Yap
+            </Button>
+          )}
         </Box>
+
+        {/* Küçük ekran hamburger */}
+        <IconButton
+          sx={{
+            display: { xs: "flex", md: "none" },
+            color: "#000",
+            "&:hover": {
+              backgroundColor: "rgba(0,0,0,0.05)",
+              transform: "scale(1.1)",
+              transition: "all 0.2s ease-in-out",
+            },
+          }}
+          onClick={() => setDrawerOpen(true)}
+        >
+          <MenuIcon />
+        </IconButton>
+
+        {/* Drawer */}
+        <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+          <Box sx={{ width: 250, p: 2, position: "relative", minHeight: "100%" }}>
+            <List>
+              {menuItems.map((item) => (
+                <ListItem key={item.label} disablePadding>
+                  <ListItemButton component={Link} to={item.path} onClick={() => setDrawerOpen(false)}>
+                    <ListItemText primary={item.label} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+
+            {/* Çıkış Yap butonu sağ alta */}
+            {user && (
+              <Box sx={{ position: "absolute", bottom: 45, right: 16, width: "calc(100% - 32px)" }}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleAuthButton}
+                  sx={{
+                    backgroundColor: "#ff0000",
+                    color: "#fff",
+                    borderRadius: "50px",
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    "&:hover": {
+                      backgroundColor: "#cc0000",
+                      transform: "scale(1.05)",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                    },
+                  }}
+                >
+                  Çıkış Yap
+                </Button>
+              </Box>
+            )}
+          </Box>
+        </Drawer>
       </Toolbar>
     </AppBar>
   );
