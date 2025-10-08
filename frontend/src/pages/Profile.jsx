@@ -109,21 +109,50 @@ export default function ProfilePage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    setPreview(URL.createObjectURL(file));
+    // Dosya türünü kontrol et
+    const isHeic = file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+    
+    // HEIC dosyaları için preview oluşturulamayabilir, o yüzden fallback kullan
+    try {
+      setPreview(URL.createObjectURL(file));
+    } catch {
+      // HEIC dosyaları için preview oluşturulamazsa, loading göster
+      setPreview("");
+    }
+
+    // HEIC dosyası için özel mesaj göster
+    if (isHeic) {
+      setMessageText("HEIC fotoğraf yükleniyor ve JPG formatına çevriliyor...");
+      setMessageType("info");
+      setMessageOpen(true);
+    }
 
     const formData = new FormData();
     formData.append("photo", file);
 
     try {
-      await axiosInstance.post("/user/upload-photo", formData, {
+      const response = await axiosInstance.post("/user/upload-photo", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
       await fetchUser();
-      setMessageText("Profil fotoğrafı başarıyla güncellendi!");
+      
+      // Başarı mesajı (format bilgisi dahil)
+      if (response.data.originalFormat === 'HEIC') {
+        setMessageText("HEIC fotoğraf başarıyla JPG formatına çevrilerek yüklendi!");
+      } else {
+        setMessageText("Profil fotoğrafı başarıyla güncellendi!");
+      }
       setMessageType("success");
     } catch {
       setPreview(user?.profileImage || "");
-      setMessageText("Profil fotoğrafı yüklenirken hata oluştu!");
+      
+      // HEIC için özel hata mesajı
+      if (isHeic) {
+        setMessageText("HEIC fotoğraf yüklenirken hata oluştu. Lütfen JPG formatında tekrar deneyin.");
+      } else {
+        setMessageText("Profil fotoğrafı yüklenirken hata oluştu!");
+      }
       setMessageType("error");
     } finally {
       setMessageOpen(true);
@@ -294,7 +323,7 @@ export default function ProfilePage() {
 
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,.heic,.heif"
             ref={fileInputRef}
             style={{ display: "none" }}
             onChange={handleFileChange}
