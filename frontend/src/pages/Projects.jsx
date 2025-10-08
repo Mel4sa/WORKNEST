@@ -17,9 +17,6 @@ function Projects() {
 
   return (
     <Box sx={{ padding: "30px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
-        Projelerim
-      </Typography>
       <Grid container spacing={4}>
         {projectList.map((project) => (
           <Grid item xs={12} sm={6} md={4} key={project.id}>
