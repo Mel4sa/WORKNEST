@@ -4,7 +4,6 @@ import {
   LinkedIn,
   CameraAlt,
   Settings,
-  School,
   Person,
   Visibility,
   VisibilityOff,
@@ -18,15 +17,15 @@ import {
   Button,
   Chip,
   Stack,
-  MenuItem,
   Select,
+  MenuItem,
   IconButton,
   Dialog,
   Divider,
   InputAdornment,
+  CircularProgress,
   Snackbar,
   Alert,
-  CircularProgress,
 } from "@mui/material";
 import universities from "../data/universities.json";
 import useAuthStore from "../store/useAuthStore";
@@ -41,6 +40,7 @@ export default function ProfilePage() {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
 
+  // Profil state
   const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState("");
   const [bio, setBio] = useState("");
@@ -54,7 +54,7 @@ export default function ProfilePage() {
 
   const fileInputRef = useRef(null);
 
-  // Popup State
+  // Ayarlar popup
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("username");
   const [oldPassword, setOldPassword] = useState("");
@@ -69,7 +69,7 @@ export default function ProfilePage() {
   const [messageText, setMessageText] = useState("");
   const [messageType, setMessageType] = useState("success");
 
-  // Fetch User
+  // Kullanıcıyı fetch et
   useEffect(() => {
     const init = async () => {
       if (!token) return;
@@ -83,6 +83,7 @@ export default function ProfilePage() {
     init();
   }, [fetchUser, token]);
 
+  // User geldiğinde stateleri set et ve eksik profil kontrolü
   useEffect(() => {
     if (user) {
       setSkills(user.skills || []);
@@ -93,12 +94,17 @@ export default function ProfilePage() {
       setGithub(user.github || "");
       setLinkedin(user.linkedin || "");
       setPreview(user.profileImage || "");
+
+      if (!user.bio || !user.university || !user.department) {
+        setMessageText("Lütfen profil bilgilerinizi tamamlayınız!");
+        setMessageType("warning");
+        setMessageOpen(true);
+      }
     }
   }, [user]);
 
-  // Profil fotoğrafı
+  // Profil fotoğrafı değişimi
   const handleChangeProfilePhoto = () => fileInputRef.current.click();
-
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -132,7 +138,6 @@ export default function ProfilePage() {
       setNewSkill("");
     }
   };
-
   const handleDeleteSkill = (s) => setSkills(skills.filter((x) => x !== s));
 
   // Profil kaydet
@@ -162,7 +167,7 @@ export default function ProfilePage() {
     linkedin !== (user?.linkedin || "") ||
     skills.join(",") !== (user?.skills || []).join(",");
 
-  // Şifre - kullanıcı adı - mail - silme işlemleri
+  // Hesap ayarları
   const handleChangePassword = async () => {
     try {
       await axiosInstance.put("/user/change-password", { oldPassword, newPassword });
@@ -176,7 +181,6 @@ export default function ProfilePage() {
       setMessageOpen(true);
     }
   };
-
   const handleChangeUsername = async () => {
     try {
       await axiosInstance.put("/user/change-username", { newUsername });
@@ -190,7 +194,6 @@ export default function ProfilePage() {
       setMessageOpen(true);
     }
   };
-
   const handleChangeEmail = async () => {
     try {
       await axiosInstance.put("/user/change-email", { newEmail });
@@ -204,7 +207,6 @@ export default function ProfilePage() {
       setMessageOpen(true);
     }
   };
-
   const handleDeleteAccount = async () => {
     try {
       await axiosInstance.delete("/user/delete-account", {
@@ -218,7 +220,6 @@ export default function ProfilePage() {
       setMessageOpen(true);
     }
   };
-
   const handleClosePopup = () => {
     setOpen(false);
     setOldPassword("");
@@ -246,7 +247,7 @@ export default function ProfilePage() {
           gap: 6,
         }}
       >
-        {/* Sol panel */}
+        {/* Sol Panel */}
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
           <Box
             sx={{
@@ -359,7 +360,7 @@ export default function ProfilePage() {
           </Box>
         </Box>
 
-        {/* Sağ panel */}
+        {/* Sağ Panel */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -377,22 +378,11 @@ export default function ProfilePage() {
             </IconButton>
           </Box>
 
-          <TextField
-            multiline
-            minRows={4}
-            fullWidth
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-          />
+          <TextField multiline minRows={4} fullWidth value={bio} onChange={(e) => setBio(e.target.value)} />
 
           <Typography variant="h6">Üniversite & Bölüm</Typography>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <Select
-              value={university}
-              onChange={(e) => setUniversity(e.target.value)}
-              displayEmpty
-              sx={{ flex: 1 }}
-            >
+            <Select value={university} onChange={(e) => setUniversity(e.target.value)} displayEmpty sx={{ flex: 1 }}>
               <MenuItem value="" disabled>
                 Üniversite
               </MenuItem>
@@ -459,7 +449,12 @@ export default function ProfilePage() {
       </Box>
 
       {/* Snackbar */}
-      <Snackbar open={messageOpen} autoHideDuration={3000} onClose={() => setMessageOpen(false)}>
+      <Snackbar
+        open={messageOpen}
+        autoHideDuration={4000}
+        onClose={() => setMessageOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
         <Alert severity={messageType}>{messageText}</Alert>
       </Snackbar>
 
@@ -494,19 +489,8 @@ export default function ProfilePage() {
 
         {activeTab === "username" && (
           <Box>
-            <TextField
-              fullWidth
-              label="Yeni Kullanıcı Adı"
-              sx={{ mb: 2 }}
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-            />
-            <Button
-              fullWidth
-              variant="contained"
-              sx={{ background: "#003fd3ff" }}
-              onClick={handleChangeUsername}
-            >
+            <TextField fullWidth label="Yeni Kullanıcı Adı" sx={{ mb: 2 }} value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
+            <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeUsername}>
               Kaydet
             </Button>
           </Box>
@@ -514,19 +498,8 @@ export default function ProfilePage() {
 
         {activeTab === "email" && (
           <Box>
-            <TextField
-              fullWidth
-              label="Yeni E-posta"
-              sx={{ mb: 2 }}
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-            />
-            <Button
-              fullWidth
-              variant="contained"
-              sx={{ background: "#003fd3ff" }}
-              onClick={handleChangeEmail}
-            >
+            <TextField fullWidth label="Yeni E-posta" sx={{ mb: 2 }} value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+            <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeEmail}>
               Güncelle
             </Button>
           </Box>
@@ -564,20 +537,16 @@ export default function ProfilePage() {
                 ),
               }}
             />
-            <Button
-              fullWidth
-              variant="contained"
-              sx={{ background: "#003fd3ff" }}
-              onClick={handleChangePassword}
-            >
+            <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangePassword}>
               Güncelle
             </Button>
           </Box>
         )}
 
         {activeTab === "delete" && (
-          <Box sx={{ textAlign: "center" }}>
-            <Button variant="contained" color="error" onClick={handleDeleteAccount}>
+          <Box>
+            <Typography sx={{ mb: 2 }}>Hesabınızı silmek istediğinize emin misiniz?</Typography>
+            <Button fullWidth variant="contained" color="error" onClick={handleDeleteAccount}>
               Hesabı Sil
             </Button>
           </Box>

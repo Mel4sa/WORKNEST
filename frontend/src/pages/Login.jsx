@@ -34,43 +34,45 @@ export default function Login() {
   // 🔹 Kullanıcı girişi
   const handleLogin = async () => {
     const success = await login(email, password);
-    if (success) navigate("/profile");
+    if (success) {
+      // Profil sayfasına giderken state ile uyarı mesajını taşı
+      navigate("/profile", { state: { showCompleteProfileAlert: true } });
+    }
   };
 
   const handleForgot = async () => {
-  if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
+    if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
 
-  setLoading(true);
-  try {
+    setLoading(true);
+    try {
+      const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
+      console.log("Backend response:", res.data);
 
-    const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
-    console.log("Backend response:", res.data);
+      const resetLink = res.data.resetLink;
+      const fullname = res.data.fullname;
 
-    const resetLink = res.data.resetLink;
-    const fullname = res.data.fullname; // artık backend’den geliyor
+      const emailResponse = await emailjs.send(
+        import.meta.env.VITE_YOUR_SERVICE_ID,
+        import.meta.env.VITE_YOUR_TEMPLATE_ID,
+        {
+          to_email: forgotEmail,
+          fullname: fullname,
+          reset_link: resetLink,
+        },
+        import.meta.env.VITE_YOUR_PUBLIC_KEY
+      );
 
-    const emailResponse = await emailjs.send(
-      import.meta.env.VITE_YOUR_SERVICE_ID,
-      import.meta.env.VITE_YOUR_TEMPLATE_ID,
-      {
-        to_email: forgotEmail,
-        fullname: fullname,     // template ile birebir eşleşiyor
-        reset_link: resetLink,  // template ile birebir eşleşiyor
-      },
-      import.meta.env.VITE_YOUR_PUBLIC_KEY
-    );
+      console.log("EmailJS Response:", emailResponse);
 
-console.log("EmailJS Response:", emailResponse);
-
-    setMessage("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et!");
-    setForgotEmail("");
-  } catch (err) {
-    console.error("Şifre sıfırlama hatası:", err); // 🔹 Hata logu
-    setModalError("Böyle bir kullanıcı bulunamadı veya mail gönderilemedi.");
-  } finally {
-    setLoading(false);
-  }
-};
+      setMessage("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et!");
+      setForgotEmail("");
+    } catch (err) {
+      console.error("Şifre sıfırlama hatası:", err);
+      setModalError("Böyle bir kullanıcı bulunamadı veya mail gönderilemedi.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box
@@ -186,124 +188,120 @@ console.log("EmailJS Response:", emailResponse);
         </CardContent>
       </Card>
 
-     {/* // 🔹 Şifremi Unuttum Modal kısmı */}
-<Modal
-  open={openForgot}
-  onClose={() => {
-    setOpenForgot(false);
-    setForgotEmail("");
-    setMessage("");
-    setModalError("");
-  }}
->
-  <Box
-    sx={{
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      width: 400,
-      bgcolor: "background.paper",
-      borderRadius: 3,
-      boxShadow: 24,
-      p: 4,
-      textAlign: "center",
-    }}
-  >
-    {!message ? (
-      <>
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          Şifremi Unuttum
-        </Typography>
-
-        <Typography variant="body2" color="text.secondary" mb={2}>
-          Şifrenizi sıfırlamak için e-posta adresinizi giriniz.
-        </Typography>
-
-        <TextField
-          label="E-posta"
-          type="email"
-          fullWidth
-          sx={{ mb: 2 }}
-          value={forgotEmail}
-          onChange={(e) => setForgotEmail(e.target.value)}
-          // 🔹 Enter tuşuna basınca handleForgot çağrılır
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleForgot();
-            }
-          }}
-        />
-
-        {modalError && (
-          <Typography color="error" sx={{ mb: 1 }}>
-            {modalError}
-          </Typography>
-        )}
-
-        <Button
-          fullWidth
-          variant="contained"
-          disabled={loading}
-          sx={{
-            backgroundColor: "#003fd3ff",
-            borderRadius: "50px",
-            fontWeight: "bold",
-            "&:hover": { backgroundColor: "#003fd3ff" },
-          }}
-          onClick={handleForgot}
-        >
-          {loading ? "Gönderiliyor..." : "Gönder"}
-        </Button>
-      </>
-    ) : (
-      <>
+      {/* Şifremi Unuttum Modal */}
+      <Modal
+        open={openForgot}
+        onClose={() => {
+          setOpenForgot(false);
+          setForgotEmail("");
+          setMessage("");
+          setModalError("");
+        }}
+      >
         <Box
           sx={{
-            width: 60,
-            height: 60,
-            borderRadius: "50%",
-            backgroundColor: "#dff5e0",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mx: "auto",
-            mb: 2,
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            borderRadius: 3,
+            boxShadow: 24,
+            p: 4,
+            textAlign: "center",
           }}
         >
-          <Typography variant="h4" color="success.main">
-            ✔
-          </Typography>
-        </Box>
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          Başarılı
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mb={2}>
-          Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.
-        </Typography>
+          {!message ? (
+            <>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>
+                Şifremi Unuttum
+              </Typography>
+              <Typography variant="body2" color="text.secondary" mb={2}>
+                Şifrenizi sıfırlamak için e-posta adresinizi giriniz.
+              </Typography>
 
-        <Button
-          fullWidth
-          variant="contained"
-          sx={{
-            backgroundColor: "#003fd3ff",
-            borderRadius: "50px",
-            fontWeight: "bold",
-            "&:hover": { backgroundColor: "#003fd3ff" },
-          }}
-          onClick={() => {
-            setOpenForgot(false);
-            setForgotEmail("");
-            setMessage("");
-            setModalError("");
-          }}
-        >
-          Giriş Yap
-        </Button>
-      </>
-    )}
-  </Box>
-</Modal>
+              <TextField
+                label="E-posta"
+                type="email"
+                fullWidth
+                sx={{ mb: 2 }}
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleForgot();
+                }}
+              />
+
+              {modalError && (
+                <Typography color="error" sx={{ mb: 1 }}>
+                  {modalError}
+                </Typography>
+              )}
+
+              <Button
+                fullWidth
+                variant="contained"
+                disabled={loading}
+                sx={{
+                  backgroundColor: "#003fd3ff",
+                  borderRadius: "50px",
+                  fontWeight: "bold",
+                  "&:hover": { backgroundColor: "#003fd3ff" },
+                }}
+                onClick={handleForgot}
+              >
+                {loading ? "Gönderiliyor..." : "Gönder"}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: "50%",
+                  backgroundColor: "#dff5e0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mx: "auto",
+                  mb: 2,
+                }}
+              >
+                <Typography variant="h4" color="success.main">
+                  ✔
+                </Typography>
+              </Box>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>
+                Başarılı
+              </Typography>
+              <Typography variant="body2" color="text.secondary" mb={2}>
+                Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.
+              </Typography>
+
+              <Button
+                fullWidth
+                variant="contained"
+                sx={{
+                  backgroundColor: "#003fd3ff",
+                  borderRadius: "50px",
+                  fontWeight: "bold",
+                  "&:hover": { backgroundColor: "#003fd3ff" },
+                }}
+                onClick={() => {
+                  setOpenForgot(false);
+                  setForgotEmail("");
+                  setMessage("");
+                  setModalError("");
+                }}
+              >
+                Giriş Yap
+              </Button>
+            </>
+          )}
+        </Box>
+      </Modal>
     </Box>
   );
 }
