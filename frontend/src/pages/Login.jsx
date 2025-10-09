@@ -113,7 +113,7 @@ export default function Login() {
             }}
           >
             Farklı insanların birlikte fikirlerini hayata geçirebildiği bir proje
-            yönetim alanına HOŞ GELDİNİZ! Hemen giriş yaparak takımını oluştur ve
+           alanına HOŞ GELDİNİZ! Hemen giriş yaparak takımını oluştur ve
             projeni büyüt!
           </Typography>
         </Box>

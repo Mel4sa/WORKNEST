@@ -5,8 +5,6 @@ import {
   Button,
   TextField,
   Typography,
-  Card,
-  CardContent,
   InputAdornment,
   IconButton,
 } from "@mui/material";
@@ -37,143 +35,267 @@ function SignIn() {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-        background: "linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)",
-        overflow: "hidden",
-      }}
-    >
-      {/* Arka Plan SVG */}
+    <Box sx={{ 
+      minHeight: "100vh", 
+      height: "100vh",
+      display: "flex", 
+      margin: 0, 
+      padding: 0,
+      width: "100vw",
+      maxWidth: "100vw",
+      overflow: "hidden",
+      position: "fixed",
+      top: 0,
+      left: 0
+    }}>
+      {/* SOL TARAF - Slogan (sadece desktop'ta görünür) */}
       <Box
         sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: 0,
-          opacity: 0.15,
+          display: { xs: "none", md: "flex" },
+          flex: 1,
+          width: "50%",
+          background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
+          color: "white",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          px: 6,
+          textAlign: "center",
+          margin: 0,
+          minHeight: "100vh",
         }}
       >
-        <svg width="100%" height="100%" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
-          <circle cx="150" cy="100" r="80" fill="#ca5125" />
-          <circle cx="450" cy="250" r="120" fill="#915d56" />
-          <circle cx="700" cy="500" r="100" fill="#ca5125" />
-          <circle cx="200" cy="450" r="60" fill="#915d56" />
-        </svg>
+        <Box sx={{ 
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+          py: 4
+        }}>
+          <Typography
+            variant="h1"
+            sx={{ 
+              fontWeight: "bold", 
+              mb: 4, 
+              lineHeight: 1.1,
+              fontSize: { md: "3.5rem", lg: "4.5rem" }
+            }}
+          >
+            Join the
+            <br />
+            <span style={{ color: "#ffd166" }}>Team!</span>
+          </Typography>
+          <Typography
+            variant="h5"
+            sx={{ 
+              maxWidth: 600, 
+              opacity: 0.9, 
+              lineHeight: 1.5,
+              fontSize: { md: "1.3rem", lg: "1.5rem" }
+            }}
+          >
+            Hemen üye olun ve projelerinizi birlikte gerçekleştirmenin gücünü 
+            keşfedin. Takım arkadaşlarınızla birlikte başarıya ulaşın!
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Kart */}
-      <Card
+      {/* SAĞ TARAF - SignIn */}
+      <Box
         sx={{
-          width: 400,
-          borderRadius: 5,
-          p: 2,
-          backgroundColor: "rgba(255,255,255,0.95)",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-          position: "relative",
-          zIndex: 1,
+          flex: { xs: 1, md: 1 },
+          width: { xs: "100%", md: "50%" },
+          backgroundColor: "#f8f9fa",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: { xs: 2, sm: 4, md: 6 },
+          minHeight: "100vh",
+          margin: 0,
         }}
       >
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h5" textAlign="center" fontWeight="bold" gutterBottom>
-            Kayıt Ol
-          </Typography>
+        {/* SignIn container - dikey ve yatay olarak ortalanmış */}
+        <Box sx={{ 
+          width: "100%", 
+          maxWidth: 450,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          py: 4
+        }}>
+          {/* Mobile header */}
+          <Box 
+            sx={{ 
+              display: { xs: "block", md: "none" }, 
+              textAlign: "center", 
+              mb: 4, 
+              mt: 2 
+            }}
+          >
+            <Typography
+              variant="h4"
+              sx={{ 
+                fontWeight: "bold", 
+                mb: 1, 
+                color: "#6b0f1a" 
+              }}
+            >
+              WorkNest
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ 
+                color: "#666", 
+                mb: 3 
+              }}
+            >
+              Ekibinle birlikte büyü!
+            </Typography>
+          </Box>
 
+          {/* SignIn formu */}
           <Box
             component="form"
             onSubmit={(e) => {
               e.preventDefault();
               handleSignUp();
             }}
-            sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}
+            sx={{
+              width: "100%",
+              backgroundColor: "transparent",
+              borderRadius: 0,
+              boxShadow: "none",
+              p: { xs: 3, sm: 4, md: 5 },
+              display: "flex",
+              flexDirection: "column",
+            }}
           >
-            <TextField
-              label="Ad Soyad"
-              fullWidth
-              value={fullname}
-              onChange={(e) => setFullname(e.target.value)}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }}
+          <Typography
+            variant="h5"
+            textAlign="center"
+            fontWeight="bold"
+            mb={3}
+            color="#6b0f1a"
+          >
+            Kayıt Ol
+          </Typography>
+
+          <TextField
+            label="Ad Soyad"
+            fullWidth
+            required
+            value={fullname}
+            onChange={(e) => setFullname(e.target.value)}
+            sx={{ 
+              mb: 3,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+              }
+            }}
+          />
+
+          <TextField
+            label="E-posta"
+            type="email"
+            fullWidth
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            sx={{ 
+              mb: 3,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+              }
+            }}
+          />
+
+          <TextField
+            label="Şifre"
+            type={showPassword ? "text" : "password"}
+            fullWidth
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{ 
+              mb: 2,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+              }
+            }}
+          />
+
+          {/* Şifre Kuralları */}
+          <Box sx={{ mb: 3 }}>
+            <RuleItem
+              text="8-20 karakter arası olmalı"
+              valid={passwordRules.length}
             />
-
-            <TextField
-              label="E-posta"
-              type="email"
-              fullWidth
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }}
+            <RuleItem
+              text="En az 1 büyük harf içermeli"
+              valid={passwordRules.uppercase}
             />
-
-            <TextField
-              label="Şifre"
-              type={showPassword ? "text" : "password"}
-              fullWidth
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "50px" } }}
+            <RuleItem
+              text="En az 1 özel karakter (!@#$%^&*) içermeli"
+              valid={passwordRules.symbol}
             />
+          </Box>
 
-            {/* Şifre Kuralları */}
-            <Box sx={{ mt: -2 }}>
-              <RuleItem
-                text="8-20 karakter arası olmalı"
-                valid={passwordRules.length}
-              />
-              <RuleItem
-                text="En az 1 büyük harf içermeli"
-                valid={passwordRules.uppercase}
-              />
-              <RuleItem
-                text="En az 1 özel karakter (!@#$%^&*) içermeli"
-                valid={passwordRules.symbol}
-              />
-            </Box>
+          {error && (
+            <Typography color="error" textAlign="center" mb={2}>
+              {error}
+            </Typography>
+          )}
 
-            {error && (
-              <Typography color="error" textAlign="center">
-                {error}
-              </Typography>
-            )}
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={!Object.values(passwordRules).every(Boolean)}
+            sx={{
+              backgroundColor: "#003fd3ff",
+              color: "#fff",
+              py: 1.5,
+              fontWeight: "bold",
+              borderRadius: "50px",
+              "&:hover": { backgroundColor: "#0056b3" },
+              mb: 3,
+              fontSize: "1.1rem",
+            }}
+          >
+            Kayıt Ol
+          </Button>
 
+          <Box sx={{ 
+            display: "flex", 
+            justifyContent: "center",
+            mt: 1
+          }}>
             <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              size="large"
-              disabled={!Object.values(passwordRules).every(Boolean)}
-              sx={{
-                backgroundColor: "#003fd3ff",
-                color: "#fff",
-                borderRadius: "50px",
-                py: 1.2,
-                fontWeight: "bold",
+              onClick={() => navigate("/login")}
+              sx={{ 
+                color: "#6b0f1a", 
                 textTransform: "none",
-                "&:hover": {
-                  transform: "scale(1.05)",
-                  boxShadow: "0 12px 36px rgba(0,0,0,0.3)",
-                },
+                fontWeight: "500"
               }}
             >
-              Kayıt Ol
+              Zaten hesabın var mı? Giriş Yap
             </Button>
           </Box>
-        </CardContent>
-      </Card>
+        </Box>
+        </Box>
+      </Box>
     </Box>
   );
 }
