@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/user.model.js";
+import emailjs from "@emailjs/nodejs";
 
 // REGISTER
 export const register = async (req, res) => {
@@ -109,12 +110,12 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 dk
     await user.save();
 
-const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
 
     res.status(200).json({
       message: "Şifre sıfırlama linki oluşturuldu",
       resetLink,
-      fullname: user.fullname || user.email, // fullname yoksa email göster
+      fullname: user.fullname || user.email,
     });
   } catch (error) {
     console.error("ForgotPassword hatası:", error.message);

@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff, CheckCircle, Cancel } from "@mui/icons-material";
 import axiosInstance from "../lib/axios";
+import emailjs from "@emailjs/browser";
 
 export default function ResetPassword() {
   const { token } = useParams();
@@ -40,7 +41,7 @@ export default function ResetPassword() {
   const isMatching = password === confirm && confirm.length > 0;
   const canSubmit = isPasswordValid && isMatching;
 
-  // --- Şifre sıfırlama işlemi ---
+ 
   const handleReset = async (e) => {
     e.preventDefault();
     if (!canSubmit) {
@@ -49,6 +50,7 @@ export default function ResetPassword() {
     }
 
     try {
+      console.log("Şifre sıfırlama token:", token);
       const res = await axiosInstance.post(
         `auth/reset-password/${token}`,
         { password }
@@ -56,6 +58,7 @@ export default function ResetPassword() {
       setMessage(res.data.message || "Şifreniz başarıyla değiştirildi! Yönlendiriliyorsunuz...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
+      console.error("Reset password error:", err.response?.data || err);
       if (err.response?.status === 400 || err.response?.status === 404) {
         setExpired(true);
         setError("Şifre sıfırlama bağlantınız geçersiz veya süresi dolmuş.");
@@ -73,20 +76,41 @@ export default function ResetPassword() {
     }
 
     try {
+      // Backend'den yeni şifre sıfırlama linki al
       const res = await axiosInstance.post(
         "auth/resend-reset-link",
         { email: email.trim() }
       );
-      setResendMessage(res.data.message || "Yeni şifre sıfırlama linki gönderildi!");
+      
+      const resetLink = res.data.resetLink;
+      const fullname = res.data.fullname || "Kullanıcı";
+
+      // EmailJS ile gerçek email gönder
+      const templateParams = {
+        to_email: email.trim(),
+        to_name: fullname,
+        message: `Yeni şifre sıfırlama bağlantınız: ${resetLink}`,
+        reset_link: resetLink
+      };
+
+      await emailjs.send(
+        import.meta.env.VITE_YOUR_SERVICE_ID,  
+        import.meta.env.VITE_YOUR_TEMPLATE_ID, 
+        templateParams,
+        import.meta.env.VITE_YOUR_PUBLIC_KEY     
+      );
+
+      setResendMessage("Yeni şifre sıfırlama bağlantısı e-posta adresinize gönderildi!");
       setError("");
     } catch (err) {
+      console.error("Resend reset link hatası:", err);
       if (err.response) {
         if (err.response.status === 404) {
           setResendMessage("E-posta bulunamadı. Lütfen doğru adres girin.");
         } else if (err.response.status === 400) {
           setResendMessage("Geçersiz istek. Lütfen tekrar deneyin.");
         } else {
-          setResendMessage("Bir hata oluştu. Lütfen tekrar deneyin.");
+          setResendMessage("Email gönderilemedi. Lütfen tekrar deneyin.");
         }
       } else {
         setResendMessage("Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edin.");
