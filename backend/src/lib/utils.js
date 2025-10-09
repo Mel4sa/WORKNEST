@@ -6,7 +6,7 @@ export const generateToken = (id, res) => {
     expiresIn: '365d',
   });
   res.cookie('jwt', token, {
-    maxAge: 1000 * 60 * 60 * 24 * 365, // 365 days
+    maxAge: 1000 * 60 * 60 * 24 * 365, 
     httpOnly: true,
     sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',

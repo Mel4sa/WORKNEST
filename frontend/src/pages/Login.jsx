@@ -12,6 +12,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import useAuthStore from "../store/useAuthStore";
 import axiosInstance from "../lib/axios";
+import emailjs from "@emailjs/browser";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -35,21 +36,49 @@ export default function Login() {
   };
 
   const handleForgot = async () => {
-    if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
+  if (!forgotEmail.trim()) {
+    setModalError("Lütfen e-posta girin.");
+    return;
+  }
 
-    setLoading(true);
-    setModalError("");
-    try {
-      await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
-      setMessage("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.");
-      setForgotEmail("");
-    } catch (err) {
-      console.error("Şifre sıfırlama hatası:", err);
-      setModalError("Böyle bir kullanıcı bulunamadı veya mail gönderilemedi.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  setModalError("");
+
+  try {
+    const res = await axiosInstance.post("/auth/forgot-password", {
+      email: forgotEmail.trim(),
+    });
+
+    const resetLink = res.data.resetLink;
+    const fullname = res.data.fullname || "Kullanıcı";
+
+    const templateParams = {
+      to_email: forgotEmail.trim(),
+      to_name: fullname,
+      message: `Şifre sıfırlama bağlantınız: ${resetLink}`,
+      reset_link: resetLink
+    };
+
+    console.log("EmailJS gönderim parametreleri:", templateParams);
+
+    await emailjs.send(
+      import.meta.env.VITE_YOUR_SERVICE_ID,  
+      import.meta.env.VITE_YOUR_TEMPLATE_ID, 
+      templateParams,
+      import.meta.env.VITE_YOUR_PUBLIC_KEY     
+    );
+
+    setMessage("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.");
+    setForgotEmail("");
+
+  } catch (err) {
+    console.error("Şifre sıfırlama hatası:", err);
+    setModalError("Böyle bir kullanıcı bulunamadı veya mail gönderilemedi.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Box sx={{ 
