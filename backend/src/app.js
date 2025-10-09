@@ -6,6 +6,7 @@ import cors from "cors";
 import inviteRoutes from "./routes/invitation.route.js";
 import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
+import projectRoutes from "./routes/project.route.js";
 import connectDB from "./lib/db.js";
 
 dotenv.config();
@@ -13,7 +14,7 @@ dotenv.config();
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173", "http://localhost:5174"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
 };
@@ -29,6 +30,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/invites", inviteRoutes);
+app.use("/api/projects", projectRoutes);
 
 
 app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));

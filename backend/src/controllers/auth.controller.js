@@ -89,7 +89,7 @@ export const login = async (req, res) => {
 //  LOGOUT
 export const logout = (req, res) => {
   try {
-    res.cookie("jwt", "", { maxAge: 0 }); // cookie'yi hemen sıfırla (JWT'yi temizle)
+    res.cookie("jwt", "", { maxAge: 0 }); 
     res.status(200).json({ message: "Çıkış başarılı" });
   } catch (error) {
     console.error("❌ Logout hatası:", error);
@@ -107,7 +107,7 @@ export const forgotPassword = async (req, res) => {
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 dk
+    user.resetPasswordExpires = Date.now() + 365 * 24 * 60 * 60 * 1000;
     await user.save();
 
     const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
