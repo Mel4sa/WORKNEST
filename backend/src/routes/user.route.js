@@ -21,16 +21,28 @@ const router = express.Router();
 const upload = multer({ 
   dest: uploadsDir,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 10 * 1024 * 1024 // 10MB limit (HEIC dosyaları daha büyük olabilir)
   },
   fileFilter: (req, file, cb) => {
-    // Sadece web uyumlu resim formatlarına izin ver
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    // Resim formatlarına izin ver (HEIC dahil)
+    const allowedTypes = [
+      'image/jpeg', 
+      'image/jpg', 
+      'image/png', 
+      'image/gif', 
+      'image/webp',
+      'image/heic',
+      'image/heif'
+    ];
     
-    if (allowedTypes.includes(file.mimetype)) {
+    // HEIC dosyaları bazen farklı mimetype'larla gelebilir
+    const fileName = file.originalname.toLowerCase();
+    const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif');
+    
+    if (allowedTypes.includes(file.mimetype) || isHeic) {
       cb(null, true);
     } else {
-      cb(new Error('Sadece JPG, PNG, GIF ve WEBP formatları desteklenir. HEIC formatı desteklenmez.'), false);
+      cb(new Error('Sadece JPG, PNG, GIF, WEBP ve HEIC formatları desteklenir.'), false);
     }
   }
 });

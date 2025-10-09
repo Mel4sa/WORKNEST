@@ -49,15 +49,32 @@ export const uploadPhoto = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: "Dosya yüklenmedi" });
     }
+
+    // Dosya türünü kontrol et
+    const fileName = req.file.originalname.toLowerCase();
+    const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif');
     
-    const result = await cloudinary.uploader.upload(req.file.path, {
+    console.log(`📸 Yüklenen dosya: ${req.file.originalname} (${req.file.mimetype}), HEIC: ${isHeic}`);
+    
+    // Cloudinary upload options
+    const uploadOptions = {
       folder: "profile_photos",
-      format: "jpg", // Tüm formatları JPG'ye çevir
+      format: "jpg", // Her zaman JPG'ye çevir
       transformation: [
         { width: 500, height: 500, crop: "fill" },
         { quality: "auto", format: "jpg" }
       ]
-    });
+    };
+
+    // HEIC dosyaları için ek ayarlar
+    if (isHeic) {
+      uploadOptions.resource_type = "image";
+      // Cloudinary otomatik olarak HEIC'i destekler ve JPG'ye çevirir
+    }
+
+    const result = await cloudinary.uploader.upload(req.file.path, uploadOptions);
+
+    console.log(`☁️ Cloudinary URL: ${result.secure_url}`);
 
     const user = await User.findByIdAndUpdate(
       req.user._id,
@@ -71,8 +88,10 @@ export const uploadPhoto = async (req, res) => {
     }
     
     res.json({ 
-      message: "Profil fotoğrafı başarıyla yüklendi",
-      user: user 
+      message: `Profil fotoğrafı başarıyla yüklendi${isHeic ? ' (HEIC → JPG çevrildi)' : ''}`,
+      user: user,
+      originalFormat: isHeic ? 'HEIC' : req.file.mimetype,
+      finalFormat: 'JPG'
     });
   } catch (err) {
     console.error("Upload Error:", err.message);
