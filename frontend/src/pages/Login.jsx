@@ -247,6 +247,7 @@ export default function Login() {
             type="submit"
             fullWidth
             variant="contained"
+            onClick={handleLogin}
             sx={{
               backgroundColor: "#003fd3ff",
               color: "#fff",
