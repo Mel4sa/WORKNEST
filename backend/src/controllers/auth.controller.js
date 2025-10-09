@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/user.model.js";
+import { sendResetPasswordEmail } from "../lib/emailService.js";
 
 // REGISTER
 export const register = async (req, res) => {
@@ -109,13 +110,30 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 dk
     await user.save();
 
-const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+    
+    // EmailJS ile gerçek email gönder
+    const emailResult = await sendResetPasswordEmail(
+      email, 
+      user.fullname || user.email, 
+      resetLink
+    );
 
-    res.status(200).json({
-      message: "Şifre sıfırlama linki oluşturuldu",
-      resetLink,
-      fullname: user.fullname || user.email, // fullname yoksa email göster
-    });
+    if (emailResult.success) {
+      console.log(`✅ Şifre sıfırlama emaili başarıyla gönderildi: ${email}`);
+      res.status(200).json({
+        message: "Şifre sıfırlama linki e-posta adresinize gönderildi",
+        fullname: user.fullname || user.email,
+      });
+    } else {
+      console.error(`❌ Email gönderilemedi: ${emailResult.error}`);
+      res.status(200).json({
+        message: "Şifre sıfırlama linki oluşturuldu",
+        resetLink, // Hata durumunda linki döndür
+        fullname: user.fullname || user.email,
+        note: "Email gönderiminde sorun yaşandı, link burada gösterildi"
+      });
+    }
   } catch (error) {
     console.error("ForgotPassword hatası:", error.message);
     res.status(500).json({ message: "Sunucu hatası", error: error.message });
@@ -169,12 +187,29 @@ export const resendResetLink = async (req, res) => {
     await user.save();
 
     const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+    
+    // EmailJS ile gerçek email gönder
+    const emailResult = await sendResetPasswordEmail(
+      email, 
+      user.fullname || user.email, 
+      resetLink
+    );
 
-    res.status(200).json({ 
-      message: "Yeni şifre sıfırlama bağlantısı oluşturuldu",
-      resetLink,
-      fullname: user.fullname || user.email
-    });
+    if (emailResult.success) {
+      console.log(`✅ Yeni şifre sıfırlama emaili başarıyla gönderildi: ${email}`);
+      res.status(200).json({ 
+        message: "Yeni şifre sıfırlama bağlantısı e-posta adresinize gönderildi",
+        fullname: user.fullname || user.email
+      });
+    } else {
+      console.error(`❌ Email gönderilemedi: ${emailResult.error}`);
+      res.status(200).json({ 
+        message: "Yeni şifre sıfırlama bağlantısı oluşturuldu",
+        resetLink, // Hata durumunda linki döndür
+        fullname: user.fullname || user.email,
+        note: "Email gönderiminde sorun yaşandı, link burada gösterildi"
+      });
+    }
   } catch (error) {
     console.error("Resend reset link error:", error);
     res.status(500).json({ message: "Sunucu hatası." });
