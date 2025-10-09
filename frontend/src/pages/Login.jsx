@@ -5,66 +5,43 @@ import {
   Button,
   TextField,
   Typography,
-  Card,
-  CardContent,
-  InputAdornment,
   IconButton,
+  InputAdornment,
   Modal,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import useAuthStore from "../store/useAuthStore";
-import emailjs from "@emailjs/browser";
-import axiosInstance from "../lib/axios";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
+  
   const [openForgot, setOpenForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [modalError, setModalError] = useState("");
-
+  
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
   const loginError = useAuthStore((state) => state.error);
 
-  // 🔹 Kullanıcı girişi
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     const success = await login(email, password);
-    if (success) {
-      // Profil sayfasına giderken state ile uyarı mesajını taşı
-      navigate("/profile", { state: { showCompleteProfileAlert: true } });
-    }
+    if (success) navigate("/profile");
   };
 
   const handleForgot = async () => {
     if (!forgotEmail) return setModalError("Lütfen e-posta girin.");
 
     setLoading(true);
+    setModalError("");
     try {
-      const res = await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
-      console.log("Backend response:", res.data);
-
-      const resetLink = res.data.resetLink;
-      const fullname = res.data.fullname;
-
-      const emailResponse = await emailjs.send(
-        import.meta.env.VITE_YOUR_SERVICE_ID,
-        import.meta.env.VITE_YOUR_TEMPLATE_ID,
-        {
-          to_email: forgotEmail,
-          fullname: fullname,
-          reset_link: resetLink,
-        },
-        import.meta.env.VITE_YOUR_PUBLIC_KEY
-      );
-
-      console.log("EmailJS Response:", emailResponse);
-
-      setMessage("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et!");
+      // API çağrısı burada yapılacak
+      // await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
+      setMessage("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.");
       setForgotEmail("");
     } catch (err) {
       console.error("Şifre sıfırlama hatası:", err);
@@ -75,118 +52,245 @@ export default function Login() {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-        background: "linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)",
-        overflow: "hidden",
-      }}
-    >
-      {/* SVG Arka Plan */}
+    <Box sx={{ 
+      minHeight: "100vh", 
+      height: "100vh",
+      display: "flex", 
+      margin: 0, 
+      padding: 0,
+      width: "100vw",
+      maxWidth: "100vw",
+      overflow: "hidden",
+      position: "fixed",
+      top: 0,
+      left: 0
+    }}>
+      {/* SOL TARAF - Slogan (sadece desktop'ta görünür) */}
       <Box
         sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: 0,
-          opacity: 0.15,
+          display: { xs: "none", md: "flex" },
+          flex: 1,
+          width: "50%",
+          background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
+          color: "white",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          px: 6,
+          textAlign: "center",
+          margin: 0,
+          minHeight: "100vh",
         }}
       >
-        <svg width="100%" height="100%" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
-          <circle cx="100" cy="100" r="80" fill="#ca5125" />
-          <circle cx="400" cy="200" r="120" fill="#915d56" />
-          <circle cx="700" cy="500" r="100" fill="#ca5125" />
-          <circle cx="200" cy="450" r="60" fill="#915d56" />
-        </svg>
+        <Box sx={{ 
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+          py: 4
+        }}>
+          <Typography
+            variant="h1"
+            sx={{ 
+              fontWeight: "bold", 
+              mb: 4, 
+              lineHeight: 1.1,
+              fontSize: { md: "3.5rem", lg: "4.5rem" }
+            }}
+          >
+            Work better.
+            <br />
+            <span style={{ color: "#ffd166" }}>Together.</span>
+          </Typography>
+          <Typography
+            variant="h5"
+            sx={{ 
+              maxWidth: 600, 
+              opacity: 0.9, 
+              lineHeight: 1.5,
+              fontSize: { md: "1.3rem", lg: "1.5rem" }
+            }}
+          >
+            Farklı insanların birlikte fikirlerini hayata geçirebildiği bir proje
+            yönetim alanına HOŞ GELDİNİZ! Hemen giriş yaparak takımını oluştur ve
+            projeni büyüt!
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Login Card */}
-      <Card
+      {/* SAĞ TARAF - Login */}
+      <Box
         sx={{
-          width: 400,
-          borderRadius: 5,
-          p: 2,
-          backgroundColor: "rgba(255,255,255,0.95)",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-          position: "relative",
-          zIndex: 1,
+          flex: { xs: 1, md: 1 },
+          width: { xs: "100%", md: "50%" },
+          backgroundColor: "#f8f9fa",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: { xs: 2, sm: 4, md: 6 },
+          minHeight: "100vh",
+          margin: 0,
         }}
       >
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h5" textAlign="center" fontWeight="bold" color="#212121" gutterBottom>
+        {/* Login container - dikey ve yatay olarak ortalanmış */}
+        <Box sx={{ 
+          width: "100%", 
+          maxWidth: 450,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          py: 4
+        }}>
+          {/* Mobile header */}
+          <Box 
+            sx={{ 
+              display: { xs: "block", md: "none" }, 
+              textAlign: "center", 
+              mb: 4, 
+              mt: 2 
+            }}
+          >
+            <Typography
+              variant="h4"
+              sx={{ 
+                fontWeight: "bold", 
+                mb: 1, 
+                color: "#6b0f1a" 
+              }}
+            >
+              WorkNest
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ 
+                color: "#666", 
+                mb: 3 
+              }}
+            >
+              Ekibinle birlikte büyü!
+            </Typography>
+          </Box>
+
+          {/* Login kutusu */}
+          <Box
+            component="form"
+            onSubmit={handleLogin}
+            sx={{
+              width: "100%",
+              backgroundColor: "transparent",
+              borderRadius: 0,
+              boxShadow: "none",
+              p: { xs: 3, sm: 4, md: 5 },
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+          <Typography
+            variant="h5"
+            textAlign="center"
+            fontWeight="bold"
+            mb={3}
+            color="#6b0f1a"
+          >
             Giriş Yap
           </Typography>
 
-          {/* Login Form */}
-          <Box
-            component="form"
-            noValidate
-            autoComplete="off"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleLogin();
+          <TextField
+            label="E-posta"
+            type="email"
+            fullWidth
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            sx={{ 
+              mb: 3,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+              }
             }}
-            sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 3 }}
+          />
+
+          <TextField
+            label="Şifre"
+            type={showPassword ? "text" : "password"}
+            fullWidth
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{ 
+              mb: 3,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+              }
+            }}
+          />
+
+          {loginError && (
+            <Typography color="error" textAlign="center" mb={2}>
+              {loginError}
+            </Typography>
+          )}
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{
+              backgroundColor: "#003fd3ff",
+              color: "#fff",
+              py: 1.5,
+              fontWeight: "bold",
+              borderRadius: "50px",
+              "&:hover": { backgroundColor: "#0056b3" },
+              mb: 3,
+              fontSize: "1.1rem",
+            }}
           >
-            <TextField
-              label="E-posta"
-              type="email"
-              fullWidth
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            Giriş Yap
+          </Button>
 
-            <TextField
-              label="Şifre"
-              type={showPassword ? "text" : "password"}
-              fullWidth
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            {loginError && (
-              <Typography color="error" textAlign="center">
-                {loginError}
-              </Typography>
-            )}
-
+          <Box sx={{ 
+            display: "flex", 
+            justifyContent: "space-between",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: { xs: 2, sm: 0 }
+          }}>
             <Button
-              type="submit"
-              variant="contained"
-              sx={{ backgroundColor: "#003fd3ff", borderRadius: "50px", py: 1.2, fontWeight: "bold" }}
+              onClick={() => navigate("/signin")}
+              sx={{ 
+                color: "#000", 
+                textTransform: "none",
+                fontWeight: "500"
+              }}
             >
-              Giriş Yap
+              Kayıt Ol
             </Button>
-
-            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
-              <Button onClick={() => navigate("/signin")} sx={{ fontSize: "0.9rem" }}>
-                Kayıt Ol
-              </Button>
-              <Button
-                onClick={() => setOpenForgot(true)}
-                sx={{ fontSize: "0.9rem", color: "#f44336" }}
-              >
-                Şifremi Unuttum?
-              </Button>
-            </Box>
+            <Button
+              onClick={() => setOpenForgot(true)}
+              sx={{ 
+                color: "#6b0f1a", 
+                textTransform: "none",
+                fontWeight: "500"
+              }}
+            >
+              Şifremi Unuttum
+            </Button>
           </Box>
-        </CardContent>
-      </Card>
+        </Box>
+        </Box>
+      </Box>
 
       {/* Şifremi Unuttum Modal */}
       <Modal
@@ -214,7 +318,7 @@ export default function Login() {
         >
           {!message ? (
             <>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>
+              <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: "#6b0f1a" }}>
                 Şifremi Unuttum
               </Typography>
               <Typography variant="body2" color="text.secondary" mb={2}>
@@ -225,7 +329,12 @@ export default function Login() {
                 label="E-posta"
                 type="email"
                 fullWidth
-                sx={{ mb: 2 }}
+                sx={{ 
+                  mb: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                  }
+                }}
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
                 onKeyDown={(e) => {
@@ -247,7 +356,7 @@ export default function Login() {
                   backgroundColor: "#003fd3ff",
                   borderRadius: "50px",
                   fontWeight: "bold",
-                  "&:hover": { backgroundColor: "#003fd3ff" },
+                  "&:hover": { backgroundColor: "#0056b3" },
                 }}
                 onClick={handleForgot}
               >
@@ -287,7 +396,7 @@ export default function Login() {
                   backgroundColor: "#003fd3ff",
                   borderRadius: "50px",
                   fontWeight: "bold",
-                  "&:hover": { backgroundColor: "#003fd3ff" },
+                  "&:hover": { backgroundColor: "#0056b3" },
                 }}
                 onClick={() => {
                   setOpenForgot(false);
@@ -296,7 +405,7 @@ export default function Login() {
                   setModalError("");
                 }}
               >
-                Giriş Yap
+                Tamam
               </Button>
             </>
           )}

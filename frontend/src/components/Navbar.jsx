@@ -22,13 +22,9 @@ function Navbar() {
   const logout = useAuthStore((state) => state.logout);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleAuthButton = () => {
-    if (user) {
-      logout();
-      navigate("/login");
-    } else {
-      navigate("/login");
-    }
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   const menuItems = [
@@ -81,12 +77,12 @@ function Navbar() {
           ))}
         </Box>
 
-        {/* Büyük ekran giriş/çıkış */}
-        <Box sx={{ display: { xs: "none", md: "flex" } }}>
-          {user ? (
+        {/* Sadece çıkış butonu */}
+        {user && (
+          <Box sx={{ display: { xs: "none", md: "flex" } }}>
             <Button
               variant="contained"
-              onClick={handleAuthButton}
+              onClick={handleLogout}
               sx={{
                 backgroundColor: "#ff0000",
                 color: "#fff",
@@ -103,28 +99,8 @@ function Navbar() {
             >
               Çıkış Yap
             </Button>
-          ) : (
-            <Button
-              variant="contained"
-              onClick={handleAuthButton}
-              sx={{
-                backgroundColor: "#1976d2",
-                color: "#fff",
-                borderRadius: "50px",
-                padding: "6px 24px",
-                textTransform: "none",
-                fontWeight: "bold",
-                "&:hover": {
-                  backgroundColor: "#1565c0",
-                  transform: "scale(1.05)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                },
-              }}
-            >
-              Giriş Yap
-            </Button>
-          )}
-        </Box>
+          </Box>
+        )}
 
         {/* Küçük ekran hamburger */}
         <IconButton
@@ -148,20 +124,24 @@ function Navbar() {
             <List>
               {menuItems.map((item) => (
                 <ListItem key={item.label} disablePadding>
-                  <ListItemButton component={Link} to={item.path} onClick={() => setDrawerOpen(false)}>
+                  <ListItemButton
+                    component={Link}
+                    to={item.path}
+                    onClick={() => setDrawerOpen(false)}
+                  >
                     <ListItemText primary={item.label} />
                   </ListItemButton>
                 </ListItem>
               ))}
             </List>
 
-            {/* Çıkış Yap butonu sağ alta */}
+            {/* Çıkış Yap butonu sağ altta */}
             {user && (
               <Box sx={{ position: "absolute", bottom: 45, right: 16, width: "calc(100% - 32px)" }}>
                 <Button
                   variant="contained"
                   fullWidth
-                  onClick={handleAuthButton}
+                  onClick={handleLogout}
                   sx={{
                     backgroundColor: "#ff0000",
                     color: "#fff",
