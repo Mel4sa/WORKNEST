@@ -39,16 +39,46 @@ function Navbar() {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "transparent",
-        boxShadow: "none",
-        backdropFilter: "blur(6px)",
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        backdropFilter: "blur(10px)",
+        borderBottom: "1px solid rgba(0,0,0,0.05)",
         transition: "all 0.4s ease",
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         {/* Logo */}
         <Link to="/home" style={{ textDecoration: "none" }}>
-          <Typography variant="h5" className="elegant-logo">
+          <Typography 
+            variant="h5" 
+            sx={{
+              fontWeight: "900",
+              fontSize: { xs: "1.4rem", md: "1.7rem" },
+              color: "#2c3e50",
+              position: "relative",
+              letterSpacing: "2px",
+              fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+              transition: "all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                bottom: "-3px",
+                left: "0",
+                width: "0%",
+                height: "3px",
+                background: "linear-gradient(90deg, #6b0f1a, #003fd3ff, #ffd166)",
+                transition: "width 0.4s ease",
+              },
+              "&:hover": {
+                color: "#1a252f",
+                transform: "translateY(-2px)",
+                filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.15))",
+                "&::after": {
+                  width: "100%",
+                }
+              }
+            }}
+          >
             WORKNEST
           </Typography>
         </Link>
