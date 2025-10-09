@@ -111,7 +111,6 @@ export const forgotPassword = async (req, res) => {
 
 const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
 
-    // ✨ fullname artık dönüyoruz
     res.status(200).json({
       message: "Şifre sıfırlama linki oluşturuldu",
       resetLink,
@@ -136,7 +135,7 @@ export const resetPassword = async (req, res) => {
 
     if (!user) return res.status(400).json({ message: "Geçersiz veya süresi dolmuş token." });
 
-    // Şifreyi hashle ve kaydet
+
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
     user.resetPasswordToken = undefined;
@@ -147,5 +146,37 @@ export const resetPassword = async (req, res) => {
   } catch (error) {
     console.error("ResetPassword hatası:", error.message);
     res.status(500).json({ message: "Sunucu hatası", error: error.message });
+  }
+};
+
+export const resendResetLink = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "E-posta adresi gerekli" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "E-posta adresi bulunamadı" });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 dakika (forgotPassword ile aynı)
+    await user.save();
+
+    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+
+    res.status(200).json({ 
+      message: "Yeni şifre sıfırlama bağlantısı oluşturuldu",
+      resetLink,
+      fullname: user.fullname || user.email
+    });
+  } catch (error) {
+    console.error("Resend reset link error:", error);
+    res.status(500).json({ message: "Sunucu hatası." });
   }
 };

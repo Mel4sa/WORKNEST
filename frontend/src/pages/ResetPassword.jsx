@@ -50,7 +50,7 @@ export default function ResetPassword() {
 
     try {
       const res = await axiosInstance.post(
-        `http://localhost:5000/auth/reset-password/${token}`, 
+        `auth/reset-password/${token}`,
         { password }
       );
       setMessage(res.data.message || "Şifreniz başarıyla değiştirildi! Yönlendiriliyorsunuz...");
@@ -74,7 +74,7 @@ export default function ResetPassword() {
 
     try {
       const res = await axiosInstance.post(
-        "http://localhost:5000/auth/resend-reset-link", 
+        "auth/resend-reset-link",
         { email: email.trim() }
       );
       setResendMessage(res.data.message || "Yeni şifre sıfırlama linki gönderildi!");
