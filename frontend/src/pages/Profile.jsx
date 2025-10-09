@@ -266,26 +266,55 @@ export default function ProfilePage() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", py: 8, px: 4, bgcolor: "#fafafa" }}>
+    <Box sx={{ 
+      minHeight: "calc(100vh - 64px)", 
+      height: "calc(100vh - 64px)",
+      display: "flex", 
+      margin: 0, 
+      padding: 0,
+      width: "100vw",
+      maxWidth: "100vw",
+      overflow: "hidden",
+      position: "fixed",
+      top: 64, // Navbar yüksekliği için boşluk
+      left: 0,
+      zIndex: 1
+    }}>
+      {/* SOL TARAF - Profil Kartı (sadece desktop'ta görünür) */}
       <Box
         sx={{
-          maxWidth: 900,
-          mx: "auto",
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "300px 1fr" },
-          gap: 6,
+          display: { xs: "none", md: "flex" },
+          flex: 1,
+          width: "50%",
+          background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
+          color: "white",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          px: 6,
+          textAlign: "center",
+          margin: 0,
+          minHeight: "calc(100vh - 64px)", // Navbar yüksekliği çıkarıldı
         }}
       >
-        {/* Sol Panel */}
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+        <Box sx={{ 
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+          py: 4
+        }}>
+          {/* Profil Fotoğrafı */}
           <Box
             sx={{
               position: "relative",
-              width: 140,
-              height: 140,
+              width: 160,
+              height: 160,
               borderRadius: "50%",
               overflow: "hidden",
               cursor: "pointer",
+              mb: 3,
               "&:hover .cameraOverlay": { opacity: 1 },
             }}
             onClick={handleChangeProfilePhoto}
@@ -295,11 +324,11 @@ export default function ProfilePage() {
               sx={{
                 width: "100%",
                 height: "100%",
-                border: "3px solid #003fd3ff",
-                bgcolor: "#003fd3ff",
+                border: "4px solid #ffd166",
+                bgcolor: "#ffd166",
               }}
             >
-              {!preview && <Person sx={{ fontSize: 70, color: "#fff" }} />}
+              {!preview && <Person sx={{ fontSize: 80, color: "#6b0f1a" }} />}
             </Avatar>
             <Box
               className="cameraOverlay"
@@ -317,7 +346,7 @@ export default function ProfilePage() {
                 transition: "opacity 0.3s",
               }}
             >
-              <CameraAlt sx={{ color: "#fff", fontSize: 40 }} />
+              <CameraAlt sx={{ color: "#fff", fontSize: 50 }} />
             </Box>
           </Box>
 
@@ -329,146 +358,349 @@ export default function ProfilePage() {
             onChange={handleFileChange}
           />
 
-          <Typography variant="h5" sx={{ fontWeight: 700, textAlign: "center" }}>
+          <Typography
+            variant="h4"
+            sx={{ 
+              fontWeight: "bold", 
+              mb: 2, 
+              fontSize: { md: "2rem", lg: "2.5rem" }
+            }}
+          >
             {user?.fullname || "Kullanıcı"}
           </Typography>
 
-          <TextField
-            placeholder="Pozisyon"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            sx={{ width: "100%", mt: 1 }}
-          />
+          <Typography
+            variant="h6"
+            sx={{ 
+              color: "#ffd166", 
+              mb: 3,
+              opacity: 0.9,
+              fontSize: { md: "1.1rem", lg: "1.3rem" }
+            }}
+          >
+            {role || "Pozisyon belirtilmemiş"}
+          </Typography>
 
-          <Stack direction="row" spacing={1}>
+          {/* Sosyal Linkler */}
+          <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
             {github && (
-              <IconButton href={github.startsWith("http") ? github : `https://${github}`} target="_blank">
-                <GitHub />
+              <IconButton 
+                href={github.startsWith("http") ? github : `https://${github}`} 
+                target="_blank"
+                sx={{ 
+                  color: "#fff", 
+                  backgroundColor: "#333",
+                  fontSize: 40,
+                  "&:hover": { 
+                    backgroundColor: "#000", 
+                    transform: "scale(1.1)",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+                  },
+                  transition: "all 0.3s ease"
+                }}
+              >
+                <GitHub sx={{ fontSize: 30 }} />
               </IconButton>
             )}
             {linkedin && (
-              <IconButton href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`} target="_blank">
-                <LinkedIn color="primary" />
+              <IconButton 
+                href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`} 
+                target="_blank"
+                sx={{ 
+                  color: "#fff", 
+                  backgroundColor: "#0A66C2",
+                  fontSize: 40,
+                  "&:hover": { 
+                    backgroundColor: "#004182", 
+                    transform: "scale(1.1)",
+                    boxShadow: "0 4px 12px rgba(10,102,194,0.3)"
+                  },
+                  transition: "all 0.3s ease"
+                }}
+              >
+                <LinkedIn sx={{ fontSize: 30 }} />
               </IconButton>
             )}
           </Stack>
-
-          <Box sx={{ width: "100%" }}>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>
-              Yetenekler
-            </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              {skills.map((skill) => (
-                <Chip
-                  key={skill}
-                  label={skill}
-                  onDelete={() => handleDeleteSkill(skill)}
-                  sx={{
-                    mb: 1,
-                    borderRadius: "10px",
-                    bgcolor: "#003fd3ff",
-                    color: "#fff",
-                    "& .MuiChip-deleteIcon": { color: "#fff" },
-                  }}
-                />
-              ))}
-            </Stack>
-
-            <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-              <TextField
-                size="small"
-                fullWidth
-                placeholder="Yeni yetenek"
-                value={newSkill}
-                onChange={(e) => setNewSkill(e.target.value)}
-              />
-              <Button variant="contained" sx={{ minWidth: 40 }} onClick={handleAddSkill}>
-                <Add />
-              </Button>
-            </Box>
-          </Box>
         </Box>
+      </Box>
 
-        {/* Sağ Panel */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Biyografi
-            </Typography>
-            <IconButton
-              onClick={() => setOpen(true)}
+      {/* SAĞ TARAF - Profil Formu */}
+      <Box
+        sx={{
+          flex: { xs: 1, md: 1 },
+          width: { xs: "100%", md: "50%" },
+          backgroundColor: "#f8f9fa",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: { xs: 2, sm: 4, md: 6 },
+          minHeight: "calc(100vh - 64px)", // Navbar yüksekliği çıkarıldı
+          margin: 0,
+          overflowY: "auto",
+        }}
+      >
+        {/* Profil Formu Container */}
+        <Box sx={{ 
+          width: "100%", 
+          maxWidth: 500,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          py: 4
+        }}>
+          {/* Mobile header */}
+          <Box 
+            sx={{ 
+              display: { xs: "flex", md: "none" }, 
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center", 
+              mb: 4, 
+              mt: 2 
+            }}
+          >
+            <Avatar
+              src={preview || undefined}
               sx={{
-                bgcolor: "#f5f5f5",
-                "&:hover": { bgcolor: "#e0e0e0" },
-                transition: "0.2s",
+                width: 100,
+                height: 100,
+                border: "3px solid #003fd3ff",
+                bgcolor: "#003fd3ff",
+                mb: 2,
+                cursor: "pointer"
+              }}
+              onClick={handleChangeProfilePhoto}
+            >
+              {!preview && <Person sx={{ fontSize: 50, color: "#fff" }} />}
+            </Avatar>
+            <Typography
+              variant="h5"
+              sx={{ 
+                fontWeight: "bold", 
+                mb: 1, 
+                color: "#6b0f1a" 
               }}
             >
-              <Settings />
-            </IconButton>
+              {user?.fullname || "Kullanıcı"}
+            </Typography>
           </Box>
 
-          <TextField multiline minRows={4} fullWidth value={bio} onChange={(e) => setBio(e.target.value)} />
+          {/* Form Container */}
+          <Box
+            sx={{
+              width: "100%",
+              backgroundColor: "transparent",
+              borderRadius: 0,
+              boxShadow: "none",
+              p: { xs: 2, sm: 3, md: 4 },
+              display: "flex",
+              flexDirection: "column",
+              gap: 3
+            }}
+          >
+            {/* Başlık ve Ayarlar */}
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+              <Typography
+                variant="h5"
+                sx={{ 
+                  fontWeight: "bold", 
+                  color: "#6b0f1a" 
+                }}
+              >
+                Profil Bilgileri
+              </Typography>
+              <IconButton
+                onClick={() => setOpen(true)}
+                sx={{
+                  backgroundColor: "#003fd3ff",
+                  color: "#fff",
+                  "&:hover": { backgroundColor: "#0056b3", transform: "scale(1.05)" },
+                  transition: "all 0.2s",
+                }}
+              >
+                <Settings />
+              </IconButton>
+            </Box>
 
-          <Typography variant="h6">Üniversite & Bölüm</Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <Select value={university} onChange={(e) => setUniversity(e.target.value)} displayEmpty sx={{ flex: 1 }}>
-              <MenuItem value="" disabled>
-                Üniversite
-              </MenuItem>
-              {universities.map((uni) => (
-                <MenuItem key={uni} value={uni}>
-                  {uni}
-                </MenuItem>
-              ))}
-            </Select>
+            {/* Pozisyon */}
             <TextField
-              placeholder="Bölüm"
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-              sx={{ flex: 1 }}
-            />
-          </Stack>
-
-          <Typography variant="h6">Sosyal Bağlantılar</Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <TextField
-              placeholder="Github"
-              value={github}
-              onChange={(e) => setGithub(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <GitHub />
-                  </InputAdornment>
-                ),
+              label="Title"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              sx={{ 
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                }
               }}
-              sx={{ flex: 1 }}
             />
-            <TextField
-              placeholder="LinkedIn"
-              value={linkedin}
-              onChange={(e) => setLinkedin(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LinkedIn color="primary" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ flex: 1 }}
-            />
-          </Stack>
 
-          <Box sx={{ textAlign: "center" }}>
+            {/* Biyografi */}
+            <TextField 
+              label="Biyografi"
+              multiline 
+              minRows={3} 
+              value={bio} 
+              onChange={(e) => setBio(e.target.value)}
+              sx={{ 
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                }
+              }}
+            />
+
+            {/* Üniversite & Bölüm */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: "#6b0f1a" }}>
+                Eğitim Bilgileri
+              </Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <Select 
+                  value={university} 
+                  onChange={(e) => setUniversity(e.target.value)} 
+                  displayEmpty 
+                  sx={{ 
+                    flex: 1,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                    }
+                  }}
+                >
+                  <MenuItem value="" disabled>
+                    Üniversite Seçin
+                  </MenuItem>
+                  {universities.map((uni) => (
+                    <MenuItem key={uni} value={uni}>
+                      {uni}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <TextField
+                  label="Bölüm"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  sx={{ 
+                    flex: 1,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                    }
+                  }}
+                />
+              </Stack>
+            </Box>
+
+            {/* Sosyal Bağlantılar */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: "#6b0f1a" }}>
+                Sosyal Bağlantılar
+              </Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <TextField
+                  placeholder="https://github.com/kullanici"
+                  value={github}
+                  onChange={(e) => setGithub(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <GitHub sx={{ color: "#333" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ 
+                    flex: 1,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                      "& fieldset": { borderColor: "#003fd3ff" },
+                    },
+                  }}
+                />
+                <TextField
+                  placeholder="https://linkedin.com/in/kullanici"
+                  value={linkedin}
+                  onChange={(e) => setLinkedin(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LinkedIn sx={{ color: "#0A66C2" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ 
+                    flex: 1,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                      "& fieldset": { borderColor: "#003fd3ff" },
+                    },
+                  }}
+                />
+              </Stack>
+            </Box>
+
+            {/* Yetenekler */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: "#6b0f1a" }}>
+                Yetenekler
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
+                {skills.map((skill) => (
+                  <Chip
+                    key={skill}
+                    label={skill}
+                    onDelete={() => handleDeleteSkill(skill)}
+                    sx={{
+                      mb: 1,
+                      borderRadius: "12px",
+                      bgcolor: "#003fd3ff",
+                      color: "#fff",
+                      "& .MuiChip-deleteIcon": { color: "#fff" },
+                    }}
+                  />
+                ))}
+              </Stack>
+
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  placeholder="Yeni yetenek ekle"
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
+                  sx={{ 
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                    }
+                  }}
+                />
+                <Button 
+                  variant="contained" 
+                  sx={{ 
+                    minWidth: 50,
+                    backgroundColor: "#003fd3ff",
+                    borderRadius: "12px",
+                    "&:hover": { backgroundColor: "#0056b3" }
+                  }} 
+                  onClick={handleAddSkill}
+                >
+                  <Add />
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Kaydet Butonu */}
             <Button
               variant="contained"
               disabled={!isProfileChanged}
               onClick={handleSaveProfile}
               sx={{
-                borderRadius: 2,
+                backgroundColor: "#003fd3ff",
+                color: "#fff",
                 py: 1.5,
-                px: 4,
-                fontWeight: 600,
+                fontWeight: "bold",
+                borderRadius: "50px",
+                "&:hover": { backgroundColor: "#0056b3" },
+                fontSize: "1.1rem",
+                mt: 2
               }}
             >
               Profili Kaydet
@@ -483,17 +715,60 @@ export default function ProfilePage() {
         autoHideDuration={4000}
         onClose={() => setMessageOpen(false)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{ 
+          zIndex: 9999,
+          top: "80px !important" // Navbar altına gelmesin
+        }}
       >
-        <Alert severity={messageType}>{messageText}</Alert>
+        <Alert 
+          severity={messageType}
+          sx={{
+            borderRadius: "12px",
+            fontWeight: 500,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+          }}
+        >
+          {messageText}
+        </Alert>
       </Snackbar>
 
       {/* Ayarlar Popup */}
-      <Dialog open={open} onClose={handleClosePopup} PaperProps={{ sx: { width: 420, borderRadius: 4, p: 3 } }}>
-        <Typography variant="h6" sx={{ textAlign: "center", mb: 2, fontWeight: 700 }}>
+      <Dialog 
+        open={open} 
+        onClose={handleClosePopup} 
+        PaperProps={{ 
+          sx: { 
+            width: 450, 
+            borderRadius: "20px", 
+            p: 4,
+            backgroundColor: "#f8f9fa",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.1)"
+          } 
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            textAlign: "center", 
+            mb: 3, 
+            fontWeight: "bold",
+            color: "#6b0f1a"
+          }}
+        >
           Hesap Ayarları
         </Typography>
-        <Divider sx={{ mb: 2 }} />
-        <Box sx={{ display: "flex", justifyContent: "space-around", mb: 2 }}>
+        <Divider sx={{ mb: 3, backgroundColor: "#ddd" }} />
+        
+        {/* Tab Navigation */}
+        <Box sx={{ 
+          display: "flex", 
+          justifyContent: "space-around", 
+          mb: 3,
+          backgroundColor: "#fff",
+          borderRadius: "12px",
+          p: 1,
+          boxShadow: "inset 0 2px 4px rgba(0,0,0,0.05)"
+        }}>
           {[
             { key: "username", label: "Kullanıcı Adı" },
             { key: "email", label: "E-posta" },
@@ -506,9 +781,17 @@ export default function ProfilePage() {
               sx={{
                 fontWeight: 600,
                 cursor: "pointer",
-                color: activeTab === tab.key ? "#003fd3ff" : "#777",
-                borderBottom: activeTab === tab.key ? "2px solid #003fd3ff" : "none",
-                pb: 0.5,
+                color: activeTab === tab.key ? "#fff" : "#666",
+                backgroundColor: activeTab === tab.key ? "#003fd3ff" : "transparent",
+                borderRadius: "8px",
+                py: 1,
+                px: 2,
+                transition: "all 0.3s ease",
+                fontSize: "0.85rem",
+                textAlign: "center",
+                "&:hover": {
+                  backgroundColor: activeTab === tab.key ? "#0056b3" : "#f0f0f0"
+                }
               }}
             >
               {tab.label}
@@ -517,32 +800,121 @@ export default function ProfilePage() {
         </Box>
 
         {activeTab === "username" && (
-          <Box>
-            <TextField fullWidth label="Yeni Kullanıcı Adı" sx={{ mb: 2 }} value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
-            <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeUsername}>
-              Kaydet
+          <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#6b0f1a" }}>
+              Kullanıcı Adını Değiştir
+            </Typography>
+            <TextField 
+              fullWidth 
+              label="Yeni Kullanıcı Adı" 
+              placeholder="Yeni kullanıcı adınızı girin"
+              sx={{ 
+                mb: 3,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                  backgroundColor: "#f8f9fa",
+                  "& fieldset": { borderColor: "#ddd" },
+                  "&:hover fieldset": { borderColor: "#003fd3ff" },
+                  "&.Mui-focused fieldset": { borderColor: "#003fd3ff" }
+                }
+              }} 
+              value={newUsername} 
+              onChange={(e) => setNewUsername(e.target.value)} 
+            />
+            <Button 
+              fullWidth 
+              variant="contained" 
+              sx={{ 
+                background: "linear-gradient(135deg, #003fd3ff, #0056b3)",
+                borderRadius: "12px",
+                py: 1.5,
+                fontWeight: "bold",
+                fontSize: "1rem",
+                textTransform: "none",
+                boxShadow: "0 4px 12px rgba(0,63,211,0.3)",
+                "&:hover": { 
+                  background: "linear-gradient(135deg, #0056b3, #003fd3ff)",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 6px 16px rgba(0,63,211,0.4)"
+                },
+                transition: "all 0.3s ease"
+              }} 
+              onClick={handleChangeUsername}
+            >
+              Kullanıcı Adını Kaydet
             </Button>
           </Box>
         )}
 
         {activeTab === "email" && (
-          <Box>
-            <TextField fullWidth label="Yeni E-posta" sx={{ mb: 2 }} value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-            <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangeEmail}>
-              Güncelle
+          <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#6b0f1a" }}>
+              E-posta Adresini Değiştir
+            </Typography>
+            <TextField 
+              fullWidth 
+              label="Yeni E-posta" 
+              placeholder="Yeni e-posta adresinizi girin"
+              type="email"
+              sx={{ 
+                mb: 3,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                  backgroundColor: "#f8f9fa",
+                  "& fieldset": { borderColor: "#ddd" },
+                  "&:hover fieldset": { borderColor: "#003fd3ff" },
+                  "&.Mui-focused fieldset": { borderColor: "#003fd3ff" }
+                }
+              }} 
+              value={newEmail} 
+              onChange={(e) => setNewEmail(e.target.value)} 
+            />
+            <Button 
+              fullWidth 
+              variant="contained" 
+              sx={{ 
+                background: "linear-gradient(135deg, #003fd3ff, #0056b3)",
+                borderRadius: "12px",
+                py: 1.5,
+                fontWeight: "bold",
+                fontSize: "1rem",
+                textTransform: "none",
+                boxShadow: "0 4px 12px rgba(0,63,211,0.3)",
+                "&:hover": { 
+                  background: "linear-gradient(135deg, #0056b3, #003fd3ff)",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 6px 16px rgba(0,63,211,0.4)"
+                },
+                transition: "all 0.3s ease"
+              }} 
+              onClick={handleChangeEmail}
+            >
+              E-posta Adresini Güncelle
             </Button>
           </Box>
         )}
 
         {activeTab === "password" && (
-          <Box>
+          <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#6b0f1a" }}>
+              Şifreyi Değiştir
+            </Typography>
             <TextField
               fullWidth
               label="Mevcut Şifre"
               type={showOldPassword ? "text" : "password"}
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                  backgroundColor: "#f8f9fa",
+                  "& fieldset": { borderColor: "#ddd" },
+                  "&:hover fieldset": { borderColor: "#003fd3ff" },
+                  "&.Mui-focused fieldset": { borderColor: "#003fd3ff" }
+                }
+              }}
               InputProps={{
                 endAdornment: (
                   <IconButton onClick={() => setShowOldPassword(!showOldPassword)}>
@@ -557,7 +929,16 @@ export default function ProfilePage() {
               type={showNewPassword ? "text" : "password"}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 3,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                  backgroundColor: "#f8f9fa",
+                  "& fieldset": { borderColor: "#ddd" },
+                  "&:hover fieldset": { borderColor: "#003fd3ff" },
+                  "&.Mui-focused fieldset": { borderColor: "#003fd3ff" }
+                }
+              }}
               InputProps={{
                 endAdornment: (
                   <IconButton onClick={() => setShowNewPassword(!showNewPassword)}>
@@ -566,17 +947,61 @@ export default function ProfilePage() {
                 ),
               }}
             />
-            <Button fullWidth variant="contained" sx={{ background: "#003fd3ff" }} onClick={handleChangePassword}>
-              Güncelle
+            <Button 
+              fullWidth 
+              variant="contained" 
+              sx={{ 
+                background: "linear-gradient(135deg, #003fd3ff, #0056b3)",
+                borderRadius: "12px",
+                py: 1.5,
+                fontWeight: "bold",
+                fontSize: "1rem",
+                textTransform: "none",
+                boxShadow: "0 4px 12px rgba(0,63,211,0.3)",
+                "&:hover": { 
+                  background: "linear-gradient(135deg, #0056b3, #003fd3ff)",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 6px 16px rgba(0,63,211,0.4)"
+                },
+                transition: "all 0.3s ease"
+              }} 
+              onClick={handleChangePassword}
+            >
+              Şifreyi Güncelle
             </Button>
           </Box>
         )}
 
         {activeTab === "delete" && (
-          <Box>
-            <Typography sx={{ mb: 2 }}>Hesabınızı silmek istediğinize emin misiniz?</Typography>
-            <Button fullWidth variant="contained" color="error" onClick={handleDeleteAccount}>
+          <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#d32f2f", textAlign: "center" }}>
               Hesabı Sil
+            </Typography>
+            <Typography sx={{ mb: 3, textAlign: "center", color: "#666", lineHeight: 1.6 }}>
+              Bu işlem geri alınamaz. Hesabınızı silmek istediğinize emin misiniz? 
+              Tüm verileriniz kalıcı olarak silinecektir.
+            </Typography>
+            <Button 
+              fullWidth 
+              variant="contained" 
+              sx={{
+                background: "linear-gradient(135deg, #d32f2f, #b71c1c)",
+                borderRadius: "12px",
+                py: 1.5,
+                fontWeight: "bold",
+                fontSize: "1rem",
+                textTransform: "none",
+                boxShadow: "0 4px 12px rgba(211,47,47,0.3)",
+                "&:hover": { 
+                  background: "linear-gradient(135deg, #b71c1c, #d32f2f)",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 6px 16px rgba(211,47,47,0.4)"
+                },
+                transition: "all 0.3s ease"
+              }}
+              onClick={handleDeleteAccount}
+            >
+              Hesabı Kalıcı Olarak Sil
             </Button>
           </Box>
         )}

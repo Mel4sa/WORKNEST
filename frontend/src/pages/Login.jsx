@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import useAuthStore from "../store/useAuthStore";
+import axiosInstance from "../lib/axios";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -39,8 +40,7 @@ export default function Login() {
     setLoading(true);
     setModalError("");
     try {
-      // API çağrısı burada yapılacak
-      // await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
+      await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
       setMessage("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.");
       setForgotEmail("");
     } catch (err) {
