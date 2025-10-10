@@ -152,29 +152,53 @@ function Home() {
         )}
 
         {/* Projeler Section */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 4, textAlign: "center" }}>
           <Typography 
-            variant="h4" 
+            variant="h3" 
             sx={{ 
-              fontWeight: "700", 
-              color: "#1e293b",
-              mb: 1,
-              textAlign: "center"
+              fontWeight: "800", 
+              fontSize: { xs: "2rem", md: "2.8rem" },
+              mb: 2,
+              letterSpacing: "-0.02em"
             }}
           >
-            Aktif Projeler
+            <Box component="span" sx={{ color: "#1e293b" }}>
+              Aktif{" "}
+            </Box>
+            <Box component="span" sx={{ 
+              background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent"
+            }}>
+              Projeler
+            </Box>
           </Typography>
+          
           <Typography 
-            variant="body1" 
+            variant="h6" 
             sx={{ 
               color: "#64748b",
-              textAlign: "center",
-              mb: 5,
-              fontSize: "1.1rem"
+              fontWeight: "400",
+              fontSize: { xs: "1rem", md: "1.2rem" },
+              maxWidth: "600px",
+              mx: "auto",
+              lineHeight: 1.6,
+              mb: 3
             }}
           >
-            Katılabileceğiniz harika projeler keşfedin
+            Katılabileceğiniz harika projeler keşfedin ve hayalinizdeki takımı bulun
           </Typography>
+
+          {/* Küçük çizgi */}
+          <Box sx={{
+            width: "60px",
+            height: "3px",
+            background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
+            mx: "auto",
+            mb: 6,
+            borderRadius: "2px"
+          }} />
         </Box>
 
         {/* Projeler Grid */}
