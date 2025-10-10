@@ -56,7 +56,7 @@ function AppRoutes() {
             <Route path="/home" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/create" element={<CreateProject />} />
+            <Route path="/create-project" element={<CreateProject />} />
             <Route path="/projects/:id" element={<ProjectDetail />} /> 
             <Route path="/invites" element={<Invites />} />
             <Route path="/ai-analyzer" element={<AIAnalyzer />} />
