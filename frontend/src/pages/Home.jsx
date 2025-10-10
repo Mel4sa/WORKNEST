@@ -12,27 +12,54 @@ import {
   Button,
   Container,
   Grid,
-  Stack
+  Stack,
+  TextField,
+  InputAdornment
 } from "@mui/material";
+import SearchIcon from '@mui/icons-material/Search';
 import axiosInstance from "../lib/axios";
 
 function Home() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
+  const [allProjects, setAllProjects] = useState([]); // Tüm projeler
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchAllProjects = async () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get("/projects");
-      setProjects(response.data.projects);
+      const projectsData = response.data.projects;
+      setAllProjects(projectsData);
+      setProjects(projectsData);
     } catch (err) {
       console.error("Projeler yüklenemedi:", err);
       setError("Projeler yüklenemedi. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Arama fonksiyonu
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setProjects(allProjects);
+      return;
+    }
+
+    const filteredProjects = allProjects.filter(project =>
+      project.title.toLowerCase().includes(query.toLowerCase()) ||
+      project.description.toLowerCase().includes(query.toLowerCase()) ||
+      (project.tags && project.tags.some(tag => 
+        tag.toLowerCase().includes(query.toLowerCase())
+      )) ||
+      project.owner?.fullname.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    setProjects(filteredProjects);
   };
 
   useEffect(() => {
@@ -184,17 +211,69 @@ function Home() {
               maxWidth: "600px",
               mx: "auto",
               lineHeight: 1.6,
-              mb: 6
+              mb: 4
             }}
           >
             Katılabileceğiniz harika projeler keşfedin ve hayalinizdeki takımı bulun
           </Typography>
+
+          {/* Search Bar */}
+          <Box sx={{ 
+            maxWidth: "500px", 
+            mx: "auto", 
+            mb: 6 
+          }}>
+            <TextField
+              fullWidth
+              placeholder="Proje ara... (başlık, açıklama, teknoloji veya kişi)"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: "#64748b" }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "20px",
+                  backgroundColor: "#fff",
+                  fontSize: "1rem",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  border: "1px solid rgba(226, 232, 240, 0.8)",
+                  "&:hover": {
+                    borderColor: "#6b0f1a",
+                    boxShadow: "0 6px 24px rgba(107, 15, 26, 0.15)"
+                  },
+                  "&.Mui-focused": {
+                    borderColor: "#6b0f1a",
+                    borderWidth: "2px",
+                    boxShadow: "0 8px 32px rgba(107, 15, 26, 0.2)"
+                  }
+                },
+                "& .MuiOutlinedInput-input": {
+                  py: 2
+                }
+              }}
+            />
+          </Box>
         </Box>
 
         {/* Projeler Grid */}
         {projects.length > 0 ? (
-          <Grid container spacing={4}>
-            {projects.map((project) => (
+          <>
+            {/* Arama sonucu bilgisi */}
+            {searchQuery && (
+              <Box sx={{ mb: 3, textAlign: "center" }}>
+                <Typography variant="body1" sx={{ color: "#64748b" }}>
+                  "{searchQuery}" için {projects.length} proje bulundu
+                </Typography>
+              </Box>
+            )}
+            
+            <Grid container spacing={4}>
+              {projects.map((project) => (
               <Grid item xs={12} sm={6} lg={4} key={project._id}>
                 <Card 
                   sx={{
@@ -325,7 +404,8 @@ function Home() {
                 </Card>
               </Grid>
             ))}
-          </Grid>
+            </Grid>
+          </>
         ) : !loading && (
           <Box sx={{ 
             textAlign: "center", 
