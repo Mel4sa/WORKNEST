@@ -223,8 +223,8 @@ export default function ProfilePage() {
           <Box
             sx={{
               position: "relative",
-              width: 120,
-              height: 120,
+              width: 140,
+              height: 140,
               borderRadius: "50%",
               overflow: "hidden",
               cursor: "pointer",
@@ -242,7 +242,7 @@ export default function ProfilePage() {
                 bgcolor: "#ffd166",
               }}
             >
-              {!preview && <Person sx={{ fontSize: 60, color: "#6b0f1a" }} />} 
+              {!preview && <Person sx={{ fontSize: 70, color: "#6b0f1a" }} />} 
             </Avatar>
             <Box
               className="cameraOverlay"
@@ -382,8 +382,8 @@ export default function ProfilePage() {
             <Avatar
               src={preview || undefined}
               sx={{
-                width: 100,
-                height: 100,
+                width: 120,
+                height: 120,
                 border: "3px solid #003fd3ff",
                 bgcolor: "#003fd3ff",
                 mb: 2,
@@ -391,7 +391,7 @@ export default function ProfilePage() {
               }}
               onClick={handleChangeProfilePhoto}
             >
-              {!preview && <Person sx={{ fontSize: 50, color: "#fff" }} />}
+              {!preview && <Person sx={{ fontSize: 60, color: "#fff" }} />}
             </Avatar>
             <Typography
               variant="h5"

@@ -65,40 +65,17 @@ function Projects() {
     <Box sx={{ 
       minHeight: "100vh",
       background: "#fafbfc",
-      pt: 4,
+      pt: 2,
       pb: 8
     }}>
       {/* Hero Section */}
       <Box sx={{ 
         textAlign: "center", 
-        mb: 6,
+        mb: 3,
         px: 3,
-        py: 8
+        py: 3
       }}>
-        <Typography 
-          variant="h2" 
-          sx={{ 
-            fontWeight: "900", 
-            color: "#6b0f1a",
-            mb: 2,
-            fontSize: { xs: "2rem", md: "3rem" },
-            textShadow: "0 2px 4px rgba(107, 15, 26, 0.2)"
-          }}
-        >
-          PROJELER
-        </Typography>
-        
-        {/* Decorative Line */}
-        <Box sx={{
-          width: "80px",
-          height: "4px",
-          background: "linear-gradient(90deg, #6b0f1a, #8c1c2b)",
-          mx: "auto",
-          mb: 3,
-          borderRadius: "2px"
-        }} />
-        
-        <Typography 
+         <Typography 
           variant="h5" 
           sx={{ 
             color: "#666",
@@ -113,6 +90,20 @@ function Projects() {
         >
           Takım çalışması ve inovasyon burada başlıyor
         </Typography>
+       
+        {/* Decorative Line */}
+        <Box sx={{
+          width: "120px",
+          height: "4px",
+          background: "linear-gradient(90deg, #6b0f1a, #8c1c2b)",
+          mx: "auto",
+          mt: 2,
+          mb: 2,
+          borderRadius: "2px"
+        }} />
+    
+        
+       
       </Box>
 
       {/* Hata mesajı */}
