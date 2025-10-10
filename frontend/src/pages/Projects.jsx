@@ -26,11 +26,11 @@ function Projects() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/projects");
+      const response = await axiosInstance.get("/projects/my-projects");
       setProjects(response.data.projects);
     } catch (err) {
-      console.error("Projeler yüklenemedi:", err);
-      setError("Projeler yüklenemedi. Lütfen tekrar deneyin.");
+      console.error("Projelerim yüklenemedi:", err);
+      setError("Projelerim yüklenemedi. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
     }
