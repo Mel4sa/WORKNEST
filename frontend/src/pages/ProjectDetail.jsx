@@ -128,9 +128,23 @@ function ProjectDetail() {
     }}>
       {/* Geri Dön Butonu */}
       <Button 
-        variant="outlined" 
+        variant="contained" 
         onClick={() => navigate(-1)}
-        sx={{ mb: 3 }}
+        sx={{ 
+          mb: 3,
+          background: "#4a0d16",
+          color: "#fff",
+          fontWeight: "600",
+          borderRadius: "12px",
+          px: 3,
+          py: 1.5,
+          "&:hover": {
+            background: "#5c1119",
+            transform: "translateY(-2px)",
+            boxShadow: "0 6px 20px rgba(74, 13, 22, 0.3)"
+          },
+          transition: "all 0.3s ease"
+        }}
       >
         ← Geri Dön
       </Button>

@@ -44,11 +44,28 @@ function Navbar() {
         backdropFilter: "blur(10px)",
         borderBottom: "1px solid rgba(0,0,0,0.05)",
         transition: "all 0.4s ease",
+        width: "100vw", // Viewport tam genişlik
+        margin: 0, // Tüm margin'ları sıfırla
+        padding: 0, // Tüm padding'leri sıfırla
+        left: 0, // Sol kenara yapıştır
+        right: 0, // Sağ kenara yapıştır
+        position: "fixed", // Fixed yaparak kesin konumlama
+        top: 0, // En üste sabitle
+        zIndex: 1300, // AppBar'ın varsayılan z-index'i
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <Toolbar sx={{ 
+        display: "flex", 
+        justifyContent: "center", // Merkeze hizala
+        alignItems: "center",
+        maxWidth: "none", // Max width sınırını kaldır
+        width: "100%", // Tam genişlik
+        px: { xs: 2, md: 3 }, // Sadece yatay padding
+        mx: 0, // Margin sıfırla
+        position: "relative" // Logo için absolute positioning
+      }}>
         {/* Logo */}
-        <Link to="/home" style={{ textDecoration: "none" }}>
+        <Link to="/home" style={{ textDecoration: "none", position: "absolute", left: "24px" }}>
           <Typography 
             variant="h5" 
             sx={{
@@ -107,23 +124,27 @@ function Navbar() {
           ))}
         </Box>
 
-        {/* Sadece çıkış butonu */}
+        {/* Çıkış Butonu */}
         {user && (
-          <Box sx={{ display: { xs: "none", md: "flex" } }}>
+          <Box sx={{ 
+            display: { xs: "none", md: "flex" },
+            position: "absolute",
+            right: "80px" // Daha da sola kaydırıldı
+          }}>
             <Button
               variant="contained"
               onClick={handleLogout}
               sx={{
-                backgroundColor: "#ff0000",
+                backgroundColor: "#8b0000",
                 color: "#fff",
                 borderRadius: "50px",
                 padding: "6px 24px",
                 textTransform: "none",
                 fontWeight: "bold",
                 "&:hover": {
-                  backgroundColor: "#cc0000",
+                  backgroundColor: "#660000",
                   transform: "scale(1.05)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                  boxShadow: "0 4px 12px rgba(139,0,0,0.4)",
                 },
               }}
             >
@@ -137,6 +158,8 @@ function Navbar() {
           sx={{
             display: { xs: "flex", md: "none" },
             color: "#000",
+            position: "absolute",
+            right: "16px", // Sağ köşeye yerleştir
             "&:hover": {
               backgroundColor: "rgba(0,0,0,0.05)",
               transform: "scale(1.1)",
@@ -173,15 +196,15 @@ function Navbar() {
                   fullWidth
                   onClick={handleLogout}
                   sx={{
-                    backgroundColor: "#ff0000",
+                    backgroundColor: "#8b0000",
                     color: "#fff",
                     borderRadius: "50px",
                     textTransform: "none",
                     fontWeight: "bold",
                     "&:hover": {
-                      backgroundColor: "#cc0000",
+                      backgroundColor: "#660000",
                       transform: "scale(1.05)",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                      boxShadow: "0 4px 12px rgba(139,0,0,0.4)",
                     },
                   }}
                 >

@@ -47,31 +47,33 @@ function AppRoutes() {
   return (
     <>
       {!shouldHideNavbar && <Navbar />}
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+      <div style={{ paddingTop: shouldHideNavbar ? 0 : '64px' }}>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Korunan sayfalar */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/home" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/projects/create" element={<CreateProject />} />
-          <Route path="/projects/:id" element={<ProjectDetail />} /> 
-          <Route path="/invites" element={<Invites />} />
-          <Route path="/ai-analyzer" element={<AIAnalyzer />} />
-        </Route>
+          {/* Korunan sayfalar */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/home" element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/create" element={<CreateProject />} />
+            <Route path="/projects/:id" element={<ProjectDetail />} /> 
+            <Route path="/invites" element={<Invites />} />
+            <Route path="/ai-analyzer" element={<AIAnalyzer />} />
+          </Route>
 
-        {/* Public sayfalar */}
-        <Route element={<PublicRoute />}>
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/login" element={<Login />} />
-        </Route>
+          {/* Public sayfalar */}
+          <Route element={<PublicRoute />}>
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/login" element={<Login />} />
+          </Route>
 
-        {/* Şifre sıfırlama route’u */}
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+          {/* Şifre sıfırlama route'u */}
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </div>
     </>
   );
 }

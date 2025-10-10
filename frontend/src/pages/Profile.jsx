@@ -181,8 +181,8 @@ export default function ProfilePage() {
 
   return (
     <Box sx={{ 
-      minHeight: "calc(100vh - 64px)", 
-      height: "calc(100vh - 64px)",
+      minHeight: "100vh", 
+      height: "100vh",
       display: "flex", 
       margin: 0, 
       padding: 0,
@@ -190,25 +190,25 @@ export default function ProfilePage() {
       maxWidth: "100vw",
       overflow: "hidden",
       position: "fixed",
-      top: 64, // Navbar yüksekliği için boşluk
+      top: 0,
       left: 0,
-      zIndex: 1
+      zIndex: 1000
     }}>
       {/* SOL TARAF - Profil Kartı (sadece desktop'ta görünür) */}
       <Box
         sx={{
           display: { xs: "none", md: "flex" },
           flex: 1,
-          width: "50%",
+          width: { md: "33.33%" },
           background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
           color: "white",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          px: 6,
+          px: 4,
           textAlign: "center",
           margin: 0,
-          minHeight: "calc(100vh - 64px)", // Navbar yüksekliği çıkarıldı
+          minHeight: "100vh",
         }}
       >
         <Box sx={{ 
@@ -223,8 +223,8 @@ export default function ProfilePage() {
           <Box
             sx={{
               position: "relative",
-              width: 160,
-              height: 160,
+              width: 120,
+              height: 120,
               borderRadius: "50%",
               overflow: "hidden",
               cursor: "pointer",
@@ -242,7 +242,7 @@ export default function ProfilePage() {
                 bgcolor: "#ffd166",
               }}
             >
-              {!preview && <Person sx={{ fontSize: 80, color: "#6b0f1a" }} />}
+              {!preview && <Person sx={{ fontSize: 60, color: "#6b0f1a" }} />} 
             </Avatar>
             <Box
               className="cameraOverlay"
@@ -260,7 +260,7 @@ export default function ProfilePage() {
                 transition: "opacity 0.3s",
               }}
             >
-              <CameraAlt sx={{ color: "#fff", fontSize: 50 }} />
+                            <CameraAlt sx={{ color: "#fff", fontSize: 40 }} /> 
             </Box>
           </Box>
 
@@ -277,7 +277,7 @@ export default function ProfilePage() {
             sx={{ 
               fontWeight: "bold", 
               mb: 2, 
-              fontSize: { md: "2rem", lg: "2.5rem" }
+              fontSize: { md: "1.6rem", lg: "2rem" }
             }}
           >
             {user?.fullname || "Kullanıcı"}
@@ -289,14 +289,14 @@ export default function ProfilePage() {
               color: "#ffd166", 
               mb: 3,
               opacity: 0.9,
-              fontSize: { md: "1.1rem", lg: "1.3rem" }
+              fontSize: { md: "1rem", lg: "1.1rem" }
             }}
           >
             {role || "Pozisyon belirtilmemiş"}
           </Typography>
 
           {/* Sosyal Linkler */}
-          <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+          <Stack direction="row" spacing={1.5} sx={{ mb: 4 }}>
             {github && (
               <IconButton 
                 href={github.startsWith("http") ? github : `https://${github}`} 
@@ -304,7 +304,7 @@ export default function ProfilePage() {
                 sx={{ 
                   color: "#fff", 
                   backgroundColor: "#333",
-                  fontSize: 40,
+                  fontSize: 35,
                   "&:hover": { 
                     backgroundColor: "#000", 
                     transform: "scale(1.1)",
@@ -313,7 +313,7 @@ export default function ProfilePage() {
                   transition: "all 0.3s ease"
                 }}
               >
-                <GitHub sx={{ fontSize: 30 }} />
+                <GitHub sx={{ fontSize: 25 }} />
               </IconButton>
             )}
             {linkedin && (
@@ -323,7 +323,7 @@ export default function ProfilePage() {
                 sx={{ 
                   color: "#fff", 
                   backgroundColor: "#0A66C2",
-                  fontSize: 40,
+                  fontSize: 35,
                   "&:hover": { 
                     backgroundColor: "#004182", 
                     transform: "scale(1.1)",
@@ -332,7 +332,7 @@ export default function ProfilePage() {
                   transition: "all 0.3s ease"
                 }}
               >
-                <LinkedIn sx={{ fontSize: 30 }} />
+                <LinkedIn sx={{ fontSize: 25 }} />
               </IconButton>
             )}
           </Stack>
@@ -342,27 +342,31 @@ export default function ProfilePage() {
       {/* SAĞ TARAF - Profil Formu */}
       <Box
         sx={{
-          flex: { xs: 1, md: 1 },
-          width: { xs: "100%", md: "50%" },
+          flex: 2,
+          width: { xs: "100%", md: "66.67%" },
           backgroundColor: "#f8f9fa",
           display: "flex",
           justifyContent: "center",
           alignItems: "flex-start",
-          p: { xs: 2, sm: 4, md: 6 },
-          minHeight: "calc(100vh - 64px)", // Navbar yüksekliği çıkarıldı
-          maxHeight: "calc(100vh - 64px)", // Maksimum yükseklik de belirle
+          p: { xs: 1, sm: 3, md: 6 },
+          minHeight: "100vh",
+          maxHeight: { xs: "calc(100vh - 64px)", md: "none" }, // Desktop'ta height sınırı kaldır
           margin: 0,
           overflowY: "auto",
+          pt: { xs: 8, md: 6 },
+          pb: { xs: 6, md: 2 },
         }}
       >
         {/* Profil Formu Container */}
         <Box sx={{ 
           width: "100%", 
-          maxWidth: 500,
+          maxWidth: 700,
           display: "flex",
           flexDirection: "column",
-          py: 2,
-          minHeight: "fit-content"
+          py: { xs: 2, md: 1 }, // Desktop'ta padding küçültüldü
+          pb: { xs: 4, md: 1 }, // Desktop'ta bottom padding küçültüldü
+          minHeight: "fit-content",
+          height: { md: "fit-content" } // Desktop'ta fit-content
         }}>
           {/* Mobile header */}
           <Box 
@@ -371,8 +375,8 @@ export default function ProfilePage() {
               flexDirection: "column",
               alignItems: "center",
               textAlign: "center", 
-              mb: 4, 
-              mt: 2 
+              mb: 2, // Margin küçültüldü
+              mt: 1  // Top margin küçültüldü
             }}
           >
             <Avatar
@@ -408,10 +412,10 @@ export default function ProfilePage() {
               backgroundColor: "transparent",
               borderRadius: 0,
               boxShadow: "none",
-              p: { xs: 2, sm: 3, md: 4 },
+              p: { xs: 1, sm: 2, md: 3 },
               display: "flex",
               flexDirection: "column",
-              gap: 3
+              gap: { xs: 2, md: 3 } // Mobile'da gap küçültüldü
             }}
           >
             {/* Başlık ve Ayarlar */}
@@ -419,13 +423,15 @@ export default function ProfilePage() {
               display: "flex", 
               alignItems: "center", 
               justifyContent: "space-between", 
-              mb: 2
+              mb: { xs: 1, md: 2 }, // Mobile'da margin küçültüldü
+              px: { xs: 1, sm: 0 }
             }}>
               <Typography
                 variant="h5"
                 sx={{ 
                   fontWeight: "bold", 
-                  color: "#6b0f1a" 
+                  color: "#6b0f1a",
+                  fontSize: { xs: "1.3rem", sm: "1.5rem" } // Mobile font boyutu
                 }}
               >
                 Profil Bilgileri
@@ -435,11 +441,12 @@ export default function ProfilePage() {
                 sx={{
                   backgroundColor: "#003fd3ff",
                   color: "#fff",
+                  size: { xs: "small", sm: "medium" }, // Mobile'da küçük boyut
                   "&:hover": { backgroundColor: "#0056b3", transform: "scale(1.05)" },
                   transition: "all 0.2s",
                 }}
               >
-                <Settings />
+                <Settings sx={{ fontSize: { xs: 20, sm: 24 } }} />
               </IconButton>
             </Box>
 
@@ -449,6 +456,7 @@ export default function ProfilePage() {
               value={role}
               onChange={(e) => setRole(e.target.value)}
               sx={{ 
+                mx: { xs: 1, sm: 0 }, // Mobile'da yatay margin
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "12px",
                 }
@@ -459,10 +467,11 @@ export default function ProfilePage() {
             <TextField 
               label="Biyografi"
               multiline 
-              minRows={3} 
+              minRows={2} // Satır sayısı küçültüldü
               value={bio} 
               onChange={(e) => setBio(e.target.value)}
               sx={{ 
+                mx: { xs: 1, sm: 0 },
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "12px",
                 }
@@ -470,7 +479,7 @@ export default function ProfilePage() {
             />
 
             {/* Üniversite & Bölüm */}
-            <Box>
+            <Box sx={{ mx: { xs: 1, sm: 0 } }}> {/* Mobile'da yatay margin */}
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: "#6b0f1a" }}>
                 Eğitim Bilgileri
               </Typography>
@@ -510,7 +519,7 @@ export default function ProfilePage() {
             </Box>
 
             {/* Sosyal Bağlantılar */}
-            <Box>
+            <Box sx={{ mx: { xs: 1, sm: 0 } }}> {/* Mobile'da yatay margin */}
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: "#6b0f1a" }}>
                 Sosyal Bağlantılar
               </Typography>
@@ -557,10 +566,12 @@ export default function ProfilePage() {
             </Box>
 
             {/* Yetenekler */}
-            <SkillsSelect
-              skills={skills}
-              onChange={setSkills}
-            />
+            <Box sx={{ mx: { xs: 1, sm: 0 } }}> {/* Mobile'da yatay margin */}
+              <SkillsSelect
+                skills={skills}
+                onChange={setSkills}
+              />
+            </Box>
 
             {/* Kaydet Butonu */}
             <Button
@@ -575,7 +586,9 @@ export default function ProfilePage() {
                 borderRadius: "50px",
                 "&:hover": { backgroundColor: "#0056b3" },
                 fontSize: "1.1rem",
-                mt: 2
+                mt: { xs: 1, md: 2 },
+                mb: { xs: 3, md: 4 }, // Bottom margin artırıldı
+                mx: { xs: 1, sm: 0 }
               }}
             >
               Profili Kaydet
