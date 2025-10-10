@@ -184,21 +184,11 @@ function Home() {
               maxWidth: "600px",
               mx: "auto",
               lineHeight: 1.6,
-              mb: 3
+              mb: 6
             }}
           >
             Katılabileceğiniz harika projeler keşfedin ve hayalinizdeki takımı bulun
           </Typography>
-
-          {/* Küçük çizgi */}
-          <Box sx={{
-            width: "60px",
-            height: "3px",
-            background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
-            mx: "auto",
-            mb: 6,
-            borderRadius: "2px"
-          }} />
         </Box>
 
         {/* Projeler Grid */}
