@@ -243,21 +243,51 @@ export const deleteProject = async (req, res) => {
       return res.status(403).json({ message: "Bu projeyi silme yetkiniz yok" });
     }
 
-    // Soft delete
-    await Project.findByIdAndUpdate(id, { isActive: false });
+    // Hard delete - projeyi tamamen sil
+    await Project.findByIdAndDelete(id);
+    console.log("✅ Project completely deleted from database");
 
-    // Kullanıcının projects array'inden de kaldır
-    await User.findByIdAndUpdate(
-      userId,
-      { $pull: { projects: id } },
-      { new: true }
+    // Tüm kullanıcıların projects array'lerinden kaldır
+    await User.updateMany(
+      { projects: id },
+      { $pull: { projects: id } }
     );
-    console.log("✅ Project removed from user's projects array");
+    console.log("✅ Project removed from all users' projects arrays");
 
     res.status(200).json({ message: "Proje başarıyla silindi" });
   } catch (error) {
     console.error("Delete project error:", error);
     res.status(500).json({ message: "Proje silinemedi", error: error.message });
+  }
+};
+
+// Database temizleme - silinmiş projeleri tamamen kaldır
+export const cleanupDeletedProjects = async (req, res) => {
+  try {
+    // isActive: false olan projeleri tamamen sil
+    const deletedProjects = await Project.deleteMany({ isActive: false });
+    
+    // Tüm kullanıcıların projects array'lerini temizle
+    const allUsers = await User.find({});
+    for (const user of allUsers) {
+      const validProjects = [];
+      for (const projectId of user.projects) {
+        const project = await Project.findById(projectId);
+        if (project && project.isActive) {
+          validProjects.push(projectId);
+        }
+      }
+      user.projects = validProjects;
+      await user.save();
+    }
+    
+    res.status(200).json({ 
+      message: "Database temizlendi",
+      deletedCount: deletedProjects.deletedCount
+    });
+  } catch (error) {
+    console.error("Cleanup error:", error);
+    res.status(500).json({ message: "Temizleme hatası", error: error.message });
   }
 };
 
