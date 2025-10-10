@@ -70,6 +70,26 @@ function Home() {
           px: { xs: 2, md: 0 }
         }}>
           <Typography 
+            variant="h2" 
+            sx={{ 
+              fontWeight: "800", 
+              color: "#1a1a1a",
+              fontSize: { xs: "2.5rem", md: "4rem" },
+              mb: 3,
+              letterSpacing: "-0.02em"
+            }}
+          >
+            <Box component="span" sx={{ 
+              background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent"
+            }}>
+              WORKNEST
+            </Box>
+          </Typography>
+          
+          <Typography 
             variant="h5" 
             sx={{ 
               color: "#64748b",
