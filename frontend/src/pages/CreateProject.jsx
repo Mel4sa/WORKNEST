@@ -92,7 +92,7 @@ const CreateProject = () => {
       backgroundColor: "#f8fafc",
       py: { xs: 2, md: 4 }
     }}>
-      <Container maxWidth="xl">
+      <Container maxWidth="lg">
         {/* Header Section */}
         <Box sx={{ mb: 5 }}>
           {/* Geri Dön Butonu */}
@@ -116,7 +116,7 @@ const CreateProject = () => {
               transition: "all 0.3s ease"
             }}
           >
-            ← Projeler
+            Projeler
           </Button>
 
           {/* Ana Başlık - Temiz ve Basit */}
@@ -180,59 +180,23 @@ const CreateProject = () => {
 
         {/* Main Form - Eşit İki Sütunlu Layout */}
         <Box component="form" onSubmit={handleSubmit}>
-          <Grid container spacing={5}>
+          <Grid container spacing={4}>
             
             {/* Sol Taraf - Proje Bilgileri */}
-            <Grid item xs={12} lg={6}>
-              <Card sx={{
-                borderRadius: "24px",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.06)",
-                border: "1px solid rgba(226, 232, 240, 0.8)",
-                height: { xs: "auto", lg: "800px" },
-                display: "flex",
-                flexDirection: "column"
-              }}>
-                <CardContent sx={{ 
-                  p: { xs: 4, md: 6 },
-                  flex: 1,
+            <Grid item xs={12} md={6}>
+              <Box>
+                <Typography variant="h5" sx={{ 
+                  fontWeight: "700", 
+                  color: "#1e293b",
+                  mb: 3,
                   display: "flex",
-                  flexDirection: "column"
+                  alignItems: "center",
+                  gap: 2
                 }}>
-                  <Box sx={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: 3, 
-                    mb: 5 
-                  }}>
-                    <Box sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "16px",
-                      background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 8px 24px rgba(107, 15, 26, 0.3)"
-                    }}>
-                      <Typography sx={{ color: "#fff", fontSize: "1.2rem", fontWeight: "700" }}>
-                        ✏️
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="h4" sx={{ 
-                        fontWeight: "700", 
-                        color: "#1e293b",
-                        fontSize: { xs: "1.5rem", md: "1.8rem" }
-                      }}>
-                        Proje Detayları
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: "#64748b", mt: 0.5 }}>
-                        Projenizin temel bilgilerini girin
-                      </Typography>
-                    </Box>
-                  </Box>
+                  ✏️ Proje Detayları
+                </Typography>
 
-                  <Stack spacing={5} sx={{ flex: 1 }}>
+                <Stack spacing={4}>
                     <TextField
                       fullWidth
                       name="title"
@@ -425,69 +389,24 @@ const CreateProject = () => {
                       </Box>
                     </Box>
                   </Stack>
-                </CardContent>
-              </Card>
+                </Box>
             </Grid>
 
-            {/* Sağ Taraf - Ayarlar ve Oluştur */}
-            <Grid item xs={12} lg={6}>
-              <Box sx={{ 
-                height: { xs: "auto", lg: "800px" },
-                display: "flex",
-                flexDirection: "column"
-              }}>
-                
-                {/* Proje Ayarları Card */}
-                <Card sx={{
-                  borderRadius: "24px",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.06)",
-                  border: "1px solid rgba(226, 232, 240, 0.8)",
-                  mb: 4,
-                  flex: 1,
+            {/* Sağ Taraf - Ayarlar */}
+            <Grid item xs={12} md={6}>
+              <Box>
+                <Typography variant="h5" sx={{ 
+                  fontWeight: "700", 
+                  color: "#1e293b",
+                  mb: 3,
                   display: "flex",
-                  flexDirection: "column"
+                  alignItems: "center",
+                  gap: 2
                 }}>
-                  <CardContent sx={{ 
-                    p: { xs: 4, md: 6 },
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column"
-                  }}>
-                    <Box sx={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      gap: 3, 
-                      mb: 5 
-                    }}>
-                      <Box sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: "16px",
-                        background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 8px 24px rgba(107, 15, 26, 0.3)"
-                      }}>
-                        <Typography sx={{ color: "#fff", fontSize: "1.2rem", fontWeight: "700" }}>
-                          ⚙️
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="h4" sx={{ 
-                          fontWeight: "700", 
-                          color: "#1e293b",
-                          fontSize: { xs: "1.3rem", md: "1.5rem" }
-                        }}>
-                          Proje Ayarları
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: "#64748b", mt: 0.5 }}>
-                          Son ayarları yapın
-                        </Typography>
-                      </Box>
-                    </Box>
+                  ⚙️ Proje Ayarları
+                </Typography>
 
-                    <Stack spacing={4} sx={{ flex: 1 }}>
+                    <Stack spacing={3}>
                       <TextField
                         fullWidth
                         type="number"
@@ -533,91 +452,49 @@ const CreateProject = () => {
                         </Select>
                       </FormControl>
                     </Stack>
-                  </CardContent>
-                </Card>
-
-                {/* Oluştur Butonu */}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={loading}
-                  fullWidth
-                  sx={{
-                    py: 4,
-                    borderRadius: "20px",
-                    background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
-                    fontSize: "1.3rem",
-                    fontWeight: "700",
-                    textTransform: "none",
-                    boxShadow: "0 12px 40px rgba(107, 15, 26, 0.4)",
-                    mb: 4,
-                    "&:hover": {
-                      background: "linear-gradient(135deg, #8c1c2b, #a91d2d)",
-                      transform: "translateY(-3px)",
-                      boxShadow: "0 16px 48px rgba(107, 15, 26, 0.5)"
-                    },
-                    "&:disabled": {
-                      background: "#e2e8f0",
-                      color: "#94a3b8"
-                    },
-                    transition: "all 0.3s ease"
-                  }}
-                >
-                  {loading ? (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <CircularProgress size={24} sx={{ color: "#fff" }} />
-                      Oluşturuluyor...
-                    </Box>
-                  ) : (
-                    <>
-                      🚀 Projeyi Oluştur
-                    </>
-                  )}
-                </Button>
-
-                {/* Bilgi Kutusu */}
-                <Box sx={{
-                  p: 5,
-                  backgroundColor: "rgba(107, 15, 26, 0.04)",
-                  borderRadius: "24px",
-                  border: "1px solid rgba(107, 15, 26, 0.1)"
-                }}>
-                  <Box sx={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: 3, 
-                    mb: 3 
-                  }}>
-                    <Box sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: "50%",
-                      backgroundColor: "#6b0f1a",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "1.2rem"
-                    }}>
-                      💡
-                    </Box>
-                    <Typography variant="h6" sx={{ 
-                      color: "#6b0f1a", 
-                      fontWeight: "700" 
-                    }}>
-                      İpucu
-                    </Typography>
-                  </Box>
-                  <Typography variant="body1" sx={{ 
-                    color: "#64748b", 
-                    fontSize: "1rem",
-                    lineHeight: 1.7
-                  }}>
-                    Detaylı açıklama ve doğru teknolojiler, projenize uygun takım üyelerini bulmanızda yardımcı olur. Ne kadar açık olursanız, o kadar iyi sonuç alırsınız.
-                  </Typography>
-                </Box>
               </Box>
             </Grid>
           </Grid>
+          
+          {/* Proje Oluştur Butonu - En Altta */}
+          <Box sx={{ mt: 4 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={loading}
+              fullWidth
+              sx={{
+                py: 3,
+                borderRadius: "16px",
+                background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
+                fontSize: "1.2rem",
+                fontWeight: "700",
+                textTransform: "none",
+                boxShadow: "0 8px 32px rgba(107, 15, 26, 0.4)",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #8c1c2b, #a91d2d)",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 12px 36px rgba(107, 15, 26, 0.5)"
+                },
+                "&:disabled": {
+                  background: "#e2e8f0",
+                  color: "#94a3b8"
+                },
+                transition: "all 0.3s ease"
+              }}
+            >
+              {loading ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <CircularProgress size={24} sx={{ color: "#fff" }} />
+                  Oluşturuluyor...
+                </Box>
+              ) : (
+                <>
+                  🚀 Projeyi Oluştur
+                </>
+              )}
+            </Button>
+          </Box>
         </Box>
       </Container>
     </Box>
