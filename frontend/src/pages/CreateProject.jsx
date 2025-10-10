@@ -67,6 +67,11 @@ const CreateProject = () => {
       return;
     }
 
+    if (!formData.tags || formData.tags.length === 0) {
+      setError("En az bir teknoloji eklemelisiniz.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -259,7 +264,7 @@ const CreateProject = () => {
                       2
                     </Box>
                     <Typography variant="h5" sx={{ fontWeight: "700", color: "#1f2937" }}>
-                      Teknolojiler
+                      Teknolojiler <span style={{ color: "#ef4444" }}>*</span>
                     </Typography>
                   </Box>
 
@@ -340,10 +345,10 @@ const CreateProject = () => {
                         textAlign: "center"
                       }}>
                         <Typography variant="h6" sx={{ color: "#92400e", mb: 1 }}>
-                          🛠️ Teknolojiler Ekle
+                          🛠️ Teknolojiler Ekleyin (Zorunlu)
                         </Typography>
                         <Typography variant="body2" sx={{ color: "#a16207" }}>
-                          Kullanacağınız teknolojileri ve becerileri buraya ekleyin
+                          En az bir teknoloji eklemelisiniz: React, Python, Design, Marketing vb.
                         </Typography>
                       </Box>
                     )}
