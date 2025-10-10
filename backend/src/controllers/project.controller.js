@@ -76,7 +76,7 @@ export const getProjectById = async (req, res) => {
       return res.status(404).json({ message: "Proje bulunamadı" });
     }
 
-    res.status(200).json({ project });
+    res.status(200).json(project);
   } catch (error) {
     console.error("Get project by ID error:", error);
     res.status(500).json({ message: "Proje getirilemedi", error: error.message });

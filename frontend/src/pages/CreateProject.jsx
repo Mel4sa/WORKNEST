@@ -89,64 +89,73 @@ const CreateProject = () => {
   return (
     <Box sx={{
       minHeight: "100vh",
-      backgroundColor: "#ffffff",
-      py: 3
+      backgroundColor: "#fafbfc",
+      py: { xs: 2, md: 4 }
     }}>
       <Container maxWidth="lg">
-        {/* Header Card */}
-        <Card sx={{
-          mb: 3,
-          borderRadius: "20px",
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.1)"
-        }}>
-          <CardContent sx={{ p: 4 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-                <Button
-                  startIcon={<ArrowBackIcon />}
-                  onClick={() => navigate("/projects")}
-                  sx={{
-                    color: "#6366f1",
-                    textTransform: "none",
-                    fontWeight: "600",
-                    "&:hover": { backgroundColor: "#eef2ff" }
-                  }}
-                >
-                  Projeler
-                </Button>
-                <Box>
-                  <Typography variant="h4" sx={{
-                    fontWeight: "800",
-                    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                    backgroundClip: "text",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    mb: 1
-                  }}>
-                    Yeni Proje Oluştur
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: "#64748b" }}>
-                    Fikrini hayata geçir, ekibini oluştur 🚀
-                  </Typography>
-                </Box>
-              </Box>
-              <Box sx={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "2rem"
-              }}>
-                💡
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
+        {/* Header Section */}
+        <Box sx={{ mb: 4 }}>
+          {/* Geri Dön Butonu */}
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate("/projects")}
+            sx={{
+              mb: 3,
+              color: "#6b0f1a",
+              textTransform: "none",
+              fontWeight: "600",
+              borderRadius: "12px",
+              px: 3,
+              py: 1,
+              "&:hover": {
+                backgroundColor: "rgba(107, 15, 26, 0.04)",
+                transform: "translateX(-4px)"
+              },
+              transition: "all 0.3s ease"
+            }}
+          >
+            Projeler
+          </Button>
+
+          {/* Ana Başlık */}
+          <Box sx={{ 
+            textAlign: "center", 
+            mb: 4,
+            px: { xs: 2, md: 0 }
+          }}>
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: "bold", 
+                color: "#6b0f1a",
+                fontSize: { xs: "2rem", md: "3rem" },
+                mb: 2
+              }}
+            >
+              Yeni Proje Oluştur
+            </Typography>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                color: "#666",
+                fontWeight: "300",
+                fontSize: { xs: "1rem", md: "1.2rem" }
+              }}
+            >
+              Fikrini hayata geçir, ekibini oluştur 🚀
+            </Typography>
+            
+            {/* Decorative Line */}
+            <Box sx={{
+              width: "100px",
+              height: "4px",
+              background: "linear-gradient(90deg, #6b0f1a, #8c1c2b)",
+              mx: "auto",
+              mt: 3,
+              borderRadius: "2px"
+            }} />
+          </Box>
+        </Box>
 
         {error && (
           <Alert 
@@ -154,8 +163,7 @@ const CreateProject = () => {
             sx={{ 
               mb: 3, 
               borderRadius: "16px",
-              backgroundColor: "rgba(255, 255, 255, 0.95)",
-              backdropFilter: "blur(10px)"
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
             }}
           >
             {error}
@@ -164,35 +172,40 @@ const CreateProject = () => {
 
         {/* Main Form */}
         <Box component="form" onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            {/* Step 1 - Basic Info */}
-            <Grid item xs={12} md={6}>
+          <Grid container spacing={{ xs: 3, md: 4 }}>
+            
+            {/* Proje Bilgileri Card */}
+            <Grid item xs={12} lg={8}>
               <Card sx={{
                 borderRadius: "20px",
-                background: "rgba(255, 255, 255, 0.95)",
-                backdropFilter: "blur(10px)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-                height: "100%"
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                mb: { xs: 3, lg: 0 }
               }}>
-                <CardContent sx={{ p: 4 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                  <Typography variant="h5" sx={{ 
+                    fontWeight: "700", 
+                    color: "#6b0f1a", 
+                    mb: 3,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2
+                  }}>
                     <Box sx={{
-                      width: 40,
-                      height: 40,
+                      width: 32,
+                      height: 32,
                       borderRadius: "50%",
-                      background: "linear-gradient(135deg, #10b981, #059669)",
+                      background: "#6b0f1a",
+                      color: "#fff",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "white",
+                      fontSize: "0.9rem",
                       fontWeight: "bold"
                     }}>
                       1
                     </Box>
-                    <Typography variant="h5" sx={{ fontWeight: "700", color: "#1f2937" }}>
-                      Proje Bilgileri
-                    </Typography>
-                  </Box>
+                    Proje Bilgileri
+                  </Typography>
 
                   <TextField
                     fullWidth
@@ -205,11 +218,13 @@ const CreateProject = () => {
                       mb: 3,
                       "& .MuiOutlinedInput-root": {
                         borderRadius: "12px",
-                        backgroundColor: "#f8fafc",
                         "&.Mui-focused fieldset": {
-                          borderColor: "#10b981",
+                          borderColor: "#6b0f1a",
                           borderWidth: "2px"
                         }
+                      },
+                      "& .MuiInputLabel-root.Mui-focused": {
+                        color: "#6b0f1a"
                       }
                     }}
                   />
@@ -217,7 +232,7 @@ const CreateProject = () => {
                   <TextField
                     fullWidth
                     multiline
-                    rows={6}
+                    rows={{ xs: 4, md: 6 }}
                     name="description"
                     label="Proje Açıklaması"
                     value={formData.description}
@@ -225,50 +240,47 @@ const CreateProject = () => {
                     required
                     placeholder="Projenizin amacını, hedeflerini ve nasıl çalışacağını detaylı bir şekilde açıklayın..."
                     sx={{
+                      mb: 3,
                       "& .MuiOutlinedInput-root": {
                         borderRadius: "12px",
-                        backgroundColor: "#f8fafc",
                         "&.Mui-focused fieldset": {
-                          borderColor: "#10b981",
+                          borderColor: "#6b0f1a",
                           borderWidth: "2px"
                         }
+                      },
+                      "& .MuiInputLabel-root.Mui-focused": {
+                        color: "#6b0f1a"
                       }
                     }}
                   />
-                </CardContent>
-              </Card>
-            </Grid>
 
-            {/* Step 2 - Technologies */}
-            <Grid item xs={12} md={6}>
-              <Card sx={{
-                borderRadius: "20px",
-                background: "rgba(255, 255, 255, 0.95)",
-                backdropFilter: "blur(10px)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-                height: "100%"
-              }}>
-                <CardContent sx={{ p: 4 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+                  {/* Teknolojiler Kısmı */}
+                  <Typography variant="h6" sx={{ 
+                    fontWeight: "600", 
+                    color: "#6b0f1a", 
+                    mb: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2
+                  }}>
                     <Box sx={{
-                      width: 40,
-                      height: 40,
+                      width: 32,
+                      height: 32,
                       borderRadius: "50%",
-                      background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                      background: "#6b0f1a",
+                      color: "#fff",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "white",
+                      fontSize: "0.9rem",
                       fontWeight: "bold"
                     }}>
                       2
                     </Box>
-                    <Typography variant="h5" sx={{ fontWeight: "700", color: "#1f2937" }}>
-                      Teknolojiler <span style={{ color: "#ef4444" }}>*</span>
-                    </Typography>
-                  </Box>
+                    Teknolojiler <span style={{ color: "#ef4444" }}>*</span>
+                  </Typography>
 
-                  <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+                  <Box sx={{ display: "flex", gap: 2, mb: 3, flexDirection: { xs: "column", sm: "row" } }}>
                     <TextField
                       fullWidth
                       value={tagInput}
@@ -283,9 +295,8 @@ const CreateProject = () => {
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           borderRadius: "12px",
-                          backgroundColor: "#fef3c7",
                           "&.Mui-focused fieldset": {
-                            borderColor: "#f59e0b",
+                            borderColor: "#6b0f1a",
                             borderWidth: "2px"
                           }
                         }
@@ -296,23 +307,25 @@ const CreateProject = () => {
                       variant="contained"
                       sx={{
                         borderRadius: "12px",
-                        px: 3,
-                        background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                        px: { xs: 4, sm: 3 },
+                        py: { xs: 1.5, sm: 1 },
+                        background: "#6b0f1a",
+                        minWidth: { xs: "auto", sm: "80px" },
                         "&:hover": {
-                          background: "linear-gradient(135deg, #d97706, #b45309)"
+                          background: "#8c1c2b"
                         }
                       }}
                     >
-                      +
+                      Ekle
                     </Button>
                   </Box>
 
                   <Box sx={{
-                    backgroundColor: "#fef3c7",
+                    backgroundColor: "#f8f9fa",
                     borderRadius: "16px",
                     p: 3,
-                    minHeight: "160px",
-                    border: "2px dashed #f59e0b",
+                    minHeight: "120px",
+                    border: "2px dashed #6b0f1a",
                     display: "flex",
                     flexDirection: "column"
                   }}>
@@ -324,7 +337,7 @@ const CreateProject = () => {
                             label={tag}
                             onDelete={() => handleRemoveTag(tag)}
                             sx={{
-                              background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                              background: "#6b0f1a",
                               color: "white",
                               fontWeight: "600",
                               borderRadius: "8px",
@@ -344,11 +357,11 @@ const CreateProject = () => {
                         height: "100%",
                         textAlign: "center"
                       }}>
-                        <Typography variant="h6" sx={{ color: "#92400e", mb: 1 }}>
-                          🛠️ Teknolojiler Ekleyin (Zorunlu)
+                        <Typography variant="h6" sx={{ color: "#6b0f1a", mb: 1 }}>
+                          🛠️ Teknolojiler Ekleyin
                         </Typography>
-                        <Typography variant="body2" sx={{ color: "#a16207" }}>
-                          En az bir teknoloji eklemelisiniz: React, Python, Design, Marketing vb.
+                        <Typography variant="body2" sx={{ color: "#666" }}>
+                          En az bir teknoloji eklemelisiniz
                         </Typography>
                       </Box>
                     )}
@@ -357,117 +370,135 @@ const CreateProject = () => {
               </Card>
             </Grid>
 
-            {/* Step 3 - Settings & Action */}
-            <Grid item xs={12}>
+            {/* Ayarlar ve Oluştur Card */}
+            <Grid item xs={12} lg={4}>
               <Card sx={{
                 borderRadius: "20px",
-                background: "rgba(255, 255, 255, 0.95)",
-                backdropFilter: "blur(10px)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.1)"
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                height: "fit-content",
+                position: { lg: "sticky" },
+                top: { lg: "20px" }
               }}>
-                <CardContent sx={{ p: 4 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
+                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                  <Typography variant="h5" sx={{ 
+                    fontWeight: "700", 
+                    color: "#6b0f1a", 
+                    mb: 3,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2
+                  }}>
                     <Box sx={{
-                      width: 40,
-                      height: 40,
+                      width: 32,
+                      height: 32,
                       borderRadius: "50%",
-                      background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+                      background: "#6b0f1a",
+                      color: "#fff",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "white",
+                      fontSize: "0.9rem",
                       fontWeight: "bold"
                     }}>
                       3
                     </Box>
-                    <Typography variant="h5" sx={{ fontWeight: "700", color: "#1f2937" }}>
-                      Son Ayarlar
+                    Ayarlar
+                  </Typography>
+
+                  <TextField
+                    fullWidth
+                    type="number"
+                    name="maxMembers"
+                    label="Maksimum Üye Sayısı"
+                    value={formData.maxMembers}
+                    onChange={handleInputChange}
+                    inputProps={{ min: 1, max: 50 }}
+                    sx={{
+                      mb: 3,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#6b0f1a",
+                          borderWidth: "2px"
+                        }
+                      },
+                      "& .MuiInputLabel-root.Mui-focused": {
+                        color: "#6b0f1a"
+                      }
+                    }}
+                  />
+
+                  <FormControl fullWidth sx={{ mb: 4 }}>
+                    <InputLabel>Proje Durumu</InputLabel>
+                    <Select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      label="Proje Durumu"
+                      sx={{
+                        borderRadius: "12px",
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#6b0f1a",
+                          borderWidth: "2px"
+                        }
+                      }}
+                    >
+                      <MenuItem value="planned">🔮 Planlanıyor</MenuItem>
+                      <MenuItem value="ongoing">⚡ Devam Ediyor</MenuItem>
+                      <MenuItem value="completed">✅ Tamamlandı</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  {/* Oluştur Butonu */}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    fullWidth
+                    sx={{
+                      py: 2,
+                      borderRadius: "16px",
+                      background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
+                      fontSize: "1.1rem",
+                      fontWeight: "700",
+                      textTransform: "none",
+                      boxShadow: "0 8px 25px rgba(107, 15, 26, 0.3)",
+                      "&:hover": {
+                        background: "linear-gradient(135deg, #8c1c2b, #a91d2d)",
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 12px 35px rgba(107, 15, 26, 0.4)"
+                      },
+                      "&:disabled": {
+                        background: "#ccc"
+                      },
+                      transition: "all 0.3s ease"
+                    }}
+                  >
+                    {loading ? (
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <CircularProgress size={20} sx={{ color: "#fff" }} />
+                        Oluşturuluyor...
+                      </Box>
+                    ) : (
+                      "🚀 Projeyi Oluştur"
+                    )}
+                  </Button>
+
+                  {/* Bilgi Kutusu */}
+                  <Box sx={{
+                    mt: 3,
+                    p: 3,
+                    backgroundColor: "rgba(107, 15, 26, 0.04)",
+                    borderRadius: "12px",
+                    border: "1px solid rgba(107, 15, 26, 0.1)"
+                  }}>
+                    <Typography variant="body2" sx={{ color: "#6b0f1a", fontWeight: "500", mb: 1 }}>
+                      💡 İpucu
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#666", fontSize: "0.875rem" }}>
+                      Detaylı açıklama ve doğru teknolojiler, projenize uygun takım üyelerini bulmanızda yardımcı olur.
                     </Typography>
                   </Box>
-
-                  <Grid container spacing={4} alignItems="center">
-                    <Grid item xs={12} md={3}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        name="maxMembers"
-                        label="Takım Boyutu"
-                        value={formData.maxMembers}
-                        onChange={handleInputChange}
-                        inputProps={{ min: 1, max: 50 }}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: "12px",
-                            backgroundColor: "#faf5ff",
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#8b5cf6",
-                              borderWidth: "2px"
-                            }
-                          }
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} md={3}>
-                      <FormControl fullWidth>
-                        <InputLabel>Proje Durumu</InputLabel>
-                        <Select
-                          name="status"
-                          value={formData.status}
-                          onChange={handleInputChange}
-                          label="Proje Durumu"
-                          sx={{
-                            borderRadius: "12px",
-                            backgroundColor: "#faf5ff",
-                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#8b5cf6",
-                              borderWidth: "2px"
-                            }
-                          }}
-                        >
-                          <MenuItem value="planned">🔮 Planlanıyor</MenuItem>
-                          <MenuItem value="ongoing">⚡ Devam Ediyor</MenuItem>
-                          <MenuItem value="completed">✅ Tamamlandı</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} md={6}>
-                      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          disabled={loading}
-                          sx={{
-                            py: 2,
-                            px: 6,
-                            borderRadius: "16px",
-                            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                            fontSize: "1.1rem",
-                            fontWeight: "700",
-                            textTransform: "none",
-                            boxShadow: "0 8px 25px rgba(99, 102, 241, 0.3)",
-                            "&:hover": {
-                              background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                              transform: "translateY(-2px)",
-                              boxShadow: "0 12px 35px rgba(99, 102, 241, 0.4)"
-                            },
-                            transition: "all 0.3s ease"
-                          }}
-                        >
-                          {loading ? (
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                              <CircularProgress size={20} sx={{ color: "#fff" }} />
-                              Oluşturuluyor...
-                            </Box>
-                          ) : (
-                            "🚀 Projeyi Oluştur"
-                          )}
-                        </Button>
-
-                      </Box>
-                    </Grid>
-                  </Grid>
                 </CardContent>
               </Card>
             </Grid>

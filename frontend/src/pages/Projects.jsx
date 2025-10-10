@@ -29,8 +29,8 @@ function Projects() {
       const response = await axiosInstance.get("/projects/my-projects");
       setProjects(response.data.projects);
     } catch (err) {
-      console.error("Projelerim yüklenemedi:", err);
-      setError("Projelerim yüklenemedi. Lütfen tekrar deneyin.");
+      console.error("Projeler yüklenemedi:", err);
+      setError("Projeler yüklenemedi. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
     }
@@ -131,15 +131,17 @@ function Projects() {
               onClick={() => handleDetailClick(project._id)}
               sx={{
                 display: "flex",
-                alignItems: "center",
-                p: 3,
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: { xs: "flex-start", md: "center" },
+                p: { xs: 2, md: 3 },
                 background: "#ffffff",
                 borderRadius: "16px",
                 border: "1px solid #e5e7eb",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
+                gap: { xs: 2, md: 0 },
                 "&:hover": {
-                  transform: "translateX(8px)",
+                  transform: { xs: "translateY(-4px)", md: "translateX(8px)" },
                   boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                   borderColor: "#6b0f1a"
                 }
@@ -148,37 +150,49 @@ function Projects() {
               {/* Proje Avatar/Icon */}
               <Box
                 sx={{
-                  width: 60,
-                  height: 60,
+                  width: { xs: 50, md: 60 },
+                  height: { xs: 50, md: 60 },
                   borderRadius: "12px",
                   background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  mr: 3,
-                  flexShrink: 0
+                  mr: { xs: 0, md: 3 },
+                  mb: { xs: 0, md: 0 },
+                  flexShrink: 0,
+                  alignSelf: { xs: "center", md: "flex-start" }
                 }}
               >
                 <Typography 
                   variant="h4" 
                   sx={{ 
                     color: "#fff", 
-                    fontWeight: "bold" 
+                    fontWeight: "bold",
+                    fontSize: { xs: "1.5rem", md: "2rem" }
                   }}
                 >
                   {project.title?.[0]?.toUpperCase()}
                 </Typography>
               </Box>
 
-              {/* Proje Bilgileri */}
-              <Box sx={{ flex: 1, minWidth: 0 }}>
+              {/* Mobile ve Desktop Layout Container */}
+              <Box sx={{ 
+                display: "flex", 
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: { xs: "stretch", md: "center" },
+                flex: 1,
+                width: "100%",
+                gap: { xs: 2, md: 0 }
+              }}>
+                {/* Proje Bilgileri */}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
                   <Typography 
                     variant="h6" 
                     sx={{ 
                       fontWeight: "700", 
                       color: "#1f2937",
-                      fontSize: "1.3rem"
+                      fontSize: { xs: "1.1rem", md: "1.3rem" }
                     }}
                   >
                     {project.title}
@@ -203,26 +217,38 @@ function Projects() {
                   />
                 </Box>
 
-                <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+                <Box sx={{ 
+                  display: "flex", 
+                  flexDirection: { xs: "column", md: "row" },
+                  alignItems: { xs: "flex-start", md: "center" }, 
+                  gap: { xs: 1, md: 3 }
+                }}>
                   {/* Proje Lideri */}
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Avatar 
                       src={project.owner?.profileImage}
                       sx={{ 
-                        width: 32, 
-                        height: 32,
+                        width: { xs: 28, md: 32 }, 
+                        height: { xs: 28, md: 32 },
                         border: "2px solid #6b0f1a"
                       }}
                     >
                       {project.owner?.fullname?.[0]}
                     </Avatar>
-                    <Typography variant="body2" sx={{ color: "#6b7280", fontWeight: "500" }}>
+                    <Typography variant="body2" sx={{ 
+                      color: "#6b7280", 
+                      fontWeight: "500",
+                      fontSize: { xs: "0.8rem", md: "0.875rem" }
+                    }}>
                       {project.owner?.fullname}
                     </Typography>
                   </Box>
 
                   {/* Üye Sayısı */}
-                  <Typography variant="body2" sx={{ color: "#6b7280" }}>
+                  <Typography variant="body2" sx={{ 
+                    color: "#6b7280",
+                    fontSize: { xs: "0.8rem", md: "0.875rem" }
+                  }}>
                     {project.members?.length || 0}/{project.maxMembers} üye
                   </Typography>
                 </Box>
@@ -239,20 +265,24 @@ function Projects() {
                   textTransform: "none",
                   fontWeight: "600",
                   borderRadius: "12px",
-                  px: 3,
-                  py: 1.5,
+                  px: { xs: 2, md: 3 },
+                  py: { xs: 1, md: 1.5 },
                   background: "#6b0f1a",
                   color: "#fff",
+                  fontSize: { xs: "0.8rem", md: "1rem" },
+                  minWidth: { xs: "80px", md: "auto" },
                   "&:hover": {
                     background: "#8c1c2b",
                     transform: "scale(1.05)"
                   },
                   transition: "all 0.3s ease",
-                  flexShrink: 0
+                  flexShrink: 0,
+                  alignSelf: { xs: "center", md: "flex-start" }
                 }}
               >
                 İncele
               </Button>
+              </Box>
             </Box>
           ))}
         </Box>
