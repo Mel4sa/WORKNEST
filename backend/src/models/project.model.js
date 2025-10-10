@@ -17,8 +17,8 @@ const projectSchema = new mongoose.Schema({
   
   tags: [{
     type: String,
-    enum: ['Web', 'Mobile', 'AI', 'Design', 'Marketing', 'Data Science', 'IoT', 'Game', 'Blockchain', 'Other'],
-    required: true
+    required: true,
+    trim: true
   }],
   
   requiredSkills: [{

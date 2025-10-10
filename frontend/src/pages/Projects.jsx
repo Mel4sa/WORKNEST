@@ -23,7 +23,6 @@ function Projects() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Backend'den projeleri getir
   const fetchProjects = async () => {
     try {
       setLoading(true);

@@ -87,12 +87,22 @@ export const getProjectById = async (req, res) => {
 export const createProject = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { title, description, tags, requiredSkills, maxMembers, deadline, visibility } = req.body;
+    const { title, description, tags, requiredSkills, maxMembers, deadline, visibility, status } = req.body;
+    
+    console.log("🚀 Create project request:", req.body);
+    console.log("👤 User ID:", userId);
 
     // Validasyon
-    if (!title || !description || !tags || tags.length === 0) {
+    if (!title || !description) {
       return res.status(400).json({ 
-        message: "Başlık, açıklama ve en az bir etiket gereklidir" 
+        message: "Başlık ve açıklama gereklidir" 
+      });
+    }
+
+    // Tags kontrolü - en az bir teknoloji gerekli
+    if (!tags || tags.length === 0) {
+      return res.status(400).json({ 
+        message: "En az bir teknoloji seçmelisiniz" 
       });
     }
 
@@ -104,6 +114,7 @@ export const createProject = async (req, res) => {
       maxMembers: maxMembers || 5,
       deadline: deadline ? new Date(deadline) : null,
       visibility: visibility || 'public',
+      status: status === 'planned' ? 'pending' : status || 'pending',
       owner: userId,
       members: [{ user: userId, role: 'owner' }]
     });
@@ -120,12 +131,29 @@ export const createProject = async (req, res) => {
       project: populatedProject 
     });
   } catch (error) {
-    console.error("Create project error:", error);
+    console.error("❌ Create project error:", error);
+    
+    // Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        message: "Validation hatası", 
+        errors: validationErrors 
+      });
+    }
+    
+    // Duplicate key error
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        message: "Bu proje adı zaten kullanılıyor" 
+      });
+    }
+    
     res.status(500).json({ message: "Proje oluşturulamadı", error: error.message });
   }
 };
 
-// Proje güncelle (sadece owner)
+
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -156,6 +184,16 @@ export const updateProject = async (req, res) => {
     });
   } catch (error) {
     console.error("Update project error:", error);
+    
+    // Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        message: "Validation hatası", 
+        errors: validationErrors 
+      });
+    }
+    
     res.status(500).json({ message: "Proje güncellenemedi", error: error.message });
   }
 };
