@@ -95,6 +95,17 @@ function ProjectDetail() {
   // Üye silme fonksiyonu
   const handleRemoveMember = async (memberId) => {
     try {
+      // Eğer geçici üye ise (temp_member ile başlıyorsa) API çağrısı yapmadan sil
+      if (memberId.startsWith('temp_member')) {
+        setProject(prev => ({
+          ...prev,
+          members: prev.members.filter(member => member._id !== memberId)
+        }));
+        setSwipedMember(null);
+        return;
+      }
+      
+      // Gerçek üyeler için API çağrısı yap
       await axiosInstance.delete(`/projects/${id}/members/${memberId}`);
       setProject(prev => ({
         ...prev,
@@ -191,38 +202,61 @@ function ProjectDetail() {
     <Box sx={{ 
       padding: { xs: "20px", md: "40px" }, 
       minHeight: "100vh", 
-      backgroundColor: "#fafbfc" 
+      backgroundColor: "#fafbfc",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
     }}>
       {/* Geri Dön Butonu */}
-      <Button 
-        variant="contained" 
-        onClick={() => navigate(-1)}
-        sx={{ 
-          mb: 3,
-          background: "#4a0d16",
-          color: "#fff",
-          fontWeight: "600",
-          borderRadius: "12px",
-          px: 3,
-          py: 1.5,
-          "&:hover": {
-            background: "#5c1119",
-            transform: "translateY(-2px)",
-            boxShadow: "0 6px 20px rgba(74, 13, 22, 0.3)"
-          },
-          transition: "all 0.3s ease"
-        }}
-      >
-        ← Geri Dön
-      </Button>
+      <Box sx={{ width: "100%", maxWidth: "1200px", mb: 3 }}>
+        <Button 
+          variant="contained" 
+          onClick={() => navigate(-1)}
+          sx={{ 
+            background: "#4a0d16",
+            color: "#fff",
+            fontWeight: "600",
+            borderRadius: "12px",
+            px: 3,
+            py: 1.5,
+            "&:hover": {
+              background: "#5c1119",
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 20px rgba(74, 13, 22, 0.3)"
+            },
+            transition: "all 0.3s ease"
+          }}
+        >
+          Geri Dön
+        </Button>
+      </Box>
 
-      {/* Ana İçerik - İki Sütunlu Layout */}
-      <Box sx={{ display: "flex", gap: 4, flexDirection: { xs: "column", lg: "row" } }}>
+      {/* Ana İçerik - Ortalanmış ve Eşit Boyutlu Layout */}
+      <Box sx={{ 
+        display: "flex", 
+        gap: 4, 
+        flexDirection: { xs: "column", lg: "row" },
+        maxWidth: "1200px",
+        margin: "0 auto",
+        width: "100%"
+      }}>
         
         {/* Sol Taraf - Ana Proje Bilgileri */}
-        <Box sx={{ flex: 2 }}>
-          <Card sx={{ borderRadius: "20px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-            <CardContent sx={{ p: 4 }}>
+        <Box sx={{ flex: 1, width: "100%" }}>
+          <Card sx={{ 
+            borderRadius: "20px", 
+            boxShadow: "0 4px 20px rgba(0,0,0,0.08)", 
+            height: { xs: "auto", lg: "600px" },
+            display: "flex",
+            flexDirection: "column"
+          }}>
+            <CardContent sx={{ 
+              p: 4, 
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "auto"
+            }}>
               {/* Başlık ve Status */}
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
                 {isEditing ? (
@@ -415,9 +449,21 @@ function ProjectDetail() {
         </Box>
 
         {/* Sağ Taraf - Takım Üyeleri */}
-        <Box sx={{ flex: 1 }}>
-          <Card sx={{ borderRadius: "20px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", height: "fit-content" }}>
-            <CardContent sx={{ p: 3 }}>
+        <Box sx={{ flex: 1, width: "100%" }}>
+          <Card sx={{ 
+            borderRadius: "20px", 
+            boxShadow: "0 4px 20px rgba(0,0,0,0.08)", 
+            height: { xs: "auto", lg: "600px" },
+            display: "flex",
+            flexDirection: "column"
+          }}>
+            <CardContent sx={{ 
+              p: 3,
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "auto"
+            }}>
               {/* Takım Başlığı */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: "600", color: "#6b0f1a" }}>
@@ -431,7 +477,13 @@ function ProjectDetail() {
               </Typography>
 
               {/* Üyeler Listesi */}
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Box sx={{ 
+                display: "flex", 
+                flexDirection: "column", 
+                gap: 2,
+                flex: 1,
+                overflow: "auto"
+              }}>
                 {/* Proje Lideri */}
                 <Box sx={{ 
                   display: "flex", 
