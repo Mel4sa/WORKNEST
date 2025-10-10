@@ -27,10 +27,12 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axiosInstance from "../lib/axios";
+import useAuthStore from "../store/useAuthStore";
 
 function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
   const [progress, setProgress] = useState(0);           
   const [displayProgress, setDisplayProgress] = useState(0); 
   const [project, setProject] = useState(null);
@@ -626,30 +628,32 @@ function ProjectDetail() {
                 )}
               </Box>
 
-              {/* Proje Silme Butonu */}
-              <Box sx={{ mt: 4, pt: 3, borderTop: "1px solid #e5e7eb" }}>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  fullWidth
-                  sx={{
-                    borderRadius: "12px",
-                    py: 1.5,
-                    borderColor: "#dc2626",
-                    color: "#dc2626",
-                    fontWeight: "600",
-                    "&:hover": {
-                      borderColor: "#b91c1c",
-                      backgroundColor: "rgba(220, 38, 38, 0.04)",
-                      transform: "translateY(-1px)"
-                    },
-                    transition: "all 0.3s ease"
-                  }}
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  Projeyi Sil
-                </Button>
-              </Box>
+              {/* Proje Silme Butonu - Sadece proje sahibi için */}
+              {user && project.owner?._id === user._id && (
+                <Box sx={{ mt: 4, pt: 3, borderTop: "1px solid #e5e7eb" }}>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    fullWidth
+                    sx={{
+                      borderRadius: "12px",
+                      py: 1.5,
+                      borderColor: "#dc2626",
+                      color: "#dc2626",
+                      fontWeight: "600",
+                      "&:hover": {
+                        borderColor: "#b91c1c",
+                        backgroundColor: "rgba(220, 38, 38, 0.04)",
+                        transform: "translateY(-1px)"
+                      },
+                      transition: "all 0.3s ease"
+                    }}
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    Projeyi Sil
+                  </Button>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Box>
@@ -707,11 +711,16 @@ function ProjectDetail() {
           </Button>
           
           <Button
-            onClick={() => {
-              // Silme işlemi burada yapılacak
-              console.log("Proje silinecek:", project._id);
-              setDeleteDialogOpen(false);
-              // navigate("/projects"); // Silme işlemi tamamlandıktan sonra projeler sayfasına yönlendir
+            onClick={async () => {
+              try {
+                await axiosInstance.delete(`/projects/${project._id}`);
+                setDeleteDialogOpen(false);
+                navigate("/projects"); // Silme işlemi tamamlandıktan sonra projeler sayfasına yönlendir
+              } catch (err) {
+                console.error("Proje silinirken hata:", err);
+                setError(err.response?.data?.message || "Proje silinirken bir hata oluştu.");
+                setDeleteDialogOpen(false);
+              }
             }}
             variant="contained"
             sx={{
