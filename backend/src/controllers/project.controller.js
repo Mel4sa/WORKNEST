@@ -119,12 +119,41 @@ export const createProject = async (req, res) => {
       members: [{ user: userId, role: 'owner' }]
     });
 
+    console.log("💾 Saving project to database...");
+    console.log("📝 Project data to save:", {
+      title: newProject.title,
+      owner: newProject.owner,
+      tags: newProject.tags
+    });
+    
     const savedProject = await newProject.save();
+    console.log("✅ Project saved with ID:", savedProject._id);
+    console.log("🔍 Saved project details:", {
+      _id: savedProject._id,
+      title: savedProject.title,
+      createdAt: savedProject.createdAt
+    });
+    
+    // Kullanıcının projects array'ine de ekle
+    console.log("👤 Adding project to user's projects array...");
+    await User.findByIdAndUpdate(
+      userId,
+      { $push: { projects: savedProject._id } },
+      { new: true }
+    );
+    console.log("✅ Project added to user's projects array");
+    
+    // Veritabanından gerçekten kaydedildi mi kontrol et
+    const checkProject = await Project.findById(savedProject._id);
+    console.log("🔎 Database verification:", checkProject ? "EXISTS" : "NOT FOUND");
     
     // Populate edilmiş proje döndür
+    console.log("🔄 Populating project data...");
     const populatedProject = await Project.findById(savedProject._id)
       .populate('owner', 'fullname email profileImage')
       .populate('members.user', 'fullname email profileImage');
+    
+    console.log("🎉 Project created successfully:", populatedProject.title);
 
     res.status(201).json({ 
       message: "Proje başarıyla oluşturuldu",
@@ -216,6 +245,14 @@ export const deleteProject = async (req, res) => {
 
     // Soft delete
     await Project.findByIdAndUpdate(id, { isActive: false });
+
+    // Kullanıcının projects array'inden de kaldır
+    await User.findByIdAndUpdate(
+      userId,
+      { $pull: { projects: id } },
+      { new: true }
+    );
+    console.log("✅ Project removed from user's projects array");
 
     res.status(200).json({ message: "Proje başarıyla silindi" });
   } catch (error) {
