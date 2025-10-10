@@ -12,7 +12,11 @@ import {
   Alert,
   Card,
   CardContent,
-  Divider
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
 import axiosInstance from "../lib/axios";
 
@@ -24,6 +28,7 @@ function ProjectDetail() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const animationRef = useRef();
 
   // Backend'den proje detayını getir
@@ -327,10 +332,109 @@ function ProjectDetail() {
                   </Box>
                 )}
               </Box>
+
+              {/* Proje Silme Butonu */}
+              <Box sx={{ mt: 4, pt: 3, borderTop: "1px solid #e5e7eb" }}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  fullWidth
+                  sx={{
+                    borderRadius: "12px",
+                    py: 1.5,
+                    borderColor: "#dc2626",
+                    color: "#dc2626",
+                    fontWeight: "600",
+                    "&:hover": {
+                      borderColor: "#b91c1c",
+                      backgroundColor: "rgba(220, 38, 38, 0.04)",
+                      transform: "translateY(-1px)"
+                    },
+                    transition: "all 0.3s ease"
+                  }}
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  Projeyi Sil
+                </Button>
+              </Box>
             </CardContent>
           </Card>
         </Box>
       </Box>
+
+      {/* Silme Onay Dialog'u */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "20px",
+            p: 2
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          textAlign: "center", 
+          fontWeight: "700", 
+          color: "#dc2626",
+          fontSize: "1.5rem",
+          pb: 1
+        }}>
+          Projeyi Silmek İstediğinize Emin Misiniz?
+        </DialogTitle>
+        
+        <DialogContent sx={{ textAlign: "center", py: 3 }}>
+          <Typography variant="body1" sx={{ mb: 2, color: "#666", lineHeight: 1.6 }}>
+            <strong>"{project?.title}"</strong> adlı proje kalıcı olarak silinecek.
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#dc2626", fontWeight: "500" }}>
+            Bu işlem geri alınamaz!
+          </Typography>
+        </DialogContent>
+        
+        <DialogActions sx={{ justifyContent: "center", gap: 2, pb: 2 }}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            variant="outlined"
+            sx={{
+              borderRadius: "12px",
+              px: 4,
+              py: 1,
+              borderColor: "#6b7280",
+              color: "#6b7280",
+              "&:hover": {
+                borderColor: "#4b5563",
+                backgroundColor: "rgba(107, 114, 128, 0.04)"
+              }
+            }}
+          >
+            İptal
+          </Button>
+          
+          <Button
+            onClick={() => {
+              // Silme işlemi burada yapılacak
+              console.log("Proje silinecek:", project._id);
+              setDeleteDialogOpen(false);
+              // navigate("/projects"); // Silme işlemi tamamlandıktan sonra projeler sayfasına yönlendir
+            }}
+            variant="contained"
+            sx={{
+              borderRadius: "12px",
+              px: 4,
+              py: 1,
+              backgroundColor: "#dc2626",
+              "&:hover": {
+                backgroundColor: "#b91c1c"
+              }
+            }}
+          >
+            Evet, Sil
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
