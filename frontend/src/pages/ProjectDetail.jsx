@@ -1,73 +1,77 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Box, Typography, Button, Chip, Stack, Avatar, AvatarGroup, LinearProgress, Tooltip } from "@mui/material";
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Chip, 
+  Stack, 
+  Avatar, 
+  LinearProgress, 
+  CircularProgress, 
+  Alert,
+  Card,
+  CardContent,
+  Divider
+} from "@mui/material";
+import axiosInstance from "../lib/axios";
 
 function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [progress, setProgress] = useState(0);           // Çubuğun kendisi
-  const [displayProgress, setDisplayProgress] = useState(0); // Yazıdaki yüzde
+  const [progress, setProgress] = useState(0);           
+  const [displayProgress, setDisplayProgress] = useState(0); 
+  const [project, setProject] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const animationRef = useRef();
 
-  const projectData = {
-    1: {
-      name: "Portföy Sitesi",
-      owner: "Melisa Yılmaz",
-      members: ["Melisa Yılmaz", "Ahmet Demir", "Ayşe Kaya"],
-      status: "Geliştirme Aşamasında",
-      description: "Bu proje benim kişisel portföy sitem. React ve MUI kullanıldı.",
-      endDate: "2025-12-01",
-      startDate: "2025-10-01"
-    },
-    2: {
-      name: "Todo Uygulaması",
-      owner: "Ahmet Demir",
-      members: ["Ahmet Demir", "Ayşe Kaya"],
-      status: "Planlama Aşamasında",
-      description: "Basit bir todo uygulaması. Kullanıcılar görev ekleyip silebiliyor.",
-      endDate: "2025-10-20",
-      startDate: "2025-10-05"
-    },
-    3: {
-      name: "Blog Platformu",
-      owner: "Ayşe Kaya",
-      members: ["Ayşe Kaya", "Melisa Yılmaz"],
-      status: "Tamamlandı",
-      description: "Kendi bloglarını oluşturabileceğin ve paylaşabileceğin platform.",
-      endDate: "2025-09-15",
-      startDate: "2025-07-01"
-    },
-  };
+  // Backend'den proje detayını getir
+  const fetchProject = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(`/projects/${id}`);
+      setProject(response.data);
+    } catch (err) {
+      console.error("Proje detayı yüklenemedi:", err);
+      setError("Proje detayı yüklenemedi. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
-  const project = projectData[Number(id)];
+  useEffect(() => {
+    fetchProject();
+  }, [fetchProject]);
 
   useEffect(() => {
     if (!project) return;
 
-    const start = new Date(project.startDate);
-    const end = new Date(project.endDate);
-    const now = new Date();
-
-    let targetProgress = ((now - start) / (end - start)) * 100;
-    targetProgress = Math.min(Math.max(targetProgress, 0), 100);
+    let targetProgress = 0;
+    if (project.status === "completed") {
+      targetProgress = 100;
+    } else if (project.status === "ongoing") {
+      targetProgress = 60;
+    } else {
+      targetProgress = 15;
+    }
 
     let current = 0;
 
     const step = () => {
-      const increment = Math.max(targetProgress / 20, 0.5); // her frame’de ilerleme
+      const increment = Math.max(targetProgress / 20, 0.5); 
       current = Math.min(current + increment, targetProgress);
       setProgress(current);
 
-      // Yazıyı smooth güncelle
       setDisplayProgress(prev => {
         const diff = current - prev;
-        return prev + diff * 0.2; // yavaş yavaş yaklaş
+        return prev + diff * 0.2; 
       });
 
       if (current < targetProgress) {
         animationRef.current = requestAnimationFrame(step);
       } else {
-        setDisplayProgress(targetProgress); // son değere kesin ulaştır
+        setDisplayProgress(targetProgress); 
       }
     };
 
@@ -75,6 +79,33 @@ function ProjectDetail() {
 
     return () => cancelAnimationFrame(animationRef.current);
   }, [project]);
+
+  if (loading) {
+    return (
+      <Box sx={{ 
+        padding: "40px", 
+        minHeight: "100vh", 
+        display: "flex", 
+        justifyContent: "center", 
+        alignItems: "center" 
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ padding: "40px", minHeight: "100vh" }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+        <Button variant="contained" onClick={() => navigate(-1)}>
+          Geri Dön
+        </Button>
+      </Box>
+    );
+  }
 
   if (!project) {
     return (
@@ -90,67 +121,159 @@ function ProjectDetail() {
   }
 
   return (
-    <Box sx={{ padding: { xs: "20px", md: "60px" }, minHeight: "100vh", backgroundColor: "#f0f2f5" }}>
-      <Typography variant="h2" sx={{ fontWeight: "bold", mb: 3 }}>
-        {project.name}
-      </Typography>
-      <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-        Owner: {project.owner}
-      </Typography>
-      <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8 }}>
-        {project.description}
-      </Typography>
+    <Box sx={{ 
+      padding: { xs: "20px", md: "40px" }, 
+      minHeight: "100vh", 
+      backgroundColor: "#fafbfc" 
+    }}>
+      {/* Geri Dön Butonu */}
+      <Button 
+        variant="outlined" 
+        onClick={() => navigate(-1)}
+        sx={{ mb: 3 }}
+      >
+        ← Geri Dön
+      </Button>
 
-      {/* İlerleme Çubuğu */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle2" gutterBottom>
-          Proje İlerleme Durumu
-        </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={progress}
-          sx={{
-            height: 12,
-            borderRadius: 6,
-            backgroundColor: "#e0e0e0",
-            "& .MuiLinearProgress-bar": {
-              borderRadius: 6,
-              background: "linear-gradient(90deg, #003fd3, #00d4ff)",
-              transition: "all 0.3s ease-in-out",
-            },
-          }}
-        />
-        <Typography variant="body2" sx={{ mt: 0.5 }}>
-          %{Math.round(displayProgress)} tamamlandı - Bitiş Tarihi: {project.endDate}
-        </Typography>
-      </Box>
+      {/* Ana İçerik */}
+      <Card sx={{ borderRadius: "20px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+        <CardContent sx={{ p: 4 }}>
+          {/* Başlık ve Status */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
+            <Typography variant="h3" sx={{ fontWeight: "bold", color: "#6b0f1a" }}>
+              {project.title}
+            </Typography>
+            <Chip
+              label={
+                project.status === "completed" ? "Tamamlandı" :
+                project.status === "ongoing" ? "Devam Ediyor" : "Beklemede"
+              }
+              sx={{
+                background: 
+                  project.status === "completed" ? "linear-gradient(45deg, #4caf50, #66bb6a)" :
+                  project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" : 
+                  "linear-gradient(45deg, #9e9e9e, #bdbdbd)",
+                color: "#fff",
+                fontWeight: "600",
+                fontSize: "0.9rem"
+              }}
+            />
+          </Box>
 
-      {/* Bilgi etiketleri ve üyeler */}
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3, flexWrap: "wrap" }}>
-        <Chip label={`Durum: ${project.status}`} color="primary" />
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Typography variant="body2" sx={{ mr: 1 }}>Üyeler:</Typography>
-          <AvatarGroup max={4}>
-            {project.members.map((member, idx) => (
-              <Tooltip key={idx} title={member} arrow>
-                <Avatar sx={{ cursor: "pointer" }}>
-                  {member.split(" ").map(n => n[0]).join("")}
-                </Avatar>
-              </Tooltip>
-            ))}
-          </AvatarGroup>
-        </Box>
-      </Stack>
+          {/* Proje Lideri */}
+          <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+            <Avatar 
+              src={project.owner?.profileImage}
+              sx={{ 
+                width: 50, 
+                height: 50, 
+                mr: 2,
+                border: "2px solid #6b0f1a"
+              }}
+            >
+              {project.owner?.fullname?.[0]}
+            </Avatar>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: "600" }}>
+                {project.owner?.fullname}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Proje Lideri
+              </Typography>
+            </Box>
+          </Box>
 
-      <Box sx={{ mt: 4 }}>
-        <Button
-          variant="contained"
-          sx={{ backgroundColor: "#003fd3ff", "&:hover": { backgroundColor: "#002bb5" }, textTransform: "none", borderRadius: 3, padding: "8px 24px" }}
-          onClick={() => navigate(-1)}
-        >
-          Geri Dön
-        </Button>
-      </Box>
+          <Divider sx={{ my: 3 }} />
+
+          {/* Açıklama */}
+          <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
+            Proje Açıklaması
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.8, color: "#666" }}>
+            {project.description}
+          </Typography>
+
+          {/* İlerleme Çubuğu */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
+              Proje İlerleme Durumu
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={progress}
+              sx={{
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: "#e0e0e0",
+                "& .MuiLinearProgress-bar": {
+                  borderRadius: 6,
+                  background: "linear-gradient(90deg, #6b0f1a, #8c1c2b)",
+                  transition: "all 0.3s ease-in-out",
+                },
+              }}
+            />
+            <Typography variant="body2" sx={{ mt: 1, color: "#666" }}>
+              %{Math.round(displayProgress)} tamamlandı
+            </Typography>
+          </Box>
+
+          {/* Takım Üyeleri */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
+              Takım Üyeleri ({project.members?.length || 0}/{project.maxMembers})
+            </Typography>
+            {project.members && project.members.length > 0 ? (
+              <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap", gap: 2 }}>
+                {project.members.map((member, idx) => (
+                  <Box key={idx} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Avatar 
+                      src={member.profileImage}
+                      sx={{ width: 40, height: 40 }}
+                    >
+                      {member.fullname?.[0]}
+                    </Avatar>
+                    <Typography variant="body2">
+                      {member.fullname}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Henüz takım üyesi yok
+              </Typography>
+            )}
+          </Box>
+
+          {/* İstatistikler */}
+          <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h4" sx={{ fontWeight: "bold", color: "#6b0f1a" }}>
+                {project.members?.length || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Takım Üyesi
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h4" sx={{ fontWeight: "bold", color: "#6b0f1a" }}>
+                {project.maxMembers}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Maksimum Üye
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h4" sx={{ fontWeight: "bold", color: "#6b0f1a" }}>
+                {Math.round(displayProgress)}%
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Tamamlanma
+              </Typography>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
     </Box>
   );
 }

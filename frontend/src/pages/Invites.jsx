@@ -226,7 +226,7 @@ export default function InvitesPage() {
         autoHideDuration={3000} 
         onClose={() => setMessageOpen(false)}
       >
-        <Alert severity="info">{message}</Alert>
+        <Alert severity="error">{message}</Alert>
       </Snackbar>
     </Box>
   );

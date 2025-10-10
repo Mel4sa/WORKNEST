@@ -5,9 +5,6 @@ import {
   CameraAlt,
   Settings,
   Person,
-  Visibility,
-  VisibilityOff,
-  Add,
 } from "@mui/icons-material";
 import {
   Box,
@@ -20,29 +17,25 @@ import {
   Select,
   MenuItem,
   IconButton,
-  Dialog,
-  Divider,
   InputAdornment,
   CircularProgress,
   Snackbar,
   Alert,
 } from "@mui/material";
-import universities from "../data/universities.json";
 import useAuthStore from "../store/useAuthStore";
-import axiosInstance from "../lib/axios";
-import { useNavigate } from "react-router-dom";
+import axios from "../lib/axios";
+import AccountSettingsDialog from "../components/profile/AccountSettingsDialog";
+import SkillsSelect from "../components/profile/SkillsSelect";
+import universities from "../data/universities.json";
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const setUser = useAuthStore((state) => state.setUser);
   const fetchUser = useAuthStore((state) => state.fetchUser);
-  const logout = useAuthStore((state) => state.logout);
-  const navigate = useNavigate();
 
   // Profil state
   const [skills, setSkills] = useState([]);
-  const [newSkill, setNewSkill] = useState("");
   const [bio, setBio] = useState("");
   const [university, setUniversity] = useState("");
   const [department, setDepartment] = useState("");
@@ -51,23 +44,21 @@ export default function ProfilePage() {
   const [linkedin, setLinkedin] = useState("");
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
 
   const fileInputRef = useRef(null);
-
-  // Ayarlar popup
-  const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("username");
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [newUsername, setNewUsername] = useState("");
-  const [newEmail, setNewEmail] = useState("");
 
   // Snackbar
   const [messageOpen, setMessageOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [messageType, setMessageType] = useState("success");
+
+  // Message handler function for AccountSettingsDialog
+  const handleMessage = (text, type) => {
+    setMessageText(text);
+    setMessageType(type);
+    setMessageOpen(true);
+  };
 
   // Kullanıcıyı fetch et
   useEffect(() => {
@@ -94,12 +85,6 @@ export default function ProfilePage() {
       setGithub(user.github || "");
       setLinkedin(user.linkedin || "");
       setPreview(user.profileImage || "");
-
-      if (!user.bio || !user.university || !user.department) {
-        setMessageText("Lütfen profil bilgilerinizi tamamlayınız!");
-        setMessageType("warning");
-        setMessageOpen(true);
-      }
     }
   }, [user]);
 
@@ -131,7 +116,7 @@ export default function ProfilePage() {
     formData.append("photo", file);
 
     try {
-      const response = await axiosInstance.post("/user/upload-photo", formData, {
+      const response = await axios.post("/user/upload-photo", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -159,28 +144,18 @@ export default function ProfilePage() {
     }
   };
 
-  // Skill işlemleri
-  const handleAddSkill = () => {
-    const skill = newSkill.trim();
-    if (skill && !skills.includes(skill)) {
-      setSkills([...skills, skill]);
-      setNewSkill("");
-    }
-  };
-  const handleDeleteSkill = (s) => setSkills(skills.filter((x) => x !== s));
-
   // Profil kaydet
   const handleSaveProfile = async () => {
     const profileData = { university, department, title: role, skills, bio, github, linkedin };
     try {
-      const res = await axiosInstance.put("/user/update", profileData, {
+      const res = await axios.put("/user/update", profileData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data.user);
-      setMessageText("Profil başarıyla güncellendi!");
+      setMessageText("Profil başarıyla kaydedildi!");
       setMessageType("success");
     } catch {
-      setMessageText("Profil güncellenirken hata oluştu!");
+      setMessageText("Profil kaydedilirken hata oluştu!");
       setMessageType("error");
     } finally {
       setMessageOpen(true);
@@ -195,67 +170,6 @@ export default function ProfilePage() {
     github !== (user?.github || "") ||
     linkedin !== (user?.linkedin || "") ||
     skills.join(",") !== (user?.skills || []).join(",");
-
-  // Hesap ayarları
-  const handleChangePassword = async () => {
-    try {
-      await axiosInstance.put("/user/change-password", { oldPassword, newPassword });
-      setMessageText("Şifre başarıyla güncellendi!");
-      setMessageType("success");
-      handleClosePopup();
-    } catch {
-      setMessageText("Şifre güncellenirken hata oluştu!");
-      setMessageType("error");
-    } finally {
-      setMessageOpen(true);
-    }
-  };
-  const handleChangeUsername = async () => {
-    try {
-      await axiosInstance.put("/user/change-username", { newUsername });
-      setMessageText("Kullanıcı adı başarıyla güncellendi!");
-      setMessageType("success");
-      handleClosePopup();
-    } catch {
-      setMessageText("Kullanıcı adı güncellenirken hata oluştu!");
-      setMessageType("error");
-    } finally {
-      setMessageOpen(true);
-    }
-  };
-  const handleChangeEmail = async () => {
-    try {
-      await axiosInstance.put("/user/change-email", { newEmail });
-      setMessageText("E-posta başarıyla güncellendi!");
-      setMessageType("success");
-      handleClosePopup();
-    } catch {
-      setMessageText("E-posta güncellenirken hata oluştu!");
-      setMessageType("error");
-    } finally {
-      setMessageOpen(true);
-    }
-  };
-  const handleDeleteAccount = async () => {
-    try {
-      await axiosInstance.delete("/user/delete-account", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      logout();
-      navigate("/login");
-    } catch {
-      setMessageText("Hesap silinirken hata oluştu!");
-      setMessageType("error");
-      setMessageOpen(true);
-    }
-  };
-  const handleClosePopup = () => {
-    setOpen(false);
-    setOldPassword("");
-    setNewPassword("");
-    setNewUsername("");
-    setNewEmail("");
-  };
 
   if (loading) {
     return (
@@ -433,9 +347,10 @@ export default function ProfilePage() {
           backgroundColor: "#f8f9fa",
           display: "flex",
           justifyContent: "center",
-          alignItems: "center",
+          alignItems: "flex-start",
           p: { xs: 2, sm: 4, md: 6 },
           minHeight: "calc(100vh - 64px)", // Navbar yüksekliği çıkarıldı
+          maxHeight: "calc(100vh - 64px)", // Maksimum yükseklik de belirle
           margin: 0,
           overflowY: "auto",
         }}
@@ -446,8 +361,8 @@ export default function ProfilePage() {
           maxWidth: 500,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
-          py: 4
+          py: 2,
+          minHeight: "fit-content"
         }}>
           {/* Mobile header */}
           <Box 
@@ -500,7 +415,12 @@ export default function ProfilePage() {
             }}
           >
             {/* Başlık ve Ayarlar */}
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+            <Box sx={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "space-between", 
+              mb: 2
+            }}>
               <Typography
                 variant="h5"
                 sx={{ 
@@ -637,55 +557,10 @@ export default function ProfilePage() {
             </Box>
 
             {/* Yetenekler */}
-            <Box>
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: "#6b0f1a" }}>
-                Yetenekler
-              </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
-                {skills.map((skill) => (
-                  <Chip
-                    key={skill}
-                    label={skill}
-                    onDelete={() => handleDeleteSkill(skill)}
-                    sx={{
-                      mb: 1,
-                      borderRadius: "12px",
-                      bgcolor: "#003fd3ff",
-                      color: "#fff",
-                      "& .MuiChip-deleteIcon": { color: "#fff" },
-                    }}
-                  />
-                ))}
-              </Stack>
-
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <TextField
-                  size="small"
-                  fullWidth
-                  placeholder="Yeni yetenek ekle"
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
-                  sx={{ 
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "12px",
-                    }
-                  }}
-                />
-                <Button 
-                  variant="contained" 
-                  sx={{ 
-                    minWidth: 50,
-                    backgroundColor: "#003fd3ff",
-                    borderRadius: "12px",
-                    "&:hover": { backgroundColor: "#0056b3" }
-                  }} 
-                  onClick={handleAddSkill}
-                >
-                  <Add />
-                </Button>
-              </Box>
-            </Box>
+            <SkillsSelect
+              skills={skills}
+              onChange={setSkills}
+            />
 
             {/* Kaydet Butonu */}
             <Button
@@ -732,280 +607,12 @@ export default function ProfilePage() {
         </Alert>
       </Snackbar>
 
-      {/* Ayarlar Popup */}
-      <Dialog 
+      {/* Account Settings Dialog */}
+      <AccountSettingsDialog 
         open={open} 
-        onClose={handleClosePopup} 
-        PaperProps={{ 
-          sx: { 
-            width: 450, 
-            borderRadius: "20px", 
-            p: 4,
-            backgroundColor: "#f8f9fa",
-            boxShadow: "0 20px 40px rgba(0,0,0,0.1)"
-          } 
-        }}
-      >
-        <Typography 
-          variant="h5" 
-          sx={{ 
-            textAlign: "center", 
-            mb: 3, 
-            fontWeight: "bold",
-            color: "#6b0f1a"
-          }}
-        >
-          Hesap Ayarları
-        </Typography>
-        <Divider sx={{ mb: 3, backgroundColor: "#ddd" }} />
-        
-        {/* Tab Navigation */}
-        <Box sx={{ 
-          display: "flex", 
-          justifyContent: "space-around", 
-          mb: 3,
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          p: 1,
-          boxShadow: "inset 0 2px 4px rgba(0,0,0,0.05)"
-        }}>
-          {[
-            { key: "username", label: "Kullanıcı Adı" },
-            { key: "email", label: "E-posta" },
-            { key: "password", label: "Şifre" },
-            { key: "delete", label: "Sil" },
-          ].map((tab) => (
-            <Typography
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              sx={{
-                fontWeight: 600,
-                cursor: "pointer",
-                color: activeTab === tab.key ? "#fff" : "#666",
-                backgroundColor: activeTab === tab.key ? "#003fd3ff" : "transparent",
-                borderRadius: "8px",
-                py: 1,
-                px: 2,
-                transition: "all 0.3s ease",
-                fontSize: "0.85rem",
-                textAlign: "center",
-                "&:hover": {
-                  backgroundColor: activeTab === tab.key ? "#0056b3" : "#f0f0f0"
-                }
-              }}
-            >
-              {tab.label}
-            </Typography>
-          ))}
-        </Box>
-
-        {activeTab === "username" && (
-          <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#6b0f1a" }}>
-              Kullanıcı Adını Değiştir
-            </Typography>
-            <TextField 
-              fullWidth 
-              label="Yeni Kullanıcı Adı" 
-              placeholder="Yeni kullanıcı adınızı girin"
-              sx={{ 
-                mb: 3,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                  backgroundColor: "#f8f9fa",
-                  "& fieldset": { borderColor: "#ddd" },
-                  "&:hover fieldset": { borderColor: "#003fd3ff" },
-                  "&.Mui-focused fieldset": { borderColor: "#003fd3ff" }
-                }
-              }} 
-              value={newUsername} 
-              onChange={(e) => setNewUsername(e.target.value)} 
-            />
-            <Button 
-              fullWidth 
-              variant="contained" 
-              sx={{ 
-                background: "linear-gradient(135deg, #003fd3ff, #0056b3)",
-                borderRadius: "12px",
-                py: 1.5,
-                fontWeight: "bold",
-                fontSize: "1rem",
-                textTransform: "none",
-                boxShadow: "0 4px 12px rgba(0,63,211,0.3)",
-                "&:hover": { 
-                  background: "linear-gradient(135deg, #0056b3, #003fd3ff)",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 6px 16px rgba(0,63,211,0.4)"
-                },
-                transition: "all 0.3s ease"
-              }} 
-              onClick={handleChangeUsername}
-            >
-              Kullanıcı Adını Kaydet
-            </Button>
-          </Box>
-        )}
-
-        {activeTab === "email" && (
-          <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#6b0f1a" }}>
-              E-posta Adresini Değiştir
-            </Typography>
-            <TextField 
-              fullWidth 
-              label="Yeni E-posta" 
-              placeholder="Yeni e-posta adresinizi girin"
-              type="email"
-              sx={{ 
-                mb: 3,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                  backgroundColor: "#f8f9fa",
-                  "& fieldset": { borderColor: "#ddd" },
-                  "&:hover fieldset": { borderColor: "#003fd3ff" },
-                  "&.Mui-focused fieldset": { borderColor: "#003fd3ff" }
-                }
-              }} 
-              value={newEmail} 
-              onChange={(e) => setNewEmail(e.target.value)} 
-            />
-            <Button 
-              fullWidth 
-              variant="contained" 
-              sx={{ 
-                background: "linear-gradient(135deg, #003fd3ff, #0056b3)",
-                borderRadius: "12px",
-                py: 1.5,
-                fontWeight: "bold",
-                fontSize: "1rem",
-                textTransform: "none",
-                boxShadow: "0 4px 12px rgba(0,63,211,0.3)",
-                "&:hover": { 
-                  background: "linear-gradient(135deg, #0056b3, #003fd3ff)",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 6px 16px rgba(0,63,211,0.4)"
-                },
-                transition: "all 0.3s ease"
-              }} 
-              onClick={handleChangeEmail}
-            >
-              E-posta Adresini Güncelle
-            </Button>
-          </Box>
-        )}
-
-        {activeTab === "password" && (
-          <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#6b0f1a" }}>
-              Şifreyi Değiştir
-            </Typography>
-            <TextField
-              fullWidth
-              label="Mevcut Şifre"
-              type={showOldPassword ? "text" : "password"}
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              sx={{ 
-                mb: 2,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                  backgroundColor: "#f8f9fa",
-                  "& fieldset": { borderColor: "#ddd" },
-                  "&:hover fieldset": { borderColor: "#003fd3ff" },
-                  "&.Mui-focused fieldset": { borderColor: "#003fd3ff" }
-                }
-              }}
-              InputProps={{
-                endAdornment: (
-                  <IconButton onClick={() => setShowOldPassword(!showOldPassword)}>
-                    {showOldPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                ),
-              }}
-            />
-            <TextField
-              fullWidth
-              label="Yeni Şifre"
-              type={showNewPassword ? "text" : "password"}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              sx={{ 
-                mb: 3,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                  backgroundColor: "#f8f9fa",
-                  "& fieldset": { borderColor: "#ddd" },
-                  "&:hover fieldset": { borderColor: "#003fd3ff" },
-                  "&.Mui-focused fieldset": { borderColor: "#003fd3ff" }
-                }
-              }}
-              InputProps={{
-                endAdornment: (
-                  <IconButton onClick={() => setShowNewPassword(!showNewPassword)}>
-                    {showNewPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                ),
-              }}
-            />
-            <Button 
-              fullWidth 
-              variant="contained" 
-              sx={{ 
-                background: "linear-gradient(135deg, #003fd3ff, #0056b3)",
-                borderRadius: "12px",
-                py: 1.5,
-                fontWeight: "bold",
-                fontSize: "1rem",
-                textTransform: "none",
-                boxShadow: "0 4px 12px rgba(0,63,211,0.3)",
-                "&:hover": { 
-                  background: "linear-gradient(135deg, #0056b3, #003fd3ff)",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 6px 16px rgba(0,63,211,0.4)"
-                },
-                transition: "all 0.3s ease"
-              }} 
-              onClick={handleChangePassword}
-            >
-              Şifreyi Güncelle
-            </Button>
-          </Box>
-        )}
-
-        {activeTab === "delete" && (
-          <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#d32f2f", textAlign: "center" }}>
-              Hesabı Sil
-            </Typography>
-            <Typography sx={{ mb: 3, textAlign: "center", color: "#666", lineHeight: 1.6 }}>
-              Bu işlem geri alınamaz. Hesabınızı silmek istediğinize emin misiniz? 
-              Tüm verileriniz kalıcı olarak silinecektir.
-            </Typography>
-            <Button 
-              fullWidth 
-              variant="contained" 
-              sx={{
-                background: "linear-gradient(135deg, #d32f2f, #b71c1c)",
-                borderRadius: "12px",
-                py: 1.5,
-                fontWeight: "bold",
-                fontSize: "1rem",
-                textTransform: "none",
-                boxShadow: "0 4px 12px rgba(211,47,47,0.3)",
-                "&:hover": { 
-                  background: "linear-gradient(135deg, #b71c1c, #d32f2f)",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 6px 16px rgba(211,47,47,0.4)"
-                },
-                transition: "all 0.3s ease"
-              }}
-              onClick={handleDeleteAccount}
-            >
-              Hesabı Kalıcı Olarak Sil
-            </Button>
-          </Box>
-        )}
-      </Dialog>
+        onClose={() => setOpen(false)} 
+        onMessage={handleMessage}
+      />
     </Box>
   );
 }

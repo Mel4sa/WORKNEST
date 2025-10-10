@@ -30,6 +30,7 @@ export default function ResetPassword() {
   const [expired, setExpired] = useState(false);
   const [email, setEmail] = useState("");
   const [resendMessage, setResendMessage] = useState("");
+  const [resendSuccess, setResendSuccess] = useState("");
 
   const rules = {
     length: password.length >= 8 && password.length <= 20,
@@ -52,7 +53,7 @@ export default function ResetPassword() {
     try {
       console.log("Şifre sıfırlama token:", token);
       const res = await axiosInstance.post(
-        `auth/reset-password/${token}`,
+        `/auth/reset-password/${token}`,
         { password }
       );
       setMessage(res.data.message || "Şifreniz başarıyla değiştirildi! Yönlendiriliyorsunuz...");
@@ -72,15 +73,20 @@ export default function ResetPassword() {
   const handleResend = async () => {
     if (!email.trim()) {
       setResendMessage("Lütfen e-posta adresinizi girin.");
+      setResendSuccess("");
       return;
     }
 
     try {
+      console.log("Resend request başlatılıyor:", email.trim());
+      
       // Backend'den yeni şifre sıfırlama linki al
       const res = await axiosInstance.post(
-        "auth/resend-reset-link",
+        "/auth/resend-reset-link",
         { email: email.trim() }
       );
+      
+      console.log("Backend response:", res.data);
       
       const resetLink = res.data.resetLink;
       const fullname = res.data.fullname || "Kullanıcı";
@@ -100,20 +106,27 @@ export default function ResetPassword() {
         import.meta.env.VITE_YOUR_PUBLIC_KEY     
       );
 
-      setResendMessage("Yeni şifre sıfırlama bağlantısı e-posta adresinize gönderildi!");
+      setResendSuccess("Yeni şifre sıfırlama bağlantısı e-posta adresinize gönderildi!");
+      setResendMessage("");
       setError("");
     } catch (err) {
       console.error("Resend reset link hatası:", err);
+      console.error("Error response:", err.response);
+      console.error("Error request:", err.request);
+      console.error("Error config:", err.config);
+      
       if (err.response) {
         if (err.response.status === 404) {
           setResendMessage("E-posta bulunamadı. Lütfen doğru adres girin.");
         } else if (err.response.status === 400) {
           setResendMessage("Geçersiz istek. Lütfen tekrar deneyin.");
         } else {
-          setResendMessage("Email gönderilemedi. Lütfen tekrar deneyin.");
+          setResendMessage(`Sunucu hatası: ${err.response.status}. Email gönderilemedi.`);
         }
-      } else {
+      } else if (err.request) {
         setResendMessage("Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edin.");
+      } else {
+        setResendMessage("İstek gönderilemedi. Lütfen tekrar deneyin.");
       }
     }
   };
@@ -248,7 +261,8 @@ export default function ResetPassword() {
               >
                 Yeni Link Gönder
               </Button>
-              {resendMessage && <Typography textAlign="center" color="success.main">{resendMessage}</Typography>}
+              {resendMessage && <Typography textAlign="center" color="error">{resendMessage}</Typography>}
+              {resendSuccess && <Typography textAlign="center" color="success.main">{resendSuccess}</Typography>}
             </Box>
           )}
         </CardContent>

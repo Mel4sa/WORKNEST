@@ -85,7 +85,15 @@ const useAuthStore = create(
       initialize: async () => {
         const token = get().token || localStorage.getItem("token");
         if (token) {
-          await get().fetchUser();
+          try {
+            // Token'ı set et ve kullanıcıyı fetch et
+            set({ token });
+            await get().fetchUser();
+          } catch {
+            // Token geçersizse logout yap
+            console.log("Token geçersiz, logout yapılıyor...");
+            get().logout();
+          }
         } else {
           set({ isLoading: false });
         }

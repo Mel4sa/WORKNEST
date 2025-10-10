@@ -73,30 +73,46 @@ function Projects() {
       <Box sx={{ 
         textAlign: "center", 
         mb: 6,
-        px: 3
+        px: 3,
+        py: 8
       }}>
         <Typography 
-          variant="h3" 
+          variant="h2" 
           sx={{ 
-            fontWeight: "700", 
+            fontWeight: "900", 
             color: "#6b0f1a",
             mb: 2,
-            fontSize: { xs: "2rem", md: "3rem" }
+            fontSize: { xs: "2rem", md: "3rem" },
+            textShadow: "0 2px 4px rgba(107, 15, 26, 0.2)"
           }}
         >
-          Projeler
+          PROJELER
         </Typography>
+        
+        {/* Decorative Line */}
+        <Box sx={{
+          width: "80px",
+          height: "4px",
+          background: "linear-gradient(90deg, #6b0f1a, #8c1c2b)",
+          mx: "auto",
+          mb: 3,
+          borderRadius: "2px"
+        }} />
+        
         <Typography 
-          variant="h6" 
+          variant="h5" 
           sx={{ 
-            color: "#6b7280", 
-            maxWidth: 600, 
-            mx: "auto",
+            color: "#666",
             lineHeight: 1.6,
-            fontSize: { xs: "1rem", md: "1.25rem" }
+            fontSize: { xs: "1.2rem", md: "1.4rem" },
+            fontWeight: "300",
+            textAlign: "center",
+            maxWidth: "600px",
+            mx: "auto",
+            letterSpacing: "0.3px"
           }}
         >
-          Yaratıcı fikirler burada hayat buluyor. Takımını oluştur, projeni büyüt!
+          Takım çalışması ve inovasyon burada başlıyor
         </Typography>
       </Box>
 
@@ -118,173 +134,155 @@ function Projects() {
       {/* Main Content Container */}
       <Box sx={{ px: 3, maxWidth: 1400, mx: "auto" }}>
         {/* Projeler Grid */}
-        <Grid container spacing={4}>
+        <Grid container spacing={3}>
           {projects.map((project) => (
-            <Grid item xs={12} sm={6} lg={4} key={project._id}>
+            <Grid item xs={12} sm={6} md={4} key={project._id}>
               <Card
                 sx={{
-                  borderRadius: "16px",
+                  borderRadius: "20px",
                   overflow: "hidden",
                   cursor: "pointer",
-                  background: "#fff",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                  border: "2px solid #e5e7eb",
-                  transition: "all 0.3s ease",
+                  background: "#ffffff",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  border: "1px solid #e5e7eb",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   position: "relative",
                   "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.12)",
-                    borderColor: "#d1d5db",
-                    "& .project-header": {
-                      background: "#3b82f6",
-                    }
+                    transform: "translateY(-6px)",
+                    boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+                    borderColor: "#6b0f1a"
                   },
-                  height: "100%",
+                  height: "450px",
                   display: "flex",
                   flexDirection: "column"
                 }}
               >
-                {/* Gradient Header */}
-                <Box 
-                  className="project-header"
-                  sx={{
-                    background: "#4f46e5",
-                    height: "120px",
-                    position: "relative",
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}
-                >
-                  <Typography 
-                    variant="h5" 
-                    sx={{ 
-                      color: "#fff", 
-                      fontWeight: "bold",
-                      textAlign: "center",
-                      px: 2
-                    }}
-                  >
-                    {project.title}
-                  </Typography>
-                  
+                {/* Header Section */}
+                <Box sx={{ 
+                  background: "#6b0f1a",
+                  p: 3,
+                  position: "relative",
+                  minHeight: "100px",
+                  display: "flex",
+                  alignItems: "center"
+                }}>
                   {/* Status Badge */}
                   <Box
                     sx={{
                       position: "absolute",
-                      top: 16,
-                      right: 16,
-                      px: 2,
+                      top: 12,
+                      right: 12,
+                      px: 1.5,
                       py: 0.5,
-                      borderRadius: "12px",
-                      backgroundColor: 
-                        project.status === "completed" ? "#4caf50" :
-                        project.status === "ongoing" ? "#ff9800" : "#9e9e9e",
+                      borderRadius: "20px",
+                      background: 
+                        project.status === "completed" ? "linear-gradient(45deg, #4caf50, #66bb6a)" :
+                        project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" : 
+                        "linear-gradient(45deg, #9e9e9e, #bdbdbd)",
                       color: "#fff",
-                      fontSize: "0.75rem",
-                      fontWeight: "bold"
+                      fontSize: "0.7rem",
+                      fontWeight: "700",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                      border: "1px solid rgba(255,255,255,0.3)",
+                      zIndex: 10
                     }}
                   >
                     {project.status === "completed" ? "Tamamlandı" :
                      project.status === "ongoing" ? "Devam Ediyor" : "Beklemede"}
                   </Box>
-                </Box>
 
-                <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                  {/* Proje açıklaması */}
+                  {/* Project Title */}
                   <Typography 
-                    variant="body1" 
+                    variant="h5" 
                     sx={{ 
-                      mb: 3, 
-                      color: "#6b7280",
-                      lineHeight: 1.6,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                      minHeight: "72px"
+                      color: "#fff", 
+                      fontWeight: "700",
+                      textAlign: "center",
+                      fontSize: "1.3rem",
+                      textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                      width: "100%",
+                      pr: "80px" // Status badge için boşluk
                     }}
                   >
-                    {project.description}
+                    {project.title}
                   </Typography>
+                </Box>
 
-                  {/* Etiketler */}
-                  <Box sx={{ mb: 3 }}>
-                    {project.tags?.slice(0, 3).map((tag, index) => (
-                      <Chip
-                        key={index}
-                        label={tag}
-                        size="small"
-                        sx={{
-                          mr: 1,
-                          mb: 1,
-                          backgroundColor: "#f3f4f6",
-                          color: "#4b5563",
-                          fontWeight: "500",
-                          border: "1px solid #e5e7eb",
-                          "& .MuiChip-label": { fontSize: "0.75rem" }
-                        }}
-                      />
-                    ))}
-                    {project.tags?.length > 3 && (
-                      <Chip
-                        label={`+${project.tags.length - 3}`}
-                        size="small"
-                        sx={{
-                          backgroundColor: "#4f46e5",
-                          color: "#fff",
-                          fontWeight: "bold"
-                        }}
-                      />
-                    )}
-                  </Box>
-
-                  {/* Proje sahibi */}
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <CardContent sx={{ 
+                  flex: 1, 
+                  p: 3,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2
+                }}>
+                  {/* Proje Lideri */}
+                  <Box sx={{ 
+                    display: "flex", 
+                    alignItems: "center",
+                    background: "#f8f9fa",
+                    borderRadius: "12px",
+                    p: 2.5,
+                    border: "1px solid #e9ecef"
+                  }}>
                     <Avatar 
                       src={project.owner?.profileImage} 
                       sx={{ 
-                        width: 32, 
-                        height: 32, 
+                        width: 40, 
+                        height: 40, 
                         mr: 2,
-                        border: "2px solid #f3f4f6"
+                        border: "2px solid #6b0f1a"
                       }}
                     >
                       {project.owner?.fullname?.[0]}
                     </Avatar>
                     <Box>
-                      <Typography variant="body2" sx={{ fontWeight: "600", color: "#1f2937" }}>
+                      <Typography variant="body1" sx={{ 
+                        fontWeight: "600", 
+                        color: "#1f2937",
+                        fontSize: "1rem"
+                      }}>
                         {project.owner?.fullname}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: "#6b7280" }}>
+                      <Typography variant="caption" sx={{ 
+                        color: "#6b7280",
+                        fontWeight: "500"
+                      }}>
                         Proje Lideri
                       </Typography>
                     </Box>
                   </Box>
 
-                  {/* Üye sayısı */}
+                  {/* Üye Sayısı */}
                   <Box sx={{ 
                     display: "flex", 
                     alignItems: "center", 
                     justifyContent: "space-between",
-                    backgroundColor: "#f8f9fa",
+                    background: "#f8f9fa",
                     borderRadius: "12px",
-                    p: 2
+                    p: 2.5,
+                    border: "1px solid #e9ecef"
                   }}>
-                    <Typography variant="body2" sx={{ color: "#6b7280", fontWeight: "500" }}>
+                    <Typography variant="body1" sx={{ 
+                      color: "#1f2937", 
+                      fontWeight: "600",
+                      fontSize: "1rem"
+                    }}>
                       Takım Üyeleri
                     </Typography>
                     <Typography variant="h6" sx={{ 
-                      color: "#4f46e5", 
-                      fontWeight: "bold" 
+                      color: "#6b0f1a", 
+                      fontWeight: "700",
+                      fontSize: "1.4rem"
                     }}>
                       {project.members?.length || 0}/{project.maxMembers}
                     </Typography>
                   </Box>
                 </CardContent>
 
-                <CardActions sx={{ p: 3, pt: 0 }}>
+                <CardActions sx={{ 
+                  p: 3,
+                  pt: 1
+                }}>
                   <Button
                     fullWidth
                     variant="contained"
@@ -292,17 +290,18 @@ function Projects() {
                     sx={{
                       textTransform: "none",
                       fontWeight: "600",
-                      borderRadius: "8px",
-                      py: 1.5,
-                      background: "#4f46e5",
+                      borderRadius: "12px",
+                      py: 2,
+                      background: "#6b0f1a",
                       color: "#fff",
                       fontSize: "1rem",
+                      boxShadow: "0 4px 15px rgba(107, 15, 26, 0.3)",
                       "&:hover": {
-                        background: "#3b82f6",
-                        transform: "translateY(-1px)",
-                        boxShadow: "0 4px 12px rgba(79,70,229,0.3)",
+                        background: "#8c1c2b",
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 6px 20px rgba(107, 15, 26, 0.4)",
                       },
-                      transition: "all 0.2s ease"
+                      transition: "all 0.3s ease"
                     }}
                   >
                     Projeyi İncele
@@ -318,31 +317,38 @@ function Projects() {
           <Box sx={{ 
             textAlign: "center", 
             mt: 8,
-            backgroundColor: "#fff",
-            borderRadius: "16px",
+            background: "#6b0f1a",
+            borderRadius: "20px",
             p: 6,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            border: "2px solid #e5e7eb"
+            boxShadow: "0 8px 32px rgba(107, 15, 26, 0.15)",
+            border: "none",
+            color: "#fff"
           }}>
-            <Typography variant="h5" sx={{ color: "#1f2937", mb: 2, fontWeight: "600" }}>
+            <Typography variant="h4" sx={{ color: "#fff", mb: 2, fontWeight: "700" }}>
               Henüz proje bulunmuyor
             </Typography>
-            <Typography variant="body1" sx={{ color: "#6b7280", mb: 4 }}>
+            <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.8)", mb: 4, fontSize: "1.1rem" }}>
               İlk projeyi sen oluştur ve topluluğu büyütmeye başla!
             </Typography>
             <Button
               variant="contained"
               onClick={handleCreateProject}
               sx={{
-                borderRadius: "8px",
+                borderRadius: "15px",
                 px: 4,
                 py: 1.5,
-                background: "#4f46e5",
-                fontWeight: "600",
+                background: "rgba(255,255,255,0.2)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.3)",
+                fontWeight: "700",
                 textTransform: "none",
                 fontSize: "1.1rem",
+                color: "#fff",
+                boxShadow: "0 6px 20px rgba(0,0,0,0.2)",
                 "&:hover": {
-                  background: "#3b82f6"
+                  background: "rgba(255,255,255,0.3)",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 25px rgba(0,0,0,0.3)",
                 }
               }}
             >
@@ -359,21 +365,22 @@ function Projects() {
           position: "fixed",
           bottom: 32,
           right: 32,
-          width: 64,
-          height: 64,
-          background: "#4f46e5",
+          width: 70,
+          height: 70,
+          background: "#6b0f1a",
           color: "#fff",
-          boxShadow: "0 4px 12px rgba(79,70,229,0.3)",
+          boxShadow: "0 8px 25px rgba(107, 15, 26, 0.4)",
+          border: "3px solid rgba(255,255,255,0.2)",
           "&:hover": {
-            background: "#3b82f6",
-            transform: "scale(1.05)",
-            boxShadow: "0 6px 20px rgba(79,70,229,0.4)",
+            background: "#8c1c2b",
+            transform: "scale(1.1) rotate(90deg)",
+            boxShadow: "0 12px 35px rgba(107, 15, 26, 0.6)",
           },
-          transition: "all 0.2s ease",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           zIndex: 1000
         }}
       >
-        <AddIcon sx={{ fontSize: 28 }} />
+        <AddIcon sx={{ fontSize: 32 }} />
       </Fab>
     </Box>
   );
