@@ -245,7 +245,7 @@ const CreateProject = () => {
               disabled={loading}
               sx={{ py: 2.5, px: 6, borderRadius: 3, background: "linear-gradient(135deg,#6b0f1a,#8c1c2b)", fontSize: "1.2rem", fontWeight: 700, "&:hover": { background: "linear-gradient(135deg,#8c1c2b,#a91d2d)" } }}
             >
-              {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "🚀 Projeyi Oluştur"}
+              {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Projeyi Oluştur"}
             </Button>
           </Box>
         </Box>

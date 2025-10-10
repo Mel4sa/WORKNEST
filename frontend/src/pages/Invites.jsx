@@ -107,6 +107,14 @@ export default function InvitesPage() {
           indicatorColor="primary"
           textColor="primary"
           variant="fullWidth"
+          sx={{
+            "& .MuiTab-root.Mui-selected": {
+              color: "#003fd3ff"
+            },
+            "& .MuiTabs-indicator": {
+              backgroundColor: "#003fd3ff"
+            }
+          }}
         >
           <Tab label="Alınan Davetler" />
           <Tab label="Gönderilen Davetler" />
@@ -212,6 +220,16 @@ export default function InvitesPage() {
                   invite.status === 'accepted' ? 'success' : 
                   invite.status === 'declined' ? 'error' : 'primary'
                 }
+                sx={{
+                  ...(invite.status === 'pending' && {
+                    borderColor: "#003fd3ff",
+                    color: "#003fd3ff",
+                    "&:hover": {
+                      borderColor: "#0056b3",
+                      backgroundColor: "rgba(0, 63, 211, 0.04)"
+                    }
+                  })
+                }}
               >
                 {invite.status === 'accepted' ? 'Kabul Edildi' : 
                  invite.status === 'declined' ? 'Reddedildi' : 'Bekliyor'}
