@@ -16,8 +16,16 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  TextField,
+  IconButton,
+  Fab,
+  Slide
 } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import DeleteIcon from '@mui/icons-material/Delete';
 import axiosInstance from "../lib/axios";
 
 function ProjectDetail() {
@@ -29,6 +37,12 @@ function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    description: ""
+  });
+  const [swipedMember, setSwipedMember] = useState(null);
   const animationRef = useRef();
 
   // Backend'den proje detayını getir
@@ -37,7 +51,25 @@ function ProjectDetail() {
       setLoading(true);
       const response = await axiosInstance.get(`/projects/${id}`);
       console.log("Project API response:", response.data); // Debug için
-      setProject(response.data); // Backend'den direkt project objesi geliyor
+      
+      // Geçici olarak bir takım üyesi ekleyelim
+      const projectData = response.data;
+      if (!projectData.members || projectData.members.length === 0) {
+        projectData.members = [
+          {
+            _id: "temp_member_1",
+            fullname: "Ahmet Yılmaz",
+            profileImage: null,
+            email: "ahmet@example.com"
+          }
+        ];
+      }
+      
+      setProject(projectData); // Backend'den direkt project objesi geliyor
+      setEditFormData({
+        title: projectData.title || "",
+        description: projectData.description || ""
+      });
     } catch (err) {
       console.error("Proje detayı yüklenemedi:", err);
       setError("Proje detayı yüklenemedi. Lütfen tekrar deneyin.");
@@ -45,6 +77,33 @@ function ProjectDetail() {
       setLoading(false);
     }
   }, [id]);
+
+  // Proje düzenleme fonksiyonu
+  const handleEditSave = async () => {
+    try {
+      await axiosInstance.put(`/projects/${id}`, editFormData);
+      setProject(prev => ({ ...prev, ...editFormData }));
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Proje güncellenemedi:", err);
+      setError("Proje güncellenemedi. Lütfen tekrar deneyin.");
+    }
+  };
+
+  // Üye silme fonksiyonu
+  const handleRemoveMember = async (memberId) => {
+    try {
+      await axiosInstance.delete(`/projects/${id}/members/${memberId}`);
+      setProject(prev => ({
+        ...prev,
+        members: prev.members.filter(member => member._id !== memberId)
+      }));
+      setSwipedMember(null);
+    } catch (err) {
+      console.error("Üye silinemedi:", err);
+      setError("Üye silinemedi. Lütfen tekrar deneyin.");
+    }
+  };
 
   useEffect(() => {
     fetchProject();
@@ -164,24 +223,106 @@ function ProjectDetail() {
             <CardContent sx={{ p: 4 }}>
               {/* Başlık ve Status */}
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
-                <Typography variant="h3" sx={{ fontWeight: "bold", color: "#6b0f1a", fontSize: { xs: "1.8rem", md: "2.5rem" } }}>
-                  {project.title}
-                </Typography>
-                <Chip
-                  label={
-                    project.status === "completed" ? "Tamamlandı" :
-                    project.status === "ongoing" ? "Devam Ediyor" : "Beklemede"
-                  }
-                  sx={{
-                    background: 
-                      project.status === "completed" ? "linear-gradient(45deg, #4caf50, #66bb6a)" :
-                      project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" : 
-                      "linear-gradient(45deg, #9e9e9e, #bdbdbd)",
-                    color: "#fff",
-                    fontWeight: "600",
-                    fontSize: "0.9rem"
-                  }}
-                />
+                {isEditing ? (
+                  <TextField
+                    fullWidth
+                    value={editFormData.title}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                    variant="outlined"
+                    sx={{
+                      mr: 2,
+                      "& .MuiOutlinedInput-root": {
+                        fontSize: { xs: "1.8rem", md: "2.5rem" },
+                        fontWeight: "bold",
+                        color: "#6b0f1a",
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#6b0f1a",
+                          borderWidth: "2px"
+                        }
+                      },
+                      "& .MuiInputLabel-root.Mui-focused": {
+                        color: "#6b0f1a"
+                      }
+                    }}
+                  />
+                ) : (
+                  <Typography variant="h3" sx={{ fontWeight: "bold", color: "#6b0f1a", fontSize: { xs: "1.8rem", md: "2.5rem" } }}>
+                    {project.title}
+                  </Typography>
+                )}
+                
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Chip
+                    label={
+                      project.status === "completed" ? "Tamamlandı" :
+                      project.status === "ongoing" ? "Devam Ediyor" : "Beklemede"
+                    }
+                    sx={{
+                      background: 
+                        project.status === "completed" ? "linear-gradient(45deg, #4caf50, #66bb6a)" :
+                        project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" : 
+                        "linear-gradient(45deg, #9e9e9e, #bdbdbd)",
+                      color: "#fff",
+                      fontWeight: "600",
+                      fontSize: "0.9rem"
+                    }}
+                  />
+                  
+                  {/* Edit Button */}
+                  {isEditing ? (
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      <IconButton
+                        onClick={handleEditSave}
+                        sx={{
+                          backgroundColor: "#4caf50",
+                          color: "#fff",
+                          "&:hover": {
+                            backgroundColor: "#45a049",
+                            transform: "scale(1.1)"
+                          },
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        <SaveIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditFormData({
+                            title: project.title,
+                            description: project.description
+                          });
+                        }}
+                        sx={{
+                          backgroundColor: "#f44336",
+                          color: "#fff",
+                          "&:hover": {
+                            backgroundColor: "#d32f2f",
+                            transform: "scale(1.1)"
+                          },
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </Box>
+                  ) : (
+                    <IconButton
+                      onClick={() => setIsEditing(true)}
+                      sx={{
+                        backgroundColor: "#6b0f1a",
+                        color: "#fff",
+                        "&:hover": {
+                          backgroundColor: "#8c1c2b",
+                          transform: "scale(1.1)"
+                        },
+                        transition: "all 0.2s ease"
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  )}
+                </Box>
               </Box>
 
               {/* Proje Lideri */}
@@ -213,9 +354,33 @@ function ProjectDetail() {
               <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
                 Proje Açıklaması
               </Typography>
-              <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.8, color: "#666" }}>
-                {project.description}
-              </Typography>
+              {isEditing ? (
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                  variant="outlined"
+                  sx={{
+                    mb: 4,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#6b0f1a",
+                        borderWidth: "2px"
+                      }
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: "#6b0f1a"
+                    }
+                  }}
+                />
+              ) : (
+                <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.8, color: "#666" }}>
+                  {project.description}
+                </Typography>
+              )}
 
               {/* İlerleme Çubuğu */}
               <Box sx={{ mb: 4 }}>
@@ -260,7 +425,7 @@ function ProjectDetail() {
 
               {/* Üye Sayısı */}
               <Typography variant="body2" sx={{ color: "#666", mb: 3 }}>
-                {project.members?.length || 0} üye
+                {(project.members?.length || 0) + 1} üye (1 lider + {project.members?.length || 0} üye)
               </Typography>
 
               {/* Üyeler Listesi */}
@@ -294,28 +459,156 @@ function ProjectDetail() {
                 {/* Diğer Üyeler */}
                 {project.members && project.members.length > 0 ? (
                   project.members.map((member, idx) => (
-                    <Box key={idx} sx={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      gap: 2,
-                      p: 2,
-                      backgroundColor: "#f8f9fa",
-                      borderRadius: "12px",
-                      border: "1px solid #e5e7eb"
-                    }}>
-                      <Avatar 
-                        src={member.profileImage}
-                        sx={{ width: 45, height: 45 }}
+                    <Box 
+                      key={idx} 
+                      sx={{ 
+                        position: "relative",
+                        overflow: "hidden",
+                        borderRadius: "12px"
+                      }}
+                    >
+                      {/* Silme butonu arka planı */}
+                      <Box sx={{
+                        position: "absolute",
+                        right: 0,
+                        top: 0,
+                        height: "100%",
+                        width: "80px",
+                        backgroundColor: "#dc2626",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "12px"
+                      }}>
+                        <DeleteIcon sx={{ color: "#fff" }} />
+                      </Box>
+                      
+                      {/* Üye kartı */}
+                      <Box 
+                        sx={{ 
+                          display: "flex", 
+                          alignItems: "center", 
+                          gap: 2,
+                          p: 2,
+                          backgroundColor: "#f8f9fa",
+                          borderRadius: "12px",
+                          border: "1px solid #e5e7eb",
+                          position: "relative",
+                          zIndex: 1,
+                          transition: "transform 0.3s ease",
+                          transform: swipedMember === member._id ? "translateX(-80px)" : "translateX(0)",
+                          cursor: "grab",
+                          "&:active": {
+                            cursor: "grabbing"
+                          }
+                        }}
+                        onTouchStart={(e) => {
+                          e.preventDefault();
+                          const startX = e.touches[0].clientX;
+                          
+                          const handleTouchMove = (e) => {
+                            e.preventDefault();
+                            const currentX = e.touches[0].clientX;
+                            const deltaX = startX - currentX;
+                            
+                            if (deltaX > 30) {
+                              setSwipedMember(member._id);
+                            } else if (deltaX < -10) {
+                              setSwipedMember(null);
+                            }
+                          };
+                          
+                          const handleTouchEnd = (e) => {
+                            e.preventDefault();
+                            document.removeEventListener('touchmove', handleTouchMove, { passive: false });
+                            document.removeEventListener('touchend', handleTouchEnd, { passive: false });
+                          };
+                          
+                          document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                          document.addEventListener('touchend', handleTouchEnd, { passive: false });
+                        }}
+                        onMouseDown={(e) => {
+                          const startX = e.clientX;
+                          
+                          const handleMouseMove = (e) => {
+                            const currentX = e.clientX;
+                            const deltaX = startX - currentX;
+                            
+                            if (deltaX > 30) {
+                              setSwipedMember(member._id);
+                            } else if (deltaX < -10) {
+                              setSwipedMember(null);
+                            }
+                          };
+                          
+                          const handleMouseUp = () => {
+                            document.removeEventListener('mousemove', handleMouseMove);
+                            document.removeEventListener('mouseup', handleMouseUp);
+                          };
+                          
+                          document.addEventListener('mousemove', handleMouseMove);
+                          document.addEventListener('mouseup', handleMouseUp);
+                        }}
+                        onClick={() => {
+                          if (swipedMember === member._id) {
+                            handleRemoveMember(member._id);
+                          } else {
+                            setSwipedMember(null);
+                          }
+                        }}
                       >
-                        {member.fullname?.[0]}
-                      </Avatar>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="body1" sx={{ fontWeight: "500" }}>
-                          {member.fullname}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Takım Üyesi
-                        </Typography>
+                        <Avatar 
+                          src={member.profileImage}
+                          sx={{ width: 45, height: 45 }}
+                        >
+                          {member.fullname?.[0]}
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="body1" sx={{ fontWeight: "500" }}>
+                            {member.fullname}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Takım Üyesi
+                          </Typography>
+                        </Box>
+                        
+                        {/* Kaydırma ipucu veya test butonu */}
+                        {swipedMember !== member._id ? (
+                          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+                            <Typography variant="caption" sx={{ 
+                              color: "#999", 
+                              fontSize: "0.7rem",
+                              fontStyle: "italic"
+                            }}>
+                              ← Kaydır
+                            </Typography>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="error"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSwipedMember(member._id);
+                              }}
+                              sx={{
+                                fontSize: "0.7rem",
+                                py: 0.5,
+                                px: 1,
+                                minWidth: "auto"
+                              }}
+                            >
+                              Test
+                            </Button>
+                          </Box>
+                        ) : (
+                          <Typography variant="caption" sx={{ 
+                            color: "#dc2626", 
+                            fontSize: "0.8rem",
+                            fontWeight: "600"
+                          }}>
+                            Sil
+                          </Typography>
+                        )}
                       </Box>
                     </Box>
                   ))
