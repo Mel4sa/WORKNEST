@@ -28,8 +28,8 @@ const projectSchema = new mongoose.Schema({
   
   status: {
     type: String,
-    enum: ['pending', 'ongoing', 'completed'],
-    default: 'pending'
+    enum: ['planned', 'pending', 'ongoing', 'completed', 'on_hold', 'cancelled'],
+    default: 'planned'
   },
   
   owner: {

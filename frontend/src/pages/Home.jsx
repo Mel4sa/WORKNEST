@@ -385,16 +385,28 @@ function Home() {
                       <Chip
                         label={
                           project.status === "completed" ? "Tamamlandı" :
-                          project.status === "ongoing" ? "Devam Ediyor" : "Planlanıyor"
+                          project.status === "ongoing" ? "Devam Ediyor" :
+                          project.status === "planned" ? "Planlanıyor" :
+                          project.status === "cancelled" ? "İptal Edildi" :
+                          project.status === "on_hold" ? "Beklemede" :
+                          "Planlanıyor"
                         }
                         size="small"
                         sx={{
                           backgroundColor: 
                             project.status === "completed" ? "#dcfce7" :
-                            project.status === "ongoing" ? "#fef3c7" : "#f3f4f6",
+                            project.status === "ongoing" ? "#fef3c7" :
+                            project.status === "planned" ? "#dbeafe" :
+                            project.status === "cancelled" ? "#fecaca" :
+                            project.status === "on_hold" ? "#f3f4f6" :
+                            "#f3f4f6",
                           color: 
                             project.status === "completed" ? "#166534" :
-                            project.status === "ongoing" ? "#92400e" : "#374151",
+                            project.status === "ongoing" ? "#92400e" :
+                            project.status === "planned" ? "#1e40af" :
+                            project.status === "cancelled" ? "#dc2626" :
+                            project.status === "on_hold" ? "#374151" :
+                            "#374151",
                           fontWeight: "600",
                           fontSize: "0.75rem"
                         }}

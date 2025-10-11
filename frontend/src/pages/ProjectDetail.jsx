@@ -291,12 +291,19 @@ function ProjectDetail() {
                   <Chip
                     label={
                       project.status === "completed" ? "Tamamlandı" :
-                      project.status === "ongoing" ? "Devam Ediyor" : "Beklemede"
+                      project.status === "ongoing" ? "Devam Ediyor" :
+                      project.status === "planned" ? "Planlanıyor" :
+                      project.status === "cancelled" ? "İptal Edildi" :
+                      project.status === "on_hold" ? "Beklemede" :
+                      "Beklemede"
                     }
                     sx={{
                       background: 
                         project.status === "completed" ? "linear-gradient(45deg, #4caf50, #66bb6a)" :
-                        project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" : 
+                        project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" :
+                        project.status === "planned" ? "linear-gradient(45deg, #2196f3, #42a5f5)" :
+                        project.status === "cancelled" ? "linear-gradient(45deg, #f44336, #ef5350)" :
+                        project.status === "on_hold" ? "linear-gradient(45deg, #9e9e9e, #bdbdbd)" :
                         "linear-gradient(45deg, #9e9e9e, #bdbdbd)",
                       color: "#fff",
                       fontWeight: "600",

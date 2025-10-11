@@ -8,6 +8,7 @@ import {
   deleteProject,
   joinProject,
   leaveProject,
+  removeMember,
   cleanupDeletedProjects
 } from "../controllers/project.controller.js";
 import { protectRoute } from "../middleware/authMiddleware.js";
@@ -28,5 +29,6 @@ router.put("/:id", updateProject); // Proje güncelle (owner only)
 router.delete("/:id", deleteProject); // Proje sil (owner only)
 router.post("/:id/join", joinProject); // Projeye katıl
 router.post("/:id/leave", leaveProject); // Projeden ayrıl
+router.delete("/:id/members/:userId", removeMember); // Üye çıkar (owner only)
 
 export default router;

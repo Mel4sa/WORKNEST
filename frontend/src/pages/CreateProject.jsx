@@ -71,8 +71,12 @@ const CreateProject = () => {
       await axiosInstance.post("/projects", formData);
       navigate("/projects");
     } catch (err) {
-      console.error(err);
       setError(err.response?.data?.message || "Proje oluşturulurken bir hata oluştu.");
+      
+      // Validation hatalarını göster
+      if (err.response?.data?.errors) {
+        setError(err.response.data.errors.join(', '));
+      }
     } finally {
       setLoading(false);
     }
@@ -224,7 +228,6 @@ const CreateProject = () => {
                     <MenuItem value="completed">Tamamlandı</MenuItem>
                     <MenuItem value="on_hold">Beklemede</MenuItem>
                     <MenuItem value="cancelled">İptal Edildi</MenuItem>
-                    <MenuItem value="archived">Arşivlendi</MenuItem>
                   </Select>
                 </FormControl>
 

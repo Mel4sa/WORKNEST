@@ -9,7 +9,12 @@ export const getAllProjects = async (req, res) => {
     // Filtre objesi oluştur
     const filter = { isActive: true, visibility: 'public' };
     
-    if (status) filter.status = status;
+    // Anasayfada tamamlanan ve iptal edilen projeleri gösterme
+    if (status) {
+      filter.status = status;
+    } else {
+      filter.status = { $nin: ['completed', 'cancelled'] };
+    }
     if (tags) filter.tags = { $in: tags.split(',') };
     if (search) {
       filter.$or = [
@@ -88,9 +93,6 @@ export const createProject = async (req, res) => {
   try {
     const userId = req.user._id;
     const { title, description, tags, requiredSkills, maxMembers, deadline, visibility, status } = req.body;
-    
-    console.log("🚀 Create project request:", req.body);
-    console.log("👤 User ID:", userId);
 
     // Validasyon
     if (!title || !description) {
@@ -114,60 +116,38 @@ export const createProject = async (req, res) => {
       maxMembers: maxMembers || 5,
       deadline: deadline ? new Date(deadline) : null,
       visibility: visibility || 'public',
-      status: status === 'planned' ? 'pending' : status || 'pending',
+      status: status || 'planned',
       owner: userId,
       members: [{ user: userId, role: 'owner' }]
     });
-
-    console.log("💾 Saving project to database...");
-    console.log("📝 Project data to save:", {
-      title: newProject.title,
-      owner: newProject.owner,
-      tags: newProject.tags
-    });
     
     const savedProject = await newProject.save();
-    console.log("✅ Project saved with ID:", savedProject._id);
-    console.log("🔍 Saved project details:", {
-      _id: savedProject._id,
-      title: savedProject.title,
-      createdAt: savedProject.createdAt
-    });
     
     // Kullanıcının projects array'ine de ekle
-    console.log("👤 Adding project to user's projects array...");
     await User.findByIdAndUpdate(
       userId,
       { $push: { projects: savedProject._id } },
       { new: true }
     );
-    console.log("✅ Project added to user's projects array");
-    
-    // Veritabanından gerçekten kaydedildi mi kontrol et
-    const checkProject = await Project.findById(savedProject._id);
-    console.log("🔎 Database verification:", checkProject ? "EXISTS" : "NOT FOUND");
     
     // Populate edilmiş proje döndür
-    console.log("🔄 Populating project data...");
     const populatedProject = await Project.findById(savedProject._id)
       .populate('owner', 'fullname email profileImage')
       .populate('members.user', 'fullname email profileImage');
-    
-    console.log("🎉 Project created successfully:", populatedProject.title);
 
     res.status(201).json({ 
       message: "Proje başarıyla oluşturuldu",
       project: populatedProject 
     });
   } catch (error) {
-    console.error("❌ Create project error:", error);
+    console.error("Create project error:", error);
     
     // Mongoose validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ 
         message: "Validation hatası", 
-        errors: validationErrors 
+        errors: validationErrors
       });
     }
     
@@ -245,14 +225,12 @@ export const deleteProject = async (req, res) => {
 
     // Hard delete - projeyi tamamen sil
     await Project.findByIdAndDelete(id);
-    console.log("✅ Project completely deleted from database");
 
     // Tüm kullanıcıların projects array'lerinden kaldır
     await User.updateMany(
       { projects: id },
       { $pull: { projects: id } }
     );
-    console.log("✅ Project removed from all users' projects arrays");
 
     res.status(200).json({ message: "Proje başarıyla silindi" });
   } catch (error) {
@@ -369,5 +347,54 @@ export const leaveProject = async (req, res) => {
   } catch (error) {
     console.error("Leave project error:", error);
     res.status(500).json({ message: "Projeden ayrılamadı", error: error.message });
+  }
+};
+
+// Üye çıkar (sadece owner)
+export const removeMember = async (req, res) => {
+  try {
+    const { id, userId } = req.params;
+    const requesterId = req.user._id;
+
+    const project = await Project.findOne({ _id: id, isActive: true });
+
+    if (!project) {
+      return res.status(404).json({ message: "Proje bulunamadı" });
+    }
+
+    // Sadece proje sahibi üye çıkarabilir
+    if (project.owner.toString() !== requesterId.toString()) {
+      return res.status(403).json({ message: "Bu işlemi yapma yetkiniz yok" });
+    }
+
+    // Owner kendisini çıkaramaz
+    if (userId === requesterId.toString()) {
+      return res.status(400).json({ message: "Proje sahibi kendisini çıkaramaz" });
+    }
+
+    // Üye var mı kontrol et
+    const memberIndex = project.members.findIndex(
+      member => member.user.toString() === userId
+    );
+
+    if (memberIndex === -1) {
+      return res.status(400).json({ message: "Bu kullanıcı projenin üyesi değil" });
+    }
+
+    // Üyeyi çıkar
+    project.members.splice(memberIndex, 1);
+    await project.save();
+
+    const updatedProject = await Project.findById(id)
+      .populate('owner', 'fullname email profileImage')
+      .populate('members.user', 'fullname email profileImage');
+
+    res.status(200).json({ 
+      message: "Üye başarıyla çıkarıldı",
+      project: updatedProject 
+    });
+  } catch (error) {
+    console.error("Remove member error:", error);
+    res.status(500).json({ message: "Üye çıkarılamadı", error: error.message });
   }
 };
