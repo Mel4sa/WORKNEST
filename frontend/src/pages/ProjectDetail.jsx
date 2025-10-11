@@ -21,7 +21,11 @@ import {
   IconButton,
   Fab,
   Slide,
-  Snackbar
+  Snackbar,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
 } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -47,6 +51,7 @@ function ProjectDetail() {
     title: "",
     description: ""
   });
+  const [editStatusData, setEditStatusData] = useState("");
   const [swipedMember, setSwipedMember] = useState(null);
   const animationRef = useRef();
 
@@ -75,6 +80,7 @@ function ProjectDetail() {
         title: projectData.title || "",
         description: projectData.description || ""
       });
+      setEditStatusData(projectData.status || "planned");
     } catch (err) {
       console.error("Proje detayı yüklenemedi:", err);
       setError("Proje detayı yüklenemedi. Lütfen tekrar deneyin.");
@@ -82,18 +88,6 @@ function ProjectDetail() {
       setLoading(false);
     }
   }, [id]);
-
-  // Proje düzenleme fonksiyonu
-  const handleEditSave = async () => {
-    try {
-      await axiosInstance.put(`/projects/${id}`, editFormData);
-      setProject(prev => ({ ...prev, ...editFormData }));
-      setIsEditing(false);
-    } catch (err) {
-      console.error("Proje güncellenemedi:", err);
-      setError("Proje güncellenemedi. Lütfen tekrar deneyin.");
-    }
-  };
 
   // Üye silme fonksiyonu
   const handleRemoveMember = async (memberId) => {
@@ -321,82 +315,130 @@ function ProjectDetail() {
                 )}
                 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Chip
-                    label={
-                      project.status === "completed" ? "Tamamlandı" :
-                      project.status === "ongoing" ? "Devam Ediyor" :
-                      project.status === "planned" ? "Planlanıyor" :
-                      project.status === "cancelled" ? "İptal Edildi" :
-                      project.status === "on_hold" ? "Beklemede" :
-                      "Beklemede"
-                    }
-                    sx={{
-                      background: 
-                        project.status === "completed" ? "linear-gradient(45deg, #4caf50, #66bb6a)" :
-                        project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" :
-                        project.status === "planned" ? "linear-gradient(45deg, #2196f3, #42a5f5)" :
-                        project.status === "cancelled" ? "linear-gradient(45deg, #f44336, #ef5350)" :
-                        project.status === "on_hold" ? "linear-gradient(45deg, #9e9e9e, #bdbdbd)" :
-                        "linear-gradient(45deg, #9e9e9e, #bdbdbd)",
-                      color: "#fff",
-                      fontWeight: "600",
-                      fontSize: "0.9rem"
-                    }}
-                  />
-                  
-                  {/* Edit Button */}
+                  {/* Durum Chip'i veya Durum Seçici */}
                   {isEditing ? (
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      <IconButton
-                        onClick={handleEditSave}
-                        sx={{
-                          backgroundColor: "#4caf50",
-                          color: "#fff",
-                          "&:hover": {
-                            backgroundColor: "#45a049",
-                            transform: "scale(1.1)"
-                          },
-                          transition: "all 0.2s ease"
-                        }}
-                      >
-                        <SaveIcon />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => {
-                          setIsEditing(false);
-                          setEditFormData({
-                            title: project.title,
-                            description: project.description
-                          });
-                        }}
-                        sx={{
-                          backgroundColor: "#f44336",
-                          color: "#fff",
-                          "&:hover": {
-                            backgroundColor: "#d32f2f",
-                            transform: "scale(1.1)"
-                          },
-                          transition: "all 0.2s ease"
-                        }}
-                      >
-                        <CancelIcon />
-                      </IconButton>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <FormControl size="small" sx={{ minWidth: 150 }}>
+                        <Select
+                          value={editStatusData}
+                          onChange={(e) => setEditStatusData(e.target.value)}
+                          sx={{
+                            borderRadius: "12px",
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "#6b0f1a",
+                              borderWidth: "2px"
+                            }
+                          }}
+                        >
+                          <MenuItem value="planned">Planlanıyor</MenuItem>
+                          <MenuItem value="ongoing">Devam Ediyor</MenuItem>
+                          <MenuItem value="completed">Tamamlandı</MenuItem>
+                          <MenuItem value="on_hold">Beklemede</MenuItem>
+                          <MenuItem value="cancelled">İptal Edildi</MenuItem>
+                        </Select>
+                      </FormControl>
                     </Box>
                   ) : (
-                    <IconButton
-                      onClick={() => setIsEditing(true)}
+                    <Chip
+                      label={
+                        project.status === "completed" ? "Tamamlandı" :
+                        project.status === "ongoing" ? "Devam Ediyor" :
+                        project.status === "planned" ? "Planlanıyor" :
+                        project.status === "cancelled" ? "İptal Edildi" :
+                        project.status === "on_hold" ? "Beklemede" :
+                        "Beklemede"
+                      }
                       sx={{
-                        backgroundColor: "#6b0f1a",
+                        background: 
+                          project.status === "completed" ? "linear-gradient(45deg, #4caf50, #66bb6a)" :
+                          project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" :
+                          project.status === "planned" ? "linear-gradient(45deg, #2196f3, #42a5f5)" :
+                          project.status === "cancelled" ? "linear-gradient(45deg, #f44336, #ef5350)" :
+                          project.status === "on_hold" ? "linear-gradient(45deg, #9e9e9e, #bdbdbd)" :
+                          "linear-gradient(45deg, #9e9e9e, #bdbdbd)",
                         color: "#fff",
-                        "&:hover": {
-                          backgroundColor: "#8c1c2b",
-                          transform: "scale(1.1)"
-                        },
-                        transition: "all 0.2s ease"
+                        fontWeight: "600",
+                        fontSize: "0.9rem"
                       }}
-                    >
-                      <EditIcon />
-                    </IconButton>
+                    />
+                  )}
+                  
+                  {/* Tek Düzenleme Butonu - Sadece proje sahibi için */}
+                  {user && project.owner?._id === user._id && (
+                    <>
+                      {isEditing ? (
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                          <IconButton
+                            onClick={async () => {
+                              try {
+                                // Hem proje bilgilerini hem de durumu güncelle
+                                await axiosInstance.put(`/projects/${id}`, {
+                                  ...editFormData,
+                                  status: editStatusData
+                                });
+                                setProject(prev => ({ 
+                                  ...prev, 
+                                  ...editFormData,
+                                  status: editStatusData
+                                }));
+                                setIsEditing(false);
+                                setSuccessSnackbar({ open: true, message: "Proje başarıyla güncellendi!" });
+                              } catch (err) {
+                                console.error("Proje güncellenemedi:", err);
+                                setError("Proje güncellenemedi. Lütfen tekrar deneyin.");
+                              }
+                            }}
+                            sx={{
+                              backgroundColor: "#4caf50",
+                              color: "#fff",
+                              "&:hover": {
+                                backgroundColor: "#45a049",
+                                transform: "scale(1.1)"
+                              },
+                              transition: "all 0.2s ease"
+                            }}
+                          >
+                            <SaveIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => {
+                              setIsEditing(false);
+                              setEditFormData({
+                                title: project.title,
+                                description: project.description
+                              });
+                              setEditStatusData(project.status);
+                            }}
+                            sx={{
+                              backgroundColor: "#f44336",
+                              color: "#fff",
+                              "&:hover": {
+                                backgroundColor: "#d32f2f",
+                                transform: "scale(1.1)"
+                              },
+                              transition: "all 0.2s ease"
+                            }}
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <IconButton
+                          onClick={() => setIsEditing(true)}
+                          sx={{
+                            backgroundColor: "#6b0f1a",
+                            color: "#fff",
+                            "&:hover": {
+                              backgroundColor: "#8c1c2b",
+                              transform: "scale(1.1)"
+                            },
+                            transition: "all 0.2s ease"
+                          }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      )}
+                    </>
                   )}
                 </Box>
               </Box>
