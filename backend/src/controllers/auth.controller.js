@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/user.model.js";
-import emailjs from "@emailjs/nodejs";
+import { sendPasswordResetEmail } from "../lib/emailService.js";
 
 // REGISTER
 export const register = async (req, res) => {
@@ -107,10 +107,19 @@ export const forgotPassword = async (req, res) => {
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 365 * 24 * 60 * 60 * 1000;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 dakika
     await user.save();
 
     const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+
+    // EmailJS ile email gönder
+    try {
+      await sendPasswordResetEmail(user.email, user.fullname, resetLink);
+      console.log("✅ Password reset email sent successfully");
+    } catch (emailError) {
+      console.error("❌ Email sending failed:", emailError);
+      // Email gönderilmese bile frontend'e link döndür
+    }
 
     res.status(200).json({
       message: "Şifre sıfırlama linki oluşturuldu",

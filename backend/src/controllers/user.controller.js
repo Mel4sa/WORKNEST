@@ -25,7 +25,6 @@ export const updateProfile = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    console.error("Profil güncelleme hatası:", error);
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -38,7 +37,6 @@ export const getMe = async (req, res) => {
 
     res.status(200).json(user);
   } catch (error) {
-    console.error("Fetch user hatası:", error);
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -54,7 +52,6 @@ export const uploadPhoto = async (req, res) => {
     const fileName = req.file.originalname.toLowerCase();
     const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif');
     
-    console.log(`📸 Yüklenen dosya: ${req.file.originalname} (${req.file.mimetype}), HEIC: ${isHeic}`);
     
     // Cloudinary upload options
     const uploadOptions = {
@@ -74,7 +71,6 @@ export const uploadPhoto = async (req, res) => {
 
     const result = await cloudinary.uploader.upload(req.file.path, uploadOptions);
 
-    console.log(`☁️ Cloudinary URL: ${result.secure_url}`);
 
     const user = await User.findByIdAndUpdate(
       req.user._id,
@@ -94,7 +90,6 @@ export const uploadPhoto = async (req, res) => {
       finalFormat: 'JPG'
     });
   } catch (err) {
-    console.error("Upload Error:", err.message);
     
     // Geçici dosyayı temizle
     if (req.file && fs.existsSync(req.file.path)) {
@@ -176,7 +171,6 @@ export const updatePassword = async (req, res) => {
 
     res.status(200).json({ message: "Şifre başarıyla güncellendi" });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Şifre güncellenemedi", error: err.message });
   }
 };
@@ -191,7 +185,6 @@ export const deleteAccount = async (req, res) => {
     res.clearCookie("token"); // varsa cookie temizle
     return res.status(200).json({ message: "Hesap başarıyla silindi" });
   } catch (error) {
-    console.error("Hesap silme hatası:", error);
     res.status(500).json({ message: "Hesap silinemedi", error: error.message });
   }
 };

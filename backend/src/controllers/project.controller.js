@@ -39,7 +39,6 @@ export const getAllProjects = async (req, res) => {
       total
     });
   } catch (error) {
-    console.error("Get all projects error:", error);
     res.status(500).json({ message: "Projeler getirilemedi", error: error.message });
   }
 };
@@ -63,7 +62,6 @@ export const getUserProjects = async (req, res) => {
 
     res.status(200).json({ projects });
   } catch (error) {
-    console.error("Get user projects error:", error);
     res.status(500).json({ message: "Kullanıcı projeleri getirilemedi", error: error.message });
   }
 };
@@ -83,7 +81,6 @@ export const getProjectById = async (req, res) => {
 
     res.status(200).json(project);
   } catch (error) {
-    console.error("Get project by ID error:", error);
     res.status(500).json({ message: "Proje getirilemedi", error: error.message });
   }
 };
@@ -140,7 +137,6 @@ export const createProject = async (req, res) => {
       project: populatedProject 
     });
   } catch (error) {
-    console.error("Create project error:", error);
     
     // Mongoose validation errors
     if (error.name === 'ValidationError') {
@@ -192,7 +188,6 @@ export const updateProject = async (req, res) => {
       project: updatedProject 
     });
   } catch (error) {
-    console.error("Update project error:", error);
     
     // Mongoose validation errors
     if (error.name === 'ValidationError') {
@@ -234,7 +229,6 @@ export const deleteProject = async (req, res) => {
 
     res.status(200).json({ message: "Proje başarıyla silindi" });
   } catch (error) {
-    console.error("Delete project error:", error);
     res.status(500).json({ message: "Proje silinemedi", error: error.message });
   }
 };
@@ -264,7 +258,6 @@ export const cleanupDeletedProjects = async (req, res) => {
       deletedCount: deletedProjects.deletedCount
     });
   } catch (error) {
-    console.error("Cleanup error:", error);
     res.status(500).json({ message: "Temizleme hatası", error: error.message });
   }
 };
@@ -308,7 +301,6 @@ export const joinProject = async (req, res) => {
       project: updatedProject 
     });
   } catch (error) {
-    console.error("Join project error:", error);
     res.status(500).json({ message: "Projeye katılamadı", error: error.message });
   }
 };
@@ -345,7 +337,6 @@ export const leaveProject = async (req, res) => {
 
     res.status(200).json({ message: "Projeden başarıyla ayrıldınız" });
   } catch (error) {
-    console.error("Leave project error:", error);
     res.status(500).json({ message: "Projeden ayrılamadı", error: error.message });
   }
 };
@@ -394,7 +385,6 @@ export const removeMember = async (req, res) => {
       project: updatedProject 
     });
   } catch (error) {
-    console.error("Remove member error:", error);
     res.status(500).json({ message: "Üye çıkarılamadı", error: error.message });
   }
 };
