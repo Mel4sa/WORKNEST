@@ -19,7 +19,6 @@ const SkillsSelect = ({ skills = [], onChange }) => {
         onChange([...skills, skillToAdd]);
       }
     }
-    // Her durumda input'u temizle
     setInputValue("");
   };
 
@@ -73,7 +72,7 @@ const SkillsSelect = ({ skills = [], onChange }) => {
       <Autocomplete
         freeSolo
         options={availableOptions}
-        value="" // Boş value ile her zaman temizlenmiş kalır
+        value="" 
         inputValue={inputValue}
         onInputChange={(event, newInputValue) => {
           setInputValue(newInputValue);

@@ -81,7 +81,7 @@ export default function InvitesPage() {
       
       setMessage("Davet reddedildi!");
       setMessageOpen(true);
-      fetchInvites(); // Listeyi yenile
+      fetchInvites(); 
     } catch (error) {
       console.error("Davet reddedilemedi:", error);
       setMessage("Davet reddedilirken hata oluştu");
