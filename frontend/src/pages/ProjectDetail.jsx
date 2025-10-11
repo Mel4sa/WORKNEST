@@ -11,12 +11,11 @@ import {
   Snackbar,
   Container
 } from "@mui/material";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import axiosInstance from "../lib/axios";
 import useAuthStore from "../store/useAuthStore";
 import ProjectHeader from "../components/project/ProjectHeader";
-import ProjectInfo from "../components/project/ProjectInfo";
 import TeamMembersList from "../components/project/TeamMembersList";
-import ProjectActions from "../components/project/ProjectActions";
 import ProjectDialogs from "../components/project/ProjectDialogs";
 
 function ProjectDetail() {
@@ -243,53 +242,86 @@ function ProjectDetail() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      {/* Proje Başlığı ve Durum */}
-      <ProjectHeader
-        project={project}
-        isEditing={isEditing}
-        editFormData={editFormData}
-        editStatusData={editStatusData}
-        currentUser={user}
-        onEditToggle={() => setIsEditing(!isEditing)}
-        onFormDataChange={setEditFormData}
-        onStatusChange={setEditStatusData}
-        onSave={handleProjectSave}
-        onCancel={() => {
-          setIsEditing(false);
-          setEditFormData({
-            title: project.title,
-            description: project.description
-          });
-          setEditStatusData(project.status);
-        }}
-      />
+    <Box sx={{ 
+      padding: { xs: "20px", md: "40px" }, 
+      minHeight: "100vh", 
+      backgroundColor: "#fafbfc",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
+    }}>
+      {/* Geri Dön Butonu */}
+      <Box sx={{ width: "100%", maxWidth: "1200px", mb: 3 }}>
+        <Button 
+          variant="contained" 
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(-1)}
+          sx={{ 
+            background: "#4a0d16",
+            color: "#fff",
+            fontWeight: "600",
+            borderRadius: "12px",
+            px: 3,
+            py: 1.5,
+            "&:hover": {
+              background: "#5c1119",
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 20px rgba(74, 13, 22, 0.3)"
+            },
+            transition: "all 0.3s ease"
+          }}
+        >
+          Geri Dön
+        </Button>
+      </Box>
 
-      {/* Proje Bilgileri */}
-      <ProjectInfo
-        project={project}
-        isEditing={isEditing}
-        editFormData={editFormData}
-        progress={progress}
-        onFormDataChange={setEditFormData}
-      />
+      {/* Ana İçerik - Sol ve Sağ Layout */}
+      <Box sx={{ 
+        display: "flex", 
+        gap: 4, 
+        flexDirection: { xs: "column", lg: "row" },
+        maxWidth: "1200px",
+        margin: "0 auto",
+        width: "100%"
+      }}>
+        
+        {/* Sol Taraf - Proje Durumu ve Bilgileri */}
+        <Box sx={{ flex: 1, width: "100%" }}>
+          <ProjectHeader
+            project={project}
+            isEditing={isEditing}
+            editFormData={editFormData}
+            editStatusData={editStatusData}
+            currentUser={user}
+            onEditToggle={() => setIsEditing(!isEditing)}
+            onFormDataChange={setEditFormData}
+            onStatusChange={setEditStatusData}
+            onSave={handleProjectSave}
+            onCancel={() => {
+              setIsEditing(false);
+              setEditFormData({
+                title: project.title,
+                description: project.description
+              });
+              setEditStatusData(project.status);
+            }}
+            progress={progress}
+          />
+        </Box>
 
-      {/* Takım Üyeleri */}
-      <TeamMembersList
-        project={project}
-        currentUser={user}
-        swipedMember={swipedMember}
-        onSwipeStart={setSwipedMember}
-        onRemoveMember={handleRemoveMember}
-      />
-
-      {/* Proje Yönetim Butonları */}
-      <ProjectActions
-        project={project}
-        currentUser={user}
-        onCancelProject={() => setCancelDialogOpen(true)}
-        onDeleteProject={() => setDeleteDialogOpen(true)}
-      />
+        {/* Sağ Taraf - Takım Üyeleri */}
+        <Box sx={{ flex: 1, width: "100%" }}>
+          <TeamMembersList
+            project={project}
+            swipedMember={swipedMember}
+            onSwipeStart={setSwipedMember}
+            onRemoveMember={handleRemoveMember}
+            currentUser={user}
+            onCancelProject={() => setCancelDialogOpen(true)}
+            onDeleteProject={() => setDeleteDialogOpen(true)}
+          />
+        </Box>
+      </Box>
 
       {/* Dialogs */}
       <ProjectDialogs
@@ -312,7 +344,7 @@ function ProjectDetail() {
           {successSnackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 }
 

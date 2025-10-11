@@ -7,7 +7,12 @@ import {
   TextField,
   FormControl,
   Select,
-  MenuItem
+  MenuItem,
+  Card,
+  CardContent,
+  Avatar,
+  Divider,
+  LinearProgress
 } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -15,66 +20,132 @@ import CancelIcon from '@mui/icons-material/Cancel';
 
 function ProjectHeader({ 
   project, 
-  user, 
+  currentUser, 
   isEditing, 
-  setIsEditing, 
   editFormData, 
-  setEditFormData, 
   editStatusData, 
-  setEditStatusData,
-  onSave 
+  onEditToggle,
+  onFormDataChange,
+  onStatusChange,
+  onSave,
+  onCancel,
+  progress
 }) {
   const handleSave = async () => {
     await onSave();
   };
 
   const handleCancel = () => {
-    setIsEditing(false);
-    setEditFormData({
-      title: project.title,
-      description: project.description
-    });
-    setEditStatusData(project.status);
+    onCancel();
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
-      {isEditing ? (
-        <TextField
-          fullWidth
-          value={editFormData.title}
-          onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
-          variant="outlined"
-          sx={{
-            mr: 2,
-            "& .MuiOutlinedInput-root": {
-              fontSize: { xs: "1.8rem", md: "2.5rem" },
-              fontWeight: "bold",
-              color: "#6b0f1a",
-              "&.Mui-focused fieldset": {
-                borderColor: "#6b0f1a",
-                borderWidth: "2px"
-              }
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "#6b0f1a"
-            }
-          }}
-        />
-      ) : (
-        <Typography variant="h3" sx={{ fontWeight: "bold", color: "#6b0f1a", fontSize: { xs: "1.8rem", md: "2.5rem" } }}>
-          {project.title}
-        </Typography>
-      )}
-      
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        {/* Durum Chip'i veya Durum Seçici */}
-        {isEditing ? (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
+    <Card sx={{ 
+      borderRadius: "20px", 
+      boxShadow: "0 4px 20px rgba(0,0,0,0.08)", 
+      mb: 3,
+      height: { xs: "auto", lg: "600px" },
+      display: "flex",
+      flexDirection: "column"
+    }}>
+      <CardContent sx={{ 
+        p: 4, 
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "auto"
+      }}>
+        {/* Başlık */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          {isEditing ? (
+            <TextField
+              fullWidth
+              value={editFormData.title}
+              onChange={(e) => onFormDataChange({ ...editFormData, title: e.target.value })}
+              variant="outlined"
+              sx={{
+                mr: 2,
+                "& .MuiOutlinedInput-root": {
+                  fontSize: { xs: "1.8rem", md: "2.5rem" },
+                  fontWeight: "bold",
+                  color: "#6b0f1a",
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#6b0f1a",
+                    borderWidth: "2px"
+                  }
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#6b0f1a"
+                }
+              }}
+            />
+          ) : (
+            <Typography variant="h3" sx={{ fontWeight: "bold", color: "#6b0f1a", fontSize: { xs: "1.8rem", md: "2.5rem" } }}>
+              {project.title}
+            </Typography>
+          )}
+          
+          {/* Düzenleme Butonu - Sadece proje sahibi için */}
+          {currentUser && project.owner?._id === currentUser._id && (
+            <>
+              {isEditing ? (
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <IconButton
+                    onClick={handleSave}
+                    sx={{
+                      backgroundColor: "#4caf50",
+                      color: "#fff",
+                      "&:hover": {
+                        backgroundColor: "#45a049",
+                        transform: "scale(1.1)"
+                      },
+                      transition: "all 0.2s ease"
+                    }}
+                  >
+                    <SaveIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={handleCancel}
+                    sx={{
+                      backgroundColor: "#f44336",
+                      color: "#fff",
+                      "&:hover": {
+                        backgroundColor: "#d32f2f",
+                        transform: "scale(1.1)"
+                      },
+                      transition: "all 0.2s ease"
+                    }}
+                  >
+                    <CancelIcon />
+                  </IconButton>
+                </Box>
+              ) : (
+                <IconButton
+                  onClick={onEditToggle}
+                  sx={{
+                    backgroundColor: "#6b0f1a",
+                    color: "#fff",
+                    "&:hover": {
+                      backgroundColor: "#8c1c2b",
+                      transform: "scale(1.1)"
+                    },
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
+            </>
+          )}
+        </Box>
+
+        {/* Durum */}
+        <Box sx={{ mb: 3 }}>
+          {isEditing ? (
+            <FormControl size="small" sx={{ minWidth: 200 }}>
               <Select
                 value={editStatusData}
-                onChange={(e) => setEditStatusData(e.target.value)}
+                onChange={(e) => onStatusChange(e.target.value)}
                 sx={{
                   borderRadius: "12px",
                   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
@@ -90,86 +161,91 @@ function ProjectHeader({
                 <MenuItem value="cancelled">İptal Edildi</MenuItem>
               </Select>
             </FormControl>
+          ) : null}
+        </Box>
+
+        {/* Proje Lideri */}
+        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+          <Avatar 
+            src={project.owner?.profileImage}
+            sx={{ 
+              width: 50, 
+              height: 50, 
+              mr: 2,
+              border: "2px solid #6b0f1a"
+            }}
+          >
+            {project.owner?.fullname?.[0]}
+          </Avatar>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: "600" }}>
+              {project.owner?.fullname}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Proje Lideri
+            </Typography>
           </Box>
-        ) : (
-          <Chip
-            label={
-              project.status === "completed" ? "Tamamlandı" :
-              project.status === "ongoing" ? "Devam Ediyor" :
-              project.status === "planned" ? "Planlanıyor" :
-              project.status === "cancelled" ? "İptal Edildi" :
-              project.status === "on_hold" ? "Beklemede" :
-              "Beklemede"
-            }
+        </Box>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Açıklama */}
+        <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
+          Proje Açıklaması
+        </Typography>
+        {isEditing ? (
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            value={editFormData.description}
+            onChange={(e) => onFormDataChange({ ...editFormData, description: e.target.value })}
+            variant="outlined"
             sx={{
-              background: 
-                project.status === "completed" ? "linear-gradient(45deg, #4caf50, #66bb6a)" :
-                project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" :
-                project.status === "planned" ? "linear-gradient(45deg, #2196f3, #42a5f5)" :
-                project.status === "cancelled" ? "linear-gradient(45deg, #f44336, #ef5350)" :
-                project.status === "on_hold" ? "linear-gradient(45deg, #9e9e9e, #bdbdbd)" :
-                "linear-gradient(45deg, #9e9e9e, #bdbdbd)",
-              color: "#fff",
-              fontWeight: "600",
-              fontSize: "0.9rem"
+              mb: 4,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                "&.Mui-focused fieldset": {
+                  borderColor: "#6b0f1a",
+                  borderWidth: "2px"
+                }
+              },
+              "& .MuiInputLabel-root.Mui-focused": {
+                color: "#6b0f1a"
+              }
             }}
           />
+        ) : (
+          <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.8, color: "#666" }}>
+            {project.description}
+          </Typography>
         )}
-        
-        {/* Tek Düzenleme Butonu - Sadece proje sahibi için */}
-        {user && project.owner?._id === user._id && (
-          <>
-            {isEditing ? (
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <IconButton
-                  onClick={handleSave}
-                  sx={{
-                    backgroundColor: "#4caf50",
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "#45a049",
-                      transform: "scale(1.1)"
-                    },
-                    transition: "all 0.2s ease"
-                  }}
-                >
-                  <SaveIcon />
-                </IconButton>
-                <IconButton
-                  onClick={handleCancel}
-                  sx={{
-                    backgroundColor: "#f44336",
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "#d32f2f",
-                      transform: "scale(1.1)"
-                    },
-                    transition: "all 0.2s ease"
-                  }}
-                >
-                  <CancelIcon />
-                </IconButton>
-              </Box>
-            ) : (
-              <IconButton
-                onClick={() => setIsEditing(true)}
-                sx={{
-                  backgroundColor: "#6b0f1a",
-                  color: "#fff",
-                  "&:hover": {
-                    backgroundColor: "#8c1c2b",
-                    transform: "scale(1.1)"
-                  },
-                  transition: "all 0.2s ease"
-                }}
-              >
-                <EditIcon />
-              </IconButton>
-            )}
-          </>
-        )}
-      </Box>
-    </Box>
+
+        {/* İlerleme Çubuğu */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
+            Proje İlerleme Durumu
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={progress}
+            sx={{
+              height: 12,
+              borderRadius: 6,
+              backgroundColor: "#e0e0e0",
+              "& .MuiLinearProgress-bar": {
+                borderRadius: 6,
+                background: "linear-gradient(90deg, #6b0f1a, #8c1c2b)",
+                transition: "all 0.3s ease-in-out",
+              },
+            }}
+          />
+          <Typography variant="body2" sx={{ mt: 1, color: "#666" }}>
+            %{Math.round(progress)} tamamlandı
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }
 
