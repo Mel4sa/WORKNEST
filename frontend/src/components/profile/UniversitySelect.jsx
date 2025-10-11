@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { TextField, Autocomplete } from "@mui/material";
-import universitiesData from "../data/universities.json";
+import universitiesData from "../../data/universities.json";
 
 export default function UniversitySelect({ value, onChange }) {
   const [options, setOptions] = useState([]);
