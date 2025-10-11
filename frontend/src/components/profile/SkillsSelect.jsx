@@ -18,9 +18,9 @@ const SkillsSelect = ({ skills = [], onChange }) => {
       if (skillToAdd && !skills.includes(skillToAdd)) {
         onChange([...skills, skillToAdd]);
       }
-      // Input'u temizle
-      setInputValue("");
     }
+    // Her durumda input'u temizle
+    setInputValue("");
   };
 
   const handleDeleteSkill = (skillToDelete) => {
@@ -34,7 +34,7 @@ const SkillsSelect = ({ skills = [], onChange }) => {
       if (skillToAdd && !skills.includes(skillToAdd)) {
         onChange([...skills, skillToAdd]);
       }
-      // Input'u temizle
+      // Input'u her zaman temizle
       setInputValue("");
     }
   };
@@ -73,11 +73,10 @@ const SkillsSelect = ({ skills = [], onChange }) => {
       <Autocomplete
         freeSolo
         options={availableOptions}
+        value="" // Boş value ile her zaman temizlenmiş kalır
         inputValue={inputValue}
-        onInputChange={(event, newInputValue, reason) => {
-          if (reason !== 'reset') {
-            setInputValue(newInputValue);
-          }
+        onInputChange={(event, newInputValue) => {
+          setInputValue(newInputValue);
         }}
         onChange={handleAddSkill}
         renderInput={(params) => (

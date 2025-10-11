@@ -11,20 +11,73 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  TextField,
+  InputAdornment,
+  Autocomplete,
+  Avatar,
+  Paper,
+  Popper,
+  CircularProgress,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
+import axiosInstance from "../lib/axios";
 
 function Navbar() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  // Kişi arama fonksiyonu
+  const searchUsers = async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setSearchOpen(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const response = await axiosInstance.get(`/users/search?q=${encodeURIComponent(query)}`);
+      setSearchResults(response.data || []);
+      setSearchOpen(true);
+    } catch (error) {
+      console.error("Kullanıcı arama hatası:", error);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Arama input değişimi
+  const handleSearchChange = (event, newValue) => {
+    setSearchQuery(newValue);
+    if (newValue) {
+      searchUsers(newValue);
+    } else {
+      setSearchResults([]);
+      setSearchOpen(false);
+    }
+  };
+
+  // Kullanıcı seçimi
+  const handleUserSelect = (selectedUser) => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchOpen(false);
+    navigate(`/profile/${selectedUser._id}`);
   };
 
   const menuItems = [
@@ -101,8 +154,9 @@ function Navbar() {
         </Link>
 
         {/* Büyük ekran menü */}
-        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
-          {menuItems.map((item) => (
+        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3, alignItems: "center", ml: 20 }}>
+          {/* Menü butonları - Profilim hariç */}
+          {menuItems.filter(item => item.label !== "Profilim").map((item) => (
             <Button
               key={item.label}
               component={Link}
@@ -122,15 +176,116 @@ function Navbar() {
               {item.label}
             </Button>
           ))}
-        </Box>
+          
+          {/* Profilim butonu */}
+          <Button
+            component={Link}
+            to="/profile"
+            sx={{
+              color: "#000",
+              fontWeight: "bold",
+              textTransform: "none",
+              backgroundColor: "transparent",
+              "&:hover": {
+                backgroundColor: "rgba(0,0,0,0.05)",
+                transform: "scale(1.05)",
+                transition: "all 0.2s ease-in-out",
+              },
+            }}
+          >
+            Profilim
+          </Button>
 
-        {/* Çıkış Butonu */}
-        {user && (
-          <Box sx={{ 
-            display: { xs: "none", md: "flex" },
-            position: "absolute",
-            right: "80px" // Daha da sola kaydırıldı
-          }}>
+          {/* Kişi Arama */}
+          <Box sx={{ position: "relative", minWidth: "300px", ml: 4 }}>
+            <Autocomplete
+              freeSolo
+              options={searchResults}
+              inputValue={searchQuery}
+              onInputChange={handleSearchChange}
+              onChange={(event, newValue) => {
+                if (newValue && typeof newValue === 'object') {
+                  handleUserSelect(newValue);
+                }
+              }}
+              getOptionLabel={(option) => 
+                typeof option === 'string' ? option : option.fullname || ''
+              }
+              renderOption={(props, option) => (
+                <Box
+                  component="li"
+                  {...props}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    p: 1.5,
+                    "&:hover": {
+                      backgroundColor: "rgba(107, 15, 26, 0.04)"
+                    }
+                  }}
+                >
+                  <Avatar
+                    src={option.profileImage}
+                    sx={{ width: 32, height: 32 }}
+                  >
+                    {option.fullname?.[0]}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {option.fullname}
+                    </Typography>
+                    {option.university && (
+                      <Typography variant="caption" color="text.secondary">
+                        {option.university}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Kişi ara..."
+                  size="small"
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: "#666" }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: searchLoading ? (
+                      <CircularProgress size={20} />
+                    ) : null,
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "25px",
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      "&:hover fieldset": {
+                        borderColor: "#6b0f1a",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#6b0f1a",
+                        borderWidth: "2px"
+                      }
+                    }
+                  }}
+                />
+              )}
+              noOptionsText="Kullanıcı bulunamadı"
+              loadingText="Aranıyor..."
+              open={searchOpen}
+              onOpen={() => {
+                if (searchQuery) setSearchOpen(true);
+              }}
+              onClose={() => setSearchOpen(false)}
+            />
+          </Box>
+
+          {/* Çıkış Butonu */}
+          {user && (
             <Button
               variant="contained"
               onClick={handleLogout}
@@ -141,6 +296,7 @@ function Navbar() {
                 padding: "6px 24px",
                 textTransform: "none",
                 fontWeight: "bold",
+                ml: 3,
                 "&:hover": {
                   backgroundColor: "#660000",
                   transform: "scale(1.05)",
@@ -150,8 +306,8 @@ function Navbar() {
             >
               Çıkış Yap
             </Button>
-          </Box>
-        )}
+          )}
+        </Box>
 
         {/* Küçük ekran hamburger */}
         <IconButton
@@ -173,7 +329,96 @@ function Navbar() {
 
         {/* Drawer */}
         <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-          <Box sx={{ width: 250, p: 2, position: "relative", minHeight: "100%" }}>
+          <Box sx={{ width: 280, p: 2, position: "relative", minHeight: "100%" }}>
+            {/* Mobil Arama */}
+            <Box sx={{ mb: 3 }}>
+              <Autocomplete
+                freeSolo
+                options={searchResults}
+                inputValue={searchQuery}
+                onInputChange={handleSearchChange}
+                onChange={(event, newValue) => {
+                  if (newValue && typeof newValue === 'object') {
+                    setDrawerOpen(false);
+                    handleUserSelect(newValue);
+                  }
+                }}
+                getOptionLabel={(option) => 
+                  typeof option === 'string' ? option : option.fullname || ''
+                }
+                renderOption={(props, option) => (
+                  <Box
+                    component="li"
+                    {...props}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      p: 1.5,
+                      "&:hover": {
+                        backgroundColor: "rgba(107, 15, 26, 0.04)"
+                      }
+                    }}
+                  >
+                    <Avatar
+                      src={option.profileImage}
+                      sx={{ width: 32, height: 32 }}
+                    >
+                      {option.fullname?.[0]}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {option.fullname}
+                      </Typography>
+                      {option.university && (
+                        <Typography variant="caption" color="text.secondary">
+                          {option.university}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Kişi ara..."
+                    size="small"
+                    fullWidth
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: "#666" }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: searchLoading ? (
+                        <CircularProgress size={20} />
+                      ) : null,
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        "&:hover fieldset": {
+                          borderColor: "#6b0f1a",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#6b0f1a",
+                          borderWidth: "2px"
+                        }
+                      }
+                    }}
+                  />
+                )}
+                noOptionsText="Kullanıcı bulunamadı"
+                loadingText="Aranıyor..."
+                open={searchOpen}
+                onOpen={() => {
+                  if (searchQuery) setSearchOpen(true);
+                }}
+                onClose={() => setSearchOpen(false)}
+              />
+            </Box>
+
             <List>
               {menuItems.map((item) => (
                 <ListItem key={item.label} disablePadding>

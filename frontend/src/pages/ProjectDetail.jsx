@@ -20,7 +20,8 @@ import {
   TextField,
   IconButton,
   Fab,
-  Slide
+  Slide,
+  Snackbar
 } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -39,6 +40,8 @@ function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [successSnackbar, setSuccessSnackbar] = useState({ open: false, message: "" });
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({
     title: "",
@@ -102,6 +105,7 @@ function ProjectDetail() {
           members: prev.members.filter(member => member._id !== memberId)
         }));
         setSwipedMember(null);
+        setSuccessSnackbar({ open: true, message: "Üye başarıyla projeden silindi!" });
         return;
       }
       
@@ -112,9 +116,26 @@ function ProjectDetail() {
         members: prev.members.filter(member => member._id !== memberId)
       }));
       setSwipedMember(null);
+      setSuccessSnackbar({ open: true, message: "Üye başarıyla projeden silindi!" });
     } catch (err) {
       console.error("Üye silinemedi:", err);
       setError("Üye silinemedi. Lütfen tekrar deneyin.");
+    }
+  };
+
+  // Proje iptal etme fonksiyonu
+  const handleCancelProject = async () => {
+    try {
+      await axiosInstance.put(`/projects/${id}`, { 
+        ...project, 
+        status: "cancelled" 
+      });
+      setProject(prev => ({ ...prev, status: "cancelled" }));
+      setCancelDialogOpen(false);
+      setSuccessSnackbar({ open: true, message: "Proje başarıyla iptal edildi!" });
+    } catch (err) {
+      console.error("Proje iptal edilemedi:", err);
+      setError("Proje iptal edilemedi. Lütfen tekrar deneyin.");
     }
   };
 
@@ -130,26 +151,38 @@ function ProjectDetail() {
       targetProgress = 100;
     } else if (project.status === "ongoing") {
       targetProgress = 60;
+    } else if (project.status === "cancelled") {
+      targetProgress = 0;
     } else {
       targetProgress = 15;
     }
 
     let current = 0;
+    const animationDuration = 2000; // 2 saniye
+    const incrementPerFrame = targetProgress / (animationDuration / 16); // 60 FPS için sabit artış
 
     const step = () => {
-      const increment = Math.max(targetProgress / 20, 0.5); 
-      current = Math.min(current + increment, targetProgress);
+      current = Math.min(current + incrementPerFrame, targetProgress);
       setProgress(current);
-
-      setDisplayProgress(prev => {
-        const diff = current - prev;
-        return prev + diff * 0.2; 
-      });
+      setDisplayProgress(current);
 
       if (current < targetProgress) {
         animationRef.current = requestAnimationFrame(step);
       } else {
-        setDisplayProgress(targetProgress); 
+        // Animasyon tamamlandıktan sonra otomatik durum güncelleme
+        let newStatus = project.status;
+        if (targetProgress === 0) {
+          newStatus = "planned"; // Yeni başladı
+        } else if (targetProgress === 100) {
+          newStatus = "completed"; // Tamamlandı
+        } else if (targetProgress > 0 && targetProgress < 100) {
+          newStatus = "ongoing"; // Devam ediyor
+        }
+        
+        // Eğer durum değişmişse güncelle
+        if (newStatus !== project.status && project.status !== "cancelled") {
+          setProject(prev => ({ ...prev, status: newStatus }));
+        }
       }
     };
 
@@ -690,27 +723,51 @@ function ProjectDetail() {
               {/* Proje Silme Butonu - Sadece proje sahibi için */}
               {user && project.owner?._id === user._id && (
                 <Box sx={{ mt: 4, pt: 3, borderTop: "1px solid #e5e7eb" }}>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    fullWidth
-                    sx={{
-                      borderRadius: "12px",
-                      py: 1.5,
-                      borderColor: "#dc2626",
-                      color: "#dc2626",
-                      fontWeight: "600",
-                      "&:hover": {
-                        borderColor: "#b91c1c",
-                        backgroundColor: "rgba(220, 38, 38, 0.04)",
-                        transform: "translateY(-1px)"
-                      },
-                      transition: "all 0.3s ease"
-                    }}
-                    onClick={() => setDeleteDialogOpen(true)}
-                  >
-                    Projeyi Sil
-                  </Button>
+                  <Stack spacing={2}>
+                    <Button
+                      variant="outlined"
+                      color="warning"
+                      fullWidth
+                      sx={{
+                        borderRadius: "12px",
+                        py: 1.5,
+                        borderColor: "#f59e0b",
+                        color: "#f59e0b",
+                        fontWeight: "600",
+                        "&:hover": {
+                          borderColor: "#d97706",
+                          backgroundColor: "rgba(245, 158, 11, 0.04)",
+                          transform: "translateY(-1px)"
+                        },
+                        transition: "all 0.3s ease"
+                      }}
+                      onClick={() => setCancelDialogOpen(true)}
+                    >
+                      Projeyi İptal Et
+                    </Button>
+                    
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      fullWidth
+                      sx={{
+                        borderRadius: "12px",
+                        py: 1.5,
+                        borderColor: "#dc2626",
+                        color: "#dc2626",
+                        fontWeight: "600",
+                        "&:hover": {
+                          borderColor: "#b91c1c",
+                          backgroundColor: "rgba(220, 38, 38, 0.04)",
+                          transform: "translateY(-1px)"
+                        },
+                        transition: "all 0.3s ease"
+                      }}
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      Projeyi Sil
+                    </Button>
+                  </Stack>
                 </Box>
               )}
             </CardContent>
@@ -796,6 +853,95 @@ function ProjectDetail() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* İptal Onay Dialog'u */}
+      <Dialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "20px",
+            p: 2
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          textAlign: "center", 
+          fontWeight: "700", 
+          color: "#f59e0b",
+          fontSize: "1.5rem",
+          pb: 1
+        }}>
+          Projeyi İptal Etmek İstediğinize Emin Misiniz?
+        </DialogTitle>
+        
+        <DialogContent sx={{ textAlign: "center", py: 3 }}>
+          <Typography variant="body1" sx={{ mb: 2, color: "#666", lineHeight: 1.6 }}>
+            <strong>"{project?.title}"</strong> adlı proje iptal edilecek.
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#f59e0b", fontWeight: "500" }}>
+            Proje durumu "İptal Edildi" olarak değiştirilecek.
+          </Typography>
+        </DialogContent>
+        
+        <DialogActions sx={{ justifyContent: "center", gap: 2, pb: 2 }}>
+          <Button
+            onClick={() => setCancelDialogOpen(false)}
+            variant="outlined"
+            sx={{
+              borderRadius: "12px",
+              px: 4,
+              py: 1,
+              borderColor: "#6b7280",
+              color: "#6b7280",
+              "&:hover": {
+                borderColor: "#4b5563",
+                backgroundColor: "rgba(107, 114, 128, 0.04)"
+              }
+            }}
+          >
+            Vazgeç
+          </Button>
+          
+          <Button
+            onClick={handleCancelProject}
+            variant="contained"
+            sx={{
+              borderRadius: "12px",
+              px: 4,
+              py: 1,
+              backgroundColor: "#f59e0b",
+              "&:hover": {
+                backgroundColor: "#d97706"
+              }
+            }}
+          >
+            Evet, İptal Et
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={successSnackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSuccessSnackbar({ open: false, message: "" })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSuccessSnackbar({ open: false, message: "" })} 
+          severity="success" 
+          sx={{ 
+            width: '100%',
+            borderRadius: '12px',
+            fontWeight: '600'
+          }}
+        >
+          {successSnackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

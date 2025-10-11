@@ -5,6 +5,7 @@ import {
   CameraAlt,
   Settings,
   Person,
+  Email,
 } from "@mui/icons-material";
 import {
   Box,
@@ -336,6 +337,37 @@ export default function ProfilePage() {
               </IconButton>
             )}
           </Stack>
+
+          {/* Davet Atma Butonu */}
+          <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
+            <Button
+              variant="contained"
+              startIcon={<Email />}
+              onClick={() => {
+                // Davet atma fonksiyonu - sonra implement edilecek
+                alert("Davet atma özelliği yakında eklenecek!");
+              }}
+              sx={{
+                backgroundColor: "#6b0f1a",
+                color: "#fff",
+                borderRadius: "25px",
+                px: 4,
+                py: 1.5,
+                fontWeight: "600",
+                fontSize: "1rem",
+                textTransform: "none",
+                boxShadow: "0 4px 12px rgba(107, 15, 26, 0.3)",
+                "&:hover": {
+                  backgroundColor: "#8c1c2b",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 6px 16px rgba(107, 15, 26, 0.4)"
+                },
+                transition: "all 0.3s ease"
+              }}
+            >
+              Davet At
+            </Button>
+          </Box>
         </Box>
       </Box>
 

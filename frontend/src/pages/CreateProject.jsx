@@ -8,10 +8,6 @@ import {
   Button,
   Stack,
   Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   CircularProgress,
   Alert
 } from "@mui/material";
@@ -25,9 +21,7 @@ const CreateProject = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    tags: [],
-    maxMembers: 5,
-    status: "planned"
+    tags: []
   });
   const [tagInput, setTagInput] = useState("");
 
@@ -132,9 +126,9 @@ const CreateProject = () => {
 
         {/* Form */}
         <Box component="form" onSubmit={handleSubmit}>
-          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4 }}>
-            {/* Sol: Proje Detayları */}
-            <Box sx={{ flex: 1, backgroundColor: "#fff", borderRadius: 3, p: 4, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+          {/* Tek Kolon - Proje Detayları */}
+          <Box sx={{ maxWidth: "800px", margin: "0 auto" }}>
+            <Box sx={{ backgroundColor: "#fff", borderRadius: 3, p: 4, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 4 }}>Proje Detayları</Typography>
               <Stack spacing={3}>
                 <TextField
@@ -196,40 +190,6 @@ const CreateProject = () => {
                     ) : <Typography variant="body2" sx={{ textAlign: "center", py: 2, color: "#64748b" }}>Kullanacağınız teknolojileri ekleyin</Typography>}
                   </Box>
                 </Box>
-              </Stack>
-            </Box>
-
-            {/* Sağ: Proje Ayarları */}
-            <Box sx={{ flex: 1, backgroundColor: "#fff", borderRadius: 3, p: 4, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 4 }}>Proje Ayarları</Typography>
-              <Stack spacing={3}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  name="maxMembers"
-                  label="Maksimum Üye Sayısı"
-                  value={formData.maxMembers}
-                  onChange={handleInputChange}
-                  inputProps={{ min: 1, max: 50 }}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, "&.Mui-focused fieldset": { borderColor: "#6b0f1a", borderWidth: 2 } }, "& .MuiInputLabel-root.Mui-focused": { color: "#6b0f1a" } }}
-                />
-
-                <FormControl fullWidth>
-                  <InputLabel>Proje Durumu</InputLabel>
-                  <Select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    label="Proje Durumu"
-                    sx={{ borderRadius: 2 }}
-                  >
-                    <MenuItem value="planned">Planlanıyor</MenuItem>
-                    <MenuItem value="ongoing">Devam Ediyor</MenuItem>
-                    <MenuItem value="completed">Tamamlandı</MenuItem>
-                    <MenuItem value="on_hold">Beklemede</MenuItem>
-                    <MenuItem value="cancelled">İptal Edildi</MenuItem>
-                  </Select>
-                </FormControl>
 
                 <Box sx={{ backgroundColor: "rgba(107,15,26,0.04)", borderRadius: 2, p: 2 }}>
                   <Typography variant="body2" sx={{ color: "#64748b", display: "flex", alignItems: "flex-start", gap: 1 }}>
