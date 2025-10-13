@@ -43,12 +43,12 @@ function UserProfile() {
   // Kullanıcının projelerini getir
   const fetchUserProjects = useCallback(async () => {
     try {
-      const response = await axios.get("/projects");
-      setProjects(response.data.filter(project => project.owner === currentUser?._id));
+      const response = await axios.get("/projects/my-projects");
+      setProjects(response.data.projects || []);
     } catch (err) {
       console.error("Projeler yüklenemedi:", err);
     }
-  }, [currentUser?._id]);
+  }, []);
 
   const fetchUserProfile = useCallback(async () => {
     try {
@@ -188,16 +188,16 @@ function UserProfile() {
           startIcon={<Send />}
           onClick={() => setInviteDialogOpen(true)}
           sx={{ 
-            background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+            background: "#6b0f1a",
             color: "#fff",
             fontWeight: "600",
             borderRadius: "12px",
             px: 3,
             py: 1.5,
             "&:hover": {
-              background: "linear-gradient(45deg, #1976D2 30%, #0288D1 90%)",
+              background: "#8c1c2b",
               transform: "translateY(-2px)",
-              boxShadow: "0 6px 20px rgba(33, 150, 243, 0.3)"
+              boxShadow: "0 6px 20px rgba(107, 15, 26, 0.3)"
             },
             transition: "all 0.3s ease"
           }}
@@ -221,7 +221,7 @@ function UserProfile() {
           display: "flex",
           justifyContent: "center",
           position: "absolute",
-          top: "-50px",
+          top: "-60px",
           left: 0,
           right: 0,
           zIndex: 10
@@ -242,7 +242,7 @@ function UserProfile() {
           </Avatar>
         </Box>
 
-        <CardContent sx={{ pt: 8, pb: 4 }}>
+        <CardContent sx={{ pt: 9, pb: 4 }}>
           {/* Kullanıcı Bilgileri */}
           <Box sx={{ textAlign: "center", mb: 4 }}>
             <Typography variant="h4" sx={{ 
@@ -414,25 +414,57 @@ function UserProfile() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+        <DialogTitle sx={{ 
+          bgcolor: "#6b0f1a", 
+          color: "white",
+          borderRadius: "4px 4px 0 0"
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: "bold", color: "white" }}>
             {user?.fullname} kullanıcısını projeye davet et
           </Typography>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ mt: 1 }}>
             <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel>Proje Seçin</InputLabel>
+              <InputLabel sx={{ color: "#6b0f1a" }}>Proje Seçin</InputLabel>
               <Select
                 value={selectedProject}
                 onChange={(e) => setSelectedProject(e.target.value)}
                 label="Proje Seçin"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderColor: "#6b0f1a"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#8c1c2b"
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#6b0f1a"
+                    }
+                  }
+                }}
               >
-                {projects.map((project) => (
-                  <MenuItem key={project._id} value={project._id}>
-                    {project.title}
+                {projects.length === 0 ? (
+                  <MenuItem disabled>
+                    <Typography color="textSecondary">
+                      Henüz proje oluşturmadınız
+                    </Typography>
                   </MenuItem>
-                ))}
+                ) : (
+                  projects.map((project) => (
+                    <MenuItem key={project._id} value={project._id}>
+                      <Box>
+                        <Typography variant="body1" fontWeight="500">
+                          {project.title}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {project.description?.substring(0, 50)}...
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
             
@@ -444,13 +476,37 @@ function UserProfile() {
               value={inviteMessage}
               onChange={(e) => setInviteMessage(e.target.value)}
               placeholder="Projeye katılmaya davet ediliyorsunuz!"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "#6b0f1a"
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#8c1c2b"
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#6b0f1a"
+                  }
+                },
+                "& .MuiInputLabel-root": {
+                  color: "#6b0f1a",
+                  "&.Mui-focused": {
+                    color: "#6b0f1a"
+                  }
+                }
+              }}
             />
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
           <Button 
             onClick={() => setInviteDialogOpen(false)}
-            color="inherit"
+            sx={{
+              color: "#6b0f1a",
+              "&:hover": {
+                backgroundColor: "rgba(107, 15, 26, 0.04)"
+              }
+            }}
           >
             İptal
           </Button>
@@ -459,9 +515,12 @@ function UserProfile() {
             variant="contained"
             disabled={!selectedProject}
             sx={{
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              background: "#6b0f1a",
               "&:hover": {
-                background: "linear-gradient(45deg, #1976D2 30%, #0288D1 90%)"
+                background: "#8c1c2b"
+              },
+              "&:disabled": {
+                background: "#ccc"
               }
             }}
           >

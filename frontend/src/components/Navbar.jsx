@@ -77,7 +77,7 @@ function Navbar() {
     setSearchQuery("");
     setSearchResults([]);
     setSearchOpen(false);
-    navigate(`/profile/${selectedUser._id}`);
+    navigate(`/user/${selectedUser._id}`);
   };
 
   const menuItems = [
