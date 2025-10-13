@@ -253,7 +253,7 @@ function Navbar() {
                       display: "flex",
                       alignItems: "center",
                       gap: 2,
-                      p: 1.5,
+                      p: 2,
                       cursor: "pointer",
                       "&:hover": {
                         backgroundColor: "rgba(107, 15, 26, 0.04)"
@@ -262,21 +262,42 @@ function Navbar() {
                   >
                   <Avatar
                     src={option.profileImage}
-                    sx={{ width: 32, height: 32 }}
+                    sx={{ width: 40, height: 40 }}
                   >
                     {option.fullname?.[0]}
                   </Avatar>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        fontWeight: 600,
+                        color: "#333",
+                        lineHeight: 1.2
+                      }}
+                    >
                       {option.fullname}
                     </Typography>
                     {option.title && (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary" 
+                        sx={{ 
+                          mt: 0.5,
+                          lineHeight: 1.2
+                        }}
+                      >
                         {option.title}
                       </Typography>
                     )}
                     {option.university && (
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography 
+                        variant="caption" 
+                        color="text.secondary"
+                        sx={{ 
+                          fontSize: '0.75rem',
+                          lineHeight: 1.2
+                        }}
+                      >
                         {option.university}
                       </Typography>
                     )}

@@ -3,31 +3,6 @@ import cloudinary from "../lib/cloudinary.js";
 import fs from "fs";
 import bcrypt from "bcryptjs";
 
-// Kullanıcı arama (sadece genel bilgiler)
-export const searchUsers = async (req, res) => {
-  try {
-    const { q } = req.query;
-    
-    if (!q || q.trim().length < 2) {
-      return res.status(400).json({ message: "Arama terimi en az 2 karakter olmalıdır" });
-    }
-
-    const users = await User.find({
-      $or: [
-        { fullname: { $regex: q, $options: 'i' } },
-        { username: { $regex: q, $options: 'i' } }
-      ]
-    })
-    .select('fullname username profileImage university') // Sadece genel bilgileri döndür
-    .limit(10);
-
-    res.status(200).json(users);
-  } catch (error) {
-    console.error("Kullanıcı arama hatası:", error);
-    res.status(500).json({ message: "Sunucu hatası" });
-  }
-};
-
 // Başka kullanıcının profilini görme (sadece genel bilgiler)
 export const getUserProfile = async (req, res) => {
   try {

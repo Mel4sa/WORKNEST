@@ -11,9 +11,19 @@ import {
   CircularProgress,
   Alert,
   Button,
-  Divider
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Snackbar
 } from "@mui/material";
-import { GitHub, LinkedIn, ArrowBack } from "@mui/icons-material";
+import { GitHub, LinkedIn, ArrowBack, Send } from "@mui/icons-material";
 import axios from "../lib/axios";
 import useAuthStore from "../store/useAuthStore";
 
@@ -24,6 +34,21 @@ function UserProfile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [projects, setProjects] = useState([]);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState("");
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  // Kullanıcının projelerini getir
+  const fetchUserProjects = useCallback(async () => {
+    try {
+      const response = await axios.get("/projects");
+      setProjects(response.data.filter(project => project.owner === currentUser?._id));
+    } catch (err) {
+      console.error("Projeler yüklenemedi:", err);
+    }
+  }, [currentUser?._id]);
 
   const fetchUserProfile = useCallback(async () => {
     try {
@@ -41,8 +66,37 @@ function UserProfile() {
   useEffect(() => {
     if (userId) {
       fetchUserProfile();
+      fetchUserProjects();
     }
-  }, [userId, fetchUserProfile]);
+  }, [userId, fetchUserProfile, fetchUserProjects]);
+
+  // Davet gönderme fonksiyonu
+  const handleSendInvite = async () => {
+    try {
+      await axios.post("/invitations", {
+        projectId: selectedProject,
+        userId: userId,
+        message: inviteMessage || "Projeye katılmaya davet ediliyorsunuz!"
+      });
+      
+      setSnackbar({
+        open: true,
+        message: "Davet başarıyla gönderildi!",
+        severity: "success"
+      });
+      
+      setInviteDialogOpen(false);
+      setSelectedProject("");
+      setInviteMessage("");
+    } catch (err) {
+      console.error("Davet gönderilemedi:", err);
+      setSnackbar({
+        open: true,
+        message: "Davet gönderilemedi. Tekrar deneyin.",
+        severity: "error"
+      });
+    }
+  };
 
   // Eğer kendi profilini görmeye çalışıyorsa, normal Profile sayfasına yönlendir
   useEffect(() => {
@@ -97,8 +151,15 @@ function UserProfile() {
       flexDirection: "column",
       alignItems: "center"
     }}>
-      {/* Geri Dön Butonu */}
-      <Box sx={{ width: "100%", maxWidth: "800px", mb: 3 }}>
+      {/* Geri Dön ve Davet At Butonları */}
+      <Box sx={{ 
+        width: "100%", 
+        maxWidth: "800px", 
+        mb: 3,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }}>
         <Button 
           variant="contained" 
           startIcon={<ArrowBack />}
@@ -119,6 +180,29 @@ function UserProfile() {
           }}
         >
           Geri Dön
+        </Button>
+
+        {/* Davet At Butonu */}
+        <Button 
+          variant="contained" 
+          startIcon={<Send />}
+          onClick={() => setInviteDialogOpen(true)}
+          sx={{ 
+            background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+            color: "#fff",
+            fontWeight: "600",
+            borderRadius: "12px",
+            px: 3,
+            py: 1.5,
+            "&:hover": {
+              background: "linear-gradient(45deg, #1976D2 30%, #0288D1 90%)",
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 20px rgba(33, 150, 243, 0.3)"
+            },
+            transition: "all 0.3s ease"
+          }}
+        >
+          Projeye Davet Et
         </Button>
       </Box>
 
@@ -322,6 +406,77 @@ function UserProfile() {
           </Box>
         </CardContent>
       </Card>
+
+      {/* Davet Dialog'u */}
+      <Dialog 
+        open={inviteDialogOpen} 
+        onClose={() => setInviteDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            {user?.fullname} kullanıcısını projeye davet et
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <FormControl fullWidth sx={{ mb: 3 }}>
+              <InputLabel>Proje Seçin</InputLabel>
+              <Select
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                label="Proje Seçin"
+              >
+                {projects.map((project) => (
+                  <MenuItem key={project._id} value={project._id}>
+                    {project.title}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Davet Mesajı (İsteğe bağlı)"
+              value={inviteMessage}
+              onChange={(e) => setInviteMessage(e.target.value)}
+              placeholder="Projeye katılmaya davet ediliyorsunuz!"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button 
+            onClick={() => setInviteDialogOpen(false)}
+            color="inherit"
+          >
+            İptal
+          </Button>
+          <Button 
+            onClick={handleSendInvite}
+            variant="contained"
+            disabled={!selectedProject}
+            sx={{
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              "&:hover": {
+                background: "linear-gradient(45deg, #1976D2 30%, #0288D1 90%)"
+              }
+            }}
+          >
+            Davet Gönder
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+      />
     </Box>
   );
 }
