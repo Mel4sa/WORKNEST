@@ -292,7 +292,7 @@ export const searchUsers = async (req, res) => {
         { title: searchRegex }
       ]
     })
-    .select('fullname title profileImage')
+    .select('_id fullname title profileImage')
     .limit(15)
     .lean();
 

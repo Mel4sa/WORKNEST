@@ -35,10 +35,10 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
   const [newUsername, setNewUsername] = useState("");
   const [newEmail, setNewEmail] = useState("");
 
-  // Hesap ayarları fonksiyonları
+    // Hesap ayarları fonksiyonları
   const handleChangePassword = async () => {
     try {
-      await axiosInstance.put("/user/change-password", { oldPassword, newPassword });
+      await axiosInstance.put("/users/change-password", { oldPassword, newPassword });
       onMessage("Şifre başarıyla güncellendi!", "success");
       handleCloseDialog();
     } catch {
@@ -48,7 +48,7 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
 
   const handleChangeUsername = async () => {
     try {
-      await axiosInstance.put("/user/change-username", { newUsername });
+      await axiosInstance.put("/users/change-username", { newUsername });
       onMessage("Kullanıcı adı başarıyla güncellendi!", "success");
       handleCloseDialog();
     } catch {
@@ -58,17 +58,17 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
 
   const handleChangeEmail = async () => {
     try {
-      await axiosInstance.put("/user/change-email", { newEmail });
-      onMessage("E-posta başarıyla güncellendi!", "success");
+      await axiosInstance.put("/users/change-email", { newEmail });
+      onMessage("Email başarıyla güncellendi!", "success");
       handleCloseDialog();
     } catch {
-      onMessage("E-posta güncellenirken hata oluştu!", "error");
+      onMessage("Email güncellenirken hata oluştu!", "error");
     }
   };
 
   const handleDeleteAccount = async () => {
     try {
-      await axiosInstance.delete("/user/delete-account", {
+      await axiosInstance.delete("/users/delete-account", {
         headers: { Authorization: `Bearer ${token}` },
       });
       logout();
