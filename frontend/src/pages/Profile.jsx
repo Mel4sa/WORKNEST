@@ -117,7 +117,7 @@ export default function ProfilePage() {
     formData.append("photo", file);
 
     try {
-      const response = await axios.post("/user/upload-photo", formData, {
+      const response = await axios.post("/users/upload-photo", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -149,7 +149,7 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     const profileData = { university, department, title: role, skills, bio, github, linkedin };
     try {
-      const res = await axios.put("/user/update", profileData, {
+      const res = await axios.put("/users/update", profileData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data.user);
