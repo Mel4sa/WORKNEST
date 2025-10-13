@@ -266,33 +266,35 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
         </Box>
 
         {/* Proje Yönetim Butonları - Sadece proje sahibi için */}
-        {currentUser && project.owner?._id === currentUser._id && project.status !== "completed" && project.status !== "cancelled" && (
+        {currentUser && project.owner?._id === currentUser._id && (
           <Box sx={{ mt: 4, pt: 3, borderTop: "1px solid #e5e7eb" }}>
             <Typography variant="h6" sx={{ mb: 2, color: "#2c3e50", fontWeight: 600 }}>
               Proje Yönetimi
             </Typography>
             <Stack spacing={2}>
-              <Button
-                variant="outlined"
-                color="warning"
-                fullWidth
-                sx={{
-                  borderRadius: "12px",
-                  py: 1.5,
-                  borderColor: "#f59e0b",
-                  color: "#f59e0b",
-                  fontWeight: "600",
-                  "&:hover": {
-                    borderColor: "#d97706",
-                    backgroundColor: "rgba(245, 158, 11, 0.04)",
-                    transform: "translateY(-1px)"
-                  },
-                  transition: "all 0.3s ease"
-                }}
-                onClick={onCancelProject}
-              >
-                Projeyi İptal Et
-              </Button>
+              {project.status !== "completed" && project.status !== "cancelled" && (
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  fullWidth
+                  sx={{
+                    borderRadius: "12px",
+                    py: 1.5,
+                    borderColor: "#f59e0b",
+                    color: "#f59e0b",
+                    fontWeight: "600",
+                    "&:hover": {
+                      borderColor: "#d97706",
+                      backgroundColor: "rgba(245, 158, 11, 0.04)",
+                      transform: "translateY(-1px)"
+                    },
+                    transition: "all 0.3s ease"
+                  }}
+                  onClick={onCancelProject}
+                >
+                  Projeyi İptal Et
+                </Button>
+              )}
               
               <Button
                 variant="outlined"

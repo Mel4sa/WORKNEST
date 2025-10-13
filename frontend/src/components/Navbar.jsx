@@ -77,7 +77,7 @@ function Navbar() {
     setSearchQuery("");
     setSearchResults([]);
     setSearchOpen(false);
-    navigate(`/profile/${selectedUser._id}`);
+    navigate(`/user/${selectedUser._id}`);
   };
 
   const menuItems = [
@@ -97,36 +97,41 @@ function Navbar() {
         backdropFilter: "blur(10px)",
         borderBottom: "1px solid rgba(0,0,0,0.05)",
         transition: "all 0.4s ease",
-        width: "100vw", // Viewport tam genişlik
-        margin: 0, // Tüm margin'ları sıfırla
-        padding: 0, // Tüm padding'leri sıfırla
-        left: 0, // Sol kenara yapıştır
-        right: 0, // Sağ kenara yapıştır
-        position: "fixed", // Fixed yaparak kesin konumlama
-        top: 0, // En üste sabitle
-        zIndex: 1300, // AppBar'ın varsayılan z-index'i
+        width: "100vw",
+        margin: 0,
+        padding: 0,
+        left: 0,
+        right: 0,
+        top: 0,
+        position: "fixed",
+        overflow: "hidden",
+        zIndex: 1100,
       }}
     >
       <Toolbar sx={{ 
         display: "flex", 
-        justifyContent: "center", // Merkeze hizala
+        justifyContent: "space-between",
         alignItems: "center",
-        maxWidth: "none", // Max width sınırını kaldır
-        width: "100%", // Tam genişlik
-        px: { xs: 2, md: 3 }, // Sadece yatay padding
-        mx: 0, // Margin sıfırla
-        position: "relative" // Logo için absolute positioning
+        width: "100vw",
+        maxWidth: "100vw",
+        px: { xs: 1, sm: 2, md: 3 },
+        py: 0.5,
+        minHeight: { xs: "56px", sm: "64px" },
+        margin: 0,
+        padding: { xs: "0.5rem 1rem", sm: "0.5rem 2rem", md: "0.5rem 3rem" },
+        overflow: "hidden",
+        boxSizing: "border-box"
       }}>
         {/* Logo */}
-        <Link to="/home" style={{ textDecoration: "none", position: "absolute", left: "24px" }}>
+        <Link to="/home" style={{ textDecoration: "none" }}>
           <Typography 
             variant="h5" 
             sx={{
               fontWeight: "900",
-              fontSize: { xs: "1.4rem", md: "1.7rem" },
+              fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.7rem" },
               color: "#2c3e50",
               position: "relative",
-              letterSpacing: "2px",
+              letterSpacing: { xs: "1px", md: "2px" },
               fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
               transition: "all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
               "&::after": {
@@ -154,7 +159,14 @@ function Navbar() {
         </Link>
 
         {/* Büyük ekran menü */}
-        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3, alignItems: "center", ml: 20 }}>
+        <Box sx={{ 
+          display: { xs: "none", md: "flex" }, 
+          gap: { md: 1, lg: 2 }, 
+          alignItems: "center",
+          flex: 1,
+          justifyContent: "center",
+          mx: { md: 1, lg: 2 }
+        }}>
           {/* Menü butonları - Profilim hariç */}
           {menuItems.filter(item => item.label !== "Profilim").map((item) => (
             <Button
@@ -165,6 +177,8 @@ function Navbar() {
                 color: "#000",
                 fontWeight: "bold",
                 textTransform: "none",
+                fontSize: { md: "0.8rem", lg: "0.85rem" },
+                px: { md: 1, lg: 1.5 },
                 backgroundColor: "transparent",
                 "&:hover": {
                   backgroundColor: "rgba(0,0,0,0.05)",
@@ -185,6 +199,8 @@ function Navbar() {
               color: "#000",
               fontWeight: "bold",
               textTransform: "none",
+              fontSize: { md: "0.8rem", lg: "0.85rem" },
+              px: { md: 1, lg: 1.5 },
               backgroundColor: "transparent",
               "&:hover": {
                 backgroundColor: "rgba(0,0,0,0.05)",
@@ -195,9 +211,22 @@ function Navbar() {
           >
             Profilim
           </Button>
+        </Box>
 
+        {/* Sağ taraf - Arama ve Çıkış */}
+        <Box sx={{ 
+          display: { xs: "none", md: "flex" }, 
+          gap: { md: 2, lg: 3 }, 
+          alignItems: "center",
+          flexShrink: 0
+        }}>
           {/* Kişi Arama */}
-          <Box sx={{ position: "relative", minWidth: "300px", ml: 4 }}>
+          <Box sx={{ 
+            position: "relative", 
+            minWidth: { md: "180px", lg: "250px" }, 
+            maxWidth: { md: "200px", lg: "280px" },
+            mr: { md: 1, lg: 1.5 }
+          }}>
             <Autocomplete
               freeSolo
               options={searchResults}
@@ -305,10 +334,12 @@ function Navbar() {
                 backgroundColor: "#8b0000",
                 color: "#fff",
                 borderRadius: "50px",
-                padding: "6px 24px",
+                padding: { md: "4px 12px", lg: "6px 16px" },
                 textTransform: "none",
                 fontWeight: "bold",
-                ml: 3,
+                fontSize: { md: "0.75rem", lg: "0.8rem" },
+                minWidth: "auto",
+                whiteSpace: "nowrap",
                 "&:hover": {
                   backgroundColor: "#660000",
                   transform: "scale(1.05)",
@@ -326,8 +357,6 @@ function Navbar() {
           sx={{
             display: { xs: "flex", md: "none" },
             color: "#000",
-            position: "absolute",
-            right: "16px", // Sağ köşeye yerleştir
             "&:hover": {
               backgroundColor: "rgba(0,0,0,0.05)",
               transform: "scale(1.1)",
@@ -341,7 +370,14 @@ function Navbar() {
 
         {/* Drawer */}
         <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-          <Box sx={{ width: 280, p: 2, position: "relative", minHeight: "100%" }}>
+          <Box sx={{ 
+            width: { xs: 280, sm: 320 }, 
+            p: 2, 
+            position: "relative", 
+            minHeight: "100%",
+            display: "flex",
+            flexDirection: "column"
+          }}>
             {/* Mobil Arama */}
             <Box sx={{ mb: 3 }}>
               <Autocomplete
@@ -459,9 +495,9 @@ function Navbar() {
               ))}
             </List>
 
-            {/* Çıkış Yap butonu sağ altta */}
+            {/* Çıkış Yap butonu drawer'ın altında */}
             {user && (
-              <Box sx={{ position: "absolute", bottom: 45, right: 16, width: "calc(100% - 32px)" }}>
+              <Box sx={{ mt: "auto", pt: 2 }}>
                 <Button
                   variant="contained"
                   fullWidth
@@ -472,9 +508,10 @@ function Navbar() {
                     borderRadius: "50px",
                     textTransform: "none",
                     fontWeight: "bold",
+                    py: 1.5,
                     "&:hover": {
                       backgroundColor: "#660000",
-                      transform: "scale(1.05)",
+                      transform: "scale(1.02)",
                       boxShadow: "0 4px 12px rgba(139,0,0,0.4)",
                     },
                   }}

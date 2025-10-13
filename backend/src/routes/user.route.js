@@ -13,7 +13,8 @@ import {
   updateEmail,
   updatePassword,
   deleteAccount,
-  searchUsers 
+  searchUsers,
+  getUserProfile 
 } from "../controllers/user.controller.js";
 
 // Uploads klasörünün var olduğundan emin ol
@@ -57,6 +58,7 @@ const upload = multer({
 router.put("/update", protectRoute, updateProfile);
 router.get("/me", protectRoute, getMe);
 router.get("/search", protectRoute, searchUsers);
+router.get("/profile/:userId", protectRoute, getUserProfile);
 
 router.post("/upload-photo", protectRoute, upload.single("photo"), uploadPhoto);
 router.delete("/delete-photo", protectRoute, deletePhoto);
