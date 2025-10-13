@@ -10,26 +10,23 @@ import {
 
 function ProjectDialogs({ 
   deleteDialogOpen, 
-  setDeleteDialogOpen, 
   cancelDialogOpen, 
-  setCancelDialogOpen, 
-  project, 
-  onDeleteProject, 
-  onCancelProject 
+  onDeleteDialogClose,
+  onCancelDialogClose,
+  onConfirmDelete,
+  onConfirmCancel,
+  project
 }) {
   return (
     <>
       {/* Silme Onay Dialog'u */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+            <Dialog 
+        open={deleteDialogOpen} 
+        onClose={onDeleteDialogClose}
         maxWidth="sm"
         fullWidth
-        sx={{
-          "& .MuiDialog-paper": {
-            borderRadius: "20px",
-            p: 2
-          }
+        PaperProps={{
+          sx: { borderRadius: "20px", p: 1 }
         }}
       >
         <DialogTitle sx={{ 
@@ -53,7 +50,7 @@ function ProjectDialogs({
         
         <DialogActions sx={{ justifyContent: "center", gap: 2, pb: 2 }}>
           <Button
-            onClick={() => setDeleteDialogOpen(false)}
+            onClick={onDeleteDialogClose}
             variant="outlined"
             sx={{
               borderRadius: "12px",
@@ -71,7 +68,7 @@ function ProjectDialogs({
           </Button>
           
           <Button
-            onClick={onDeleteProject}
+            onClick={onConfirmDelete}
             variant="contained"
             sx={{
               borderRadius: "12px",
@@ -91,7 +88,7 @@ function ProjectDialogs({
       {/* İptal Onay Dialog'u */}
       <Dialog
         open={cancelDialogOpen}
-        onClose={() => setCancelDialogOpen(false)}
+        onClose={onCancelDialogClose}
         maxWidth="sm"
         fullWidth
         sx={{
@@ -122,7 +119,7 @@ function ProjectDialogs({
         
         <DialogActions sx={{ justifyContent: "center", gap: 2, pb: 2 }}>
           <Button
-            onClick={() => setCancelDialogOpen(false)}
+            onClick={onCancelDialogClose}
             variant="outlined"
             sx={{
               borderRadius: "12px",
@@ -140,7 +137,7 @@ function ProjectDialogs({
           </Button>
           
           <Button
-            onClick={onCancelProject}
+            onClick={onConfirmCancel}
             variant="contained"
             sx={{
               borderRadius: "12px",

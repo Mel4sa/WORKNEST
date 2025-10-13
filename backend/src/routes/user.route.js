@@ -7,7 +7,9 @@ import { protectRoute } from "../middleware/authMiddleware.js";
 import { updateProfile, getMe, uploadPhoto, deletePhoto, updateUsername,
   updateEmail,
   updatePassword,
-  deleteAccount, } from "../controllers/user.controller.js";
+  deleteAccount,
+  searchUsers,
+  getUserProfile } from "../controllers/user.controller.js";
 
 // Uploads klasörünün var olduğundan emin ol
 const uploadsDir = "uploads/";
@@ -49,6 +51,12 @@ const upload = multer({
 
 router.put("/update", protectRoute, updateProfile);
 router.get("/me", protectRoute, getMe);
+
+// Kullanıcı arama (kimlik doğrulama gerekli)
+router.get("/search", protectRoute, searchUsers);
+
+// Başka kullanıcının profilini görme (kimlik doğrulama gerekli)
+router.get("/profile/:userId", protectRoute, getUserProfile);
 
 router.post("/upload-photo", protectRoute, upload.single("photo"), uploadPhoto);
 router.delete("/delete-photo", protectRoute, deletePhoto);
