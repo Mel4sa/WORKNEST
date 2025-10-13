@@ -24,6 +24,11 @@ const invitationSchema = new mongoose.Schema({
     enum: ['pending', 'accepted', 'declined'],
     default: 'pending'
   },
+  
+  message: {
+    type: String,
+    default: 'Projeye katılmaya davet ediliyorsunuz!'
+  },
   }, {
   timestamps: true
 });

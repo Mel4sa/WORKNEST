@@ -73,11 +73,18 @@ function UserProfile() {
   // Davet gönderme fonksiyonu
   const handleSendInvite = async () => {
     try {
-      await axios.post("/invitations", {
+      const inviteData = {
         projectId: selectedProject,
-        userId: userId,
+        receiverId: userId,
         message: inviteMessage || "Projeye katılmaya davet ediliyorsunuz!"
-      });
+      };
+      
+      console.log("🚀 Gönderilen davet verisi:", inviteData);
+      console.log("📝 inviteMessage state:", inviteMessage);
+      console.log("📝 inviteMessage length:", inviteMessage?.length);
+      
+      const response = await axios.post("/invites/send", inviteData);
+      console.log("✅ Sunucu yanıtı:", response.data);
       
       setSnackbar({
         open: true,

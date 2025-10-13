@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -16,6 +17,7 @@ import axiosInstance from "../lib/axios";
 import useAuthStore from "../store/useAuthStore";
 
 export default function InvitesPage() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState(0); // 0: Alınan, 1: Gönderilen
   const [receivedInvites, setReceivedInvites] = useState([]);
@@ -30,13 +32,25 @@ export default function InvitesPage() {
     try {
       setLoading(true);
       const [receivedRes, sentRes] = await Promise.all([
-        axiosInstance.get("/api/invites/received", {
+        axiosInstance.get("/invites/received", {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axiosInstance.get("/api/invites/sent", {
+        axiosInstance.get("/invites/sent", {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
+      
+      console.log("🔍 Received invites data:", receivedRes.data);
+      console.log("🔍 Sent invites data:", sentRes.data);
+      
+      // Her bir davet için message alanını kontrol et
+      receivedRes.data.forEach(invite => {
+        console.log(`📨 Invite ${invite._id}:`, {
+          message: invite.message,
+          messageType: typeof invite.message,
+          messageLength: invite.message?.length
+        });
+      });
       
       setReceivedInvites(receivedRes.data);
       setSentInvites(sentRes.data);
@@ -57,7 +71,7 @@ export default function InvitesPage() {
 
   const handleAccept = async (inviteId) => {
     try {
-      await axiosInstance.patch(`/api/invites/respond/${inviteId}`, 
+      await axiosInstance.patch(`/invites/respond/${inviteId}`, 
         { action: "accepted" },
         { headers: { Authorization: `Bearer ${token}` }}
       );
@@ -74,7 +88,7 @@ export default function InvitesPage() {
 
   const handleDecline = async (inviteId) => {
     try {
-      await axiosInstance.patch(`/api/invites/respond/${inviteId}`, 
+      await axiosInstance.patch(`/invites/respond/${inviteId}`, 
         { action: "declined" },
         { headers: { Authorization: `Bearer ${token}` }}
       );
@@ -87,6 +101,10 @@ export default function InvitesPage() {
       setMessage("Davet reddedilirken hata oluştu");
       setMessageOpen(true);
     }
+  };
+
+  const handleViewProject = (projectId) => {
+    navigate(`/projects/${projectId}`);
   };
 
   if (loading)
@@ -141,20 +159,41 @@ export default function InvitesPage() {
                   "&:hover": { transform: "scale(1.02)" },
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
                   <Avatar src={invite.sender?.profileImage} />
-                  <Box>
+                  <Box sx={{ flex: 1 }}>
                     <Typography sx={{ fontWeight: 600 }}>
                       {invite.sender?.fullname}
                     </Typography>
-                    <Typography color="text.secondary">
+                    <Typography color="text.secondary" sx={{ mb: 1 }}>
                       {invite.project?.title}
+                    </Typography>
+                    {console.log(`🎨 Rendering invite ${invite._id} message:`, invite.message)}
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontStyle: 'italic', 
+                        color: 'text.secondary',
+                        backgroundColor: '#f5f5f5',
+                        padding: 1,
+                        borderRadius: 1,
+                        border: '1px solid #e0e0e0'
+                      }}
+                    >
+                      "💬 {invite.message || 'Projeye katılmaya davet ediliyorsunuz!'}"
                     </Typography>
                   </Box>
                 </Box>
 
                 {invite.status === 'pending' ? (
                   <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => handleViewProject(invite.project?._id)}
+                    >
+                      Projeyi İncele
+                    </Button>
                     <Button
                       variant="contained"
                       color="success"
@@ -202,14 +241,28 @@ export default function InvitesPage() {
                 "&:hover": { transform: "scale(1.02)" },
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
                 <Avatar src={invite.receiver?.profileImage} />
-                <Box>
+                <Box sx={{ flex: 1 }}>
                   <Typography sx={{ fontWeight: 600 }}>
                     {invite.receiver?.fullname}
                   </Typography>
-                  <Typography color="text.secondary">
+                  <Typography color="text.secondary" sx={{ mb: 1 }}>
                     {invite.project?.title}
+                  </Typography>
+                  {console.log(`🎨 Rendering sent invite ${invite._id} message:`, invite.message)}
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontStyle: 'italic', 
+                      color: 'text.secondary',
+                      backgroundColor: '#f5f5f5',
+                      padding: 1,
+                      borderRadius: 1,
+                      border: '1px solid #e0e0e0'
+                    }}
+                  >
+                    "💬 {invite.message || 'Projeye katılmaya davet ediliyorsunuz!'}"
                   </Typography>
                 </Box>
               </Box>
