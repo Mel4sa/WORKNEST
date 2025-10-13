@@ -208,23 +208,29 @@ function Navbar() {
                   handleUserSelect(newValue);
                 }
               }}
-              getOptionLabel={(option) => 
-                typeof option === 'string' ? option : option.fullname || ''
-              }
-              renderOption={(props, option) => (
-                <Box
-                  component="li"
-                  {...props}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    p: 1.5,
-                    "&:hover": {
-                      backgroundColor: "rgba(107, 15, 26, 0.04)"
-                    }
-                  }}
-                >
+             getOptionLabel={(option) => {
+  if (typeof option === 'string') return option;
+  return option.fullname + (option.title ? ` (${option.title})` : '');
+}}
+              renderOption={(props, option) => {
+                const { key, ...otherProps } = props;
+                return (
+                  <Box
+                    component="li"
+                    key={key}
+                    {...otherProps}
+                    onClick={() => handleUserSelect(option)}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      p: 1.5,
+                      cursor: "pointer",
+                      "&:hover": {
+                        backgroundColor: "rgba(107, 15, 26, 0.04)"
+                      }
+                    }}
+                  >
                   <Avatar
                     src={option.profileImage}
                     sx={{ width: 32, height: 32 }}
@@ -235,6 +241,11 @@ function Navbar() {
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
                       {option.fullname}
                     </Typography>
+                    {option.title && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        {option.title}
+                      </Typography>
+                    )}
                     {option.university && (
                       <Typography variant="caption" color="text.secondary">
                         {option.university}
@@ -242,7 +253,8 @@ function Navbar() {
                     )}
                   </Box>
                 </Box>
-              )}
+                );
+              }}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -346,38 +358,52 @@ function Navbar() {
                 getOptionLabel={(option) => 
                   typeof option === 'string' ? option : option.fullname || ''
                 }
-                renderOption={(props, option) => (
-                  <Box
-                    component="li"
-                    {...props}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      p: 1.5,
-                      "&:hover": {
-                        backgroundColor: "rgba(107, 15, 26, 0.04)"
-                      }
-                    }}
-                  >
-                    <Avatar
-                      src={option.profileImage}
-                      sx={{ width: 32, height: 32 }}
+                renderOption={(props, option) => {
+                  const { key, ...otherProps } = props;
+                  return (
+                    <Box
+                      component="li"
+                      key={key}
+                      {...otherProps}
+                      onClick={() => {
+                        setDrawerOpen(false);
+                        handleUserSelect(option);
+                      }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        p: 1.5,
+                        cursor: "pointer",
+                        "&:hover": {
+                          backgroundColor: "rgba(107, 15, 26, 0.04)"
+                        }
+                      }}
                     >
-                      {option.fullname?.[0]}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {option.fullname}
-                      </Typography>
-                      {option.university && (
-                        <Typography variant="caption" color="text.secondary">
-                          {option.university}
+                      <Avatar
+                        src={option.profileImage}
+                        sx={{ width: 32, height: 32 }}
+                      >
+                        {option.fullname?.[0]}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {option.fullname}
                         </Typography>
-                      )}
+                        {option.title && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {option.title}
+                          </Typography>
+                        )}
+                        {option.university && (
+                          <Typography variant="caption" color="text.secondary">
+                            {option.university}
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
-                  </Box>
-                )}
+                  );
+                }}
                 renderInput={(params) => (
                   <TextField
                     {...params}

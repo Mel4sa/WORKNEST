@@ -24,7 +24,7 @@ const useAuthStore = create(
             return;
           }
 
-          const res = await axiosInstance.get("/user/me", {
+          const res = await axiosInstance.get("/users/me", {
             headers: { Authorization: `Bearer ${token}` },
           });
           set({ user: res.data, isLoading: false });

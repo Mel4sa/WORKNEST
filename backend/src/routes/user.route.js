@@ -4,10 +4,17 @@ import path from "path";
 import fs from "fs";
 import User from "../models/user.model.js";
 import { protectRoute } from "../middleware/authMiddleware.js";
-import { updateProfile, getMe, uploadPhoto, deletePhoto, updateUsername,
+import { 
+  updateProfile, 
+  getMe, 
+  uploadPhoto, 
+  deletePhoto, 
+  updateUsername,
   updateEmail,
   updatePassword,
-  deleteAccount, } from "../controllers/user.controller.js";
+  deleteAccount,
+  searchUsers 
+} from "../controllers/user.controller.js";
 
 // Uploads klasörünün var olduğundan emin ol
 const uploadsDir = "uploads/";
@@ -49,6 +56,7 @@ const upload = multer({
 
 router.put("/update", protectRoute, updateProfile);
 router.get("/me", protectRoute, getMe);
+router.get("/search", protectRoute, searchUsers);
 
 router.post("/upload-photo", protectRoute, upload.single("photo"), uploadPhoto);
 router.delete("/delete-photo", protectRoute, deletePhoto);

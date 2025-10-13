@@ -188,3 +188,40 @@ export const deleteAccount = async (req, res) => {
     res.status(500).json({ message: "Hesap silinemedi", error: error.message });
   }
 };
+
+// Kullanıcı arama (Navbar için) - fullname ve title alanlarına göre
+export const searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const currentUserId = req.user._id;
+
+    if (!q || q.trim().length < 1) {
+      return res.status(400).json({ message: "Arama terimi en az 1 karakter olmalıdır" });
+    }
+
+    const searchTerm = q.trim();
+    console.log("🔍 Arama terimi:", searchTerm);
+
+    // Büyük/küçük harf duyarsız regex
+    const searchRegex = new RegExp(searchTerm, 'i');
+
+    // fullname ve title alanlarında arama
+    const users = await User.find({
+      _id: { $ne: currentUserId }, // Kendi hesabını hariç tut
+      $or: [
+        { fullname: searchRegex },
+        { title: searchRegex }
+      ]
+    })
+    .select('fullname title profileImage')
+    .limit(15)
+    .lean();
+
+    console.log("✅ Arama sonuçları:", users.length, "kullanıcı bulundu");
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Kullanıcı arama hatası:", error);
+    res.status(500).json({ message: "Arama sırasında bir hata oluştu" });
+  }
+};
+
