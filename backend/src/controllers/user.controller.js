@@ -3,15 +3,13 @@ import cloudinary from "../lib/cloudinary.js";
 import fs from "fs";
 import bcrypt from "bcryptjs";
 
-// Başka kullanıcının profilini görme (sadece genel bilgiler)
 export const getUserProfile = async (req, res) => {
   try {
     const { userId } = req.params;
     
     const user = await User.findById(userId)
-      .select('fullname username profileImage university department bio skills createdAt') // Hassas bilgileri çıkar
-      .populate('projects', 'title description status createdAt'); // Kullanıcının projelerini de göster
-
+      .select('fullname username profileImage university department bio skills createdAt') 
+      .populate('projects', 'title description status createdAt');
     if (!user) {
       return res.status(404).json({ message: "Kullanıcı bulunamadı" });
     }
@@ -23,14 +21,11 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
-// Profil güncelleme (sadece kendi profili)
 export const updateProfile = async (req, res) => {
   try {
-    // Kimlik doğrulama middleware'i ile gelen kullanıcı ID'si
     const userId = req.user._id;
     const { university, department, title, skills, bio, github, linkedin } = req.body;
 
-    // Sadece kendi profilini güncelleyebilir
     const updateData = {};
     if (university !== undefined) updateData.university = university;
     if (department !== undefined) updateData.department = department;
@@ -40,7 +35,6 @@ export const updateProfile = async (req, res) => {
     if (github !== undefined) updateData.github = github;
     if (linkedin !== undefined) updateData.linkedin = linkedin;
 
-    // Güvenlik: Sadece kendi profili güncellenebilir
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, { 
       new: true,
       runValidators: true 
@@ -60,7 +54,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// Me – giriş yapan kullanıcıyı döndür
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -79,12 +72,10 @@ export const uploadPhoto = async (req, res) => {
       return res.status(400).json({ message: "Dosya yüklenmedi" });
     }
 
-    // Dosya türünü kontrol et
     const fileName = req.file.originalname.toLowerCase();
     const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif');
     
     
-    // Cloudinary upload options
     const uploadOptions = {
       folder: "profile_photos",
       format: "jpg", // Her zaman JPG'ye çevir
@@ -94,10 +85,8 @@ export const uploadPhoto = async (req, res) => {
       ]
     };
 
-    // HEIC dosyaları için ek ayarlar
     if (isHeic) {
       uploadOptions.resource_type = "image";
-      // Cloudinary otomatik olarak HEIC'i destekler ve JPG'ye çevirir
     }
 
     const result = await cloudinary.uploader.upload(req.file.path, uploadOptions);
@@ -109,7 +98,6 @@ export const uploadPhoto = async (req, res) => {
       { new: true }
     );
 
-    // Geçici dosyayı sil
     if (fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
@@ -122,7 +110,6 @@ export const uploadPhoto = async (req, res) => {
     });
   } catch (err) {
     
-    // Geçici dosyayı temizle
     if (req.file && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
@@ -148,19 +135,16 @@ export const deletePhoto = async (req, res) => {
 };
 
 
-// Kullanıcı adı değiştirme (sadece kendi profili)
 export const updateUsername = async (req, res) => {
   try {
     const { newUsername } = req.body;
     if (!newUsername) return res.status(400).json({ message: "Yeni kullanıcı adı gerekli" });
 
-    // Kullanıcı adı benzersizlik kontrolü
     const existingUser = await User.findOne({ username: newUsername });
     if (existingUser && existingUser._id.toString() !== req.user._id.toString()) {
       return res.status(400).json({ message: "Bu kullanıcı adı zaten kullanılıyor" });
     }
 
-    // Sadece kendi kullanıcı adını değiştirebilir
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       { username: newUsername },
@@ -181,19 +165,16 @@ export const updateUsername = async (req, res) => {
   }
 };
 
-// Email değiştirme (sadece kendi profili)
 export const updateEmail = async (req, res) => {
   try {
     const { newEmail } = req.body;
     if (!newEmail) return res.status(400).json({ message: "Yeni email gerekli" });
 
-    // Email benzersizlik kontrolü
     const existingUser = await User.findOne({ email: newEmail });
     if (existingUser && existingUser._id.toString() !== req.user._id.toString()) {
       return res.status(400).json({ message: "Bu email zaten kullanımda" });
     }
 
-    // Sadece kendi email'ini değiştirebilir
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       { email: newEmail },
@@ -227,17 +208,14 @@ export const updatePassword = async (req, res) => {
       return res.status(400).json({ message: "Yeni şifre en az 6 karakter olmalıdır" });
     }
 
-    // Sadece kendi şifresini değiştirebilir
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
 
-    // Eski şifreyi kontrol et
     const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
     if (!isOldPasswordValid) {
       return res.status(400).json({ message: "Eski şifre yanlış" });
     }
 
-    // Yeni şifreyi hashle ve güncelle
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedNewPassword;
     await user.save();
@@ -249,12 +227,10 @@ export const updatePassword = async (req, res) => {
   }
 };
 
-// Hesap silme (sadece kendi hesabı)
 export const deleteAccount = async (req, res) => {
   try {
     const userId = req.user._id;
     
-    // Sadece kendi hesabını silebilir
     const deletedUser = await User.findByIdAndDelete(userId);
     
     if (!deletedUser) {
@@ -268,7 +244,6 @@ export const deleteAccount = async (req, res) => {
   }
 };
 
-// Kullanıcı arama (Navbar için) - fullname ve title alanlarına göre
 export const searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
@@ -281,12 +256,11 @@ export const searchUsers = async (req, res) => {
     const searchTerm = q.trim();
     console.log("🔍 Arama terimi:", searchTerm);
 
-    // Büyük/küçük harf duyarsız regex
     const searchRegex = new RegExp(searchTerm, 'i');
 
-    // fullname ve title alanlarında arama
+
     const users = await User.find({
-      _id: { $ne: currentUserId }, // Kendi hesabını hariç tut
+      _id: { $ne: currentUserId }, 
       $or: [
         { fullname: searchRegex },
         { title: searchRegex }

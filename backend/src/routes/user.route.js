@@ -17,7 +17,6 @@ import {
   getUserProfile 
 } from "../controllers/user.controller.js";
 
-// Uploads klasörünün var olduğundan emin ol
 const uploadsDir = "uploads/";
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -25,14 +24,12 @@ if (!fs.existsSync(uploadsDir)) {
 
 const router = express.Router();
 
-// Multer konfigürasyonu
 const upload = multer({ 
   dest: uploadsDir,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit (HEIC dosyaları daha büyük olabilir)
+    fileSize: 10 * 1024 * 1024 
   },
   fileFilter: (req, file, cb) => {
-    // Resim formatlarına izin ver (HEIC dahil)
     const allowedTypes = [
       'image/jpeg', 
       'image/jpg', 
@@ -42,8 +39,7 @@ const upload = multer({
       'image/heic',
       'image/heif'
     ];
-    
-    // HEIC dosyaları bazen farklı mimetype'larla gelebilir
+
     const fileName = file.originalname.toLowerCase();
     const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif');
     
