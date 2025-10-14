@@ -58,7 +58,14 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
 
         {/* Üye Sayısı */}
         <Typography variant="body2" sx={{ color: "#666", mb: 3 }}>
-          {(project.members?.length || 0) + 1} üye (1 lider + {project.members?.length || 0} üye)
+          {(() => {
+            const regularMembers = project.members?.filter(member => {
+              const memberUserId = member.user?._id || member._id;
+              return memberUserId !== project.owner?._id;
+            }).length || 0;
+            const totalMembers = regularMembers + 1; // +1 proje lideri için
+            return `${totalMembers} üye (1 lider + ${regularMembers} üye)`;
+          })()}
         </Typography>
 
         {/* Üyeler Listesi */}
@@ -97,7 +104,13 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
 
           {/* Diğer Üyeler */}
           {project.members && project.members.length > 0 ? (
-            project.members.map((member, idx) => (
+            project.members
+              .filter(member => {
+                // Proje liderini üyeler listesinden çıkar
+                const memberUserId = member.user?._id || member._id;
+                return memberUserId !== project.owner?._id;
+              })
+              .map((member, idx) => (
               <Box 
                 key={idx} 
                 sx={{ 
@@ -107,19 +120,37 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
                 }}
               >
                 {/* Silme butonu arka planı */}
-                <Box sx={{
-                  position: "absolute",
-                  right: 0,
-                  top: 0,
-                  height: "100%",
-                  width: "80px",
-                  backgroundColor: "#dc2626",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: "12px"
-                }}>
-                  <DeleteIcon sx={{ color: "#fff" }} />
+                <Box 
+                  sx={{
+                    position: "absolute",
+                    right: 0,
+                    top: 0,
+                    height: "100%",
+                    width: "80px",
+                    backgroundColor: "#dc2626",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "12px",
+                    cursor: "pointer",
+                    "&:hover": {
+                      backgroundColor: "#b91c1c"
+                    }
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const memberId = member.user?._id || member._id;
+                    console.log("🔍 Silinecek üye bilgileri:", {
+                      memberId,
+                      memberObject: member,
+                      userObject: member.user
+                    });
+                    onRemoveMember(memberId);
+                  }}
+                >
+                  <Typography sx={{ color: "#fff", fontWeight: "bold", fontSize: "0.9rem" }}>
+                    Sil
+                  </Typography>
                 </Box>
                 
                 {/* Üye kartı */}
@@ -135,117 +166,50 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
                     position: "relative",
                     zIndex: 1,
                     transition: "transform 0.3s ease",
-                    transform: swipedMember === member._id ? "translateX(-80px)" : "translateX(0)",
+                    transform: swipedMember === (member.user?._id || member._id) ? "translateX(-80px)" : "translateX(0)",
                     cursor: "grab",
                     "&:active": {
                       cursor: "grabbing"
                     }
                   }}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    const startX = e.touches[0].clientX;
-                    
-                    const handleTouchMove = (e) => {
-                      e.preventDefault();
-                      const currentX = e.touches[0].clientX;
-                      const deltaX = startX - currentX;
-                      
-                      if (deltaX > 30) {
-                        onSwipeStart(member._id);
-                      } else if (deltaX < -10) {
-                        onSwipeStart(null);
-                      }
-                    };
-                    
-                    const handleTouchEnd = (e) => {
-                      e.preventDefault();
-                      document.removeEventListener('touchmove', handleTouchMove, { passive: false });
-                      document.removeEventListener('touchend', handleTouchEnd, { passive: false });
-                    };
-                    
-                    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-                    document.addEventListener('touchend', handleTouchEnd, { passive: false });
-                  }}
-                  onMouseDown={(e) => {
-                    const startX = e.clientX;
-                    
-                    const handleMouseMove = (e) => {
-                      const currentX = e.clientX;
-                      const deltaX = startX - currentX;
-                      
-                      if (deltaX > 30) {
-                        onSwipeStart(member._id);
-                      } else if (deltaX < -10) {
-                        onSwipeStart(null);
-                      }
-                    };
-                    
-                    const handleMouseUp = () => {
-                      document.removeEventListener('mousemove', handleMouseMove);
-                      document.removeEventListener('mouseup', handleMouseUp);
-                    };
-                    
-                    document.addEventListener('mousemove', handleMouseMove);
-                    document.addEventListener('mouseup', handleMouseUp);
-                  }}
+                  onTouchStart={(e) => onSwipeStart(e, member.user?._id || member._id)}
+                  onMouseDown={(e) => onSwipeStart(e, member.user?._id || member._id)}
                   onClick={() => {
-                    if (swipedMember === member._id) {
-                      onRemoveMember(member._id);
-                    } else {
-                      onSwipeStart(null);
+                    // Eğer zaten kaydırılmışsa kaydırmayı kapat
+                    if (swipedMember === (member.user?._id || member._id)) {
+                      onSwipeStart({ type: 'mousedown', clientX: 0 }, null);
                     }
                   }}
                 >
                   <Avatar 
-                    src={member.profileImage}
+                    src={member.user?.profileImage || member.profileImage}
                     sx={{ width: 45, height: 45 }}
                   >
-                    {member.fullname?.[0]}
+                    {(member.user?.fullname || member.fullname)?.[0]}
                   </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" sx={{ fontWeight: "500" }}>
-                      {member.fullname}
+                      {member.user?.fullname || member.fullname}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Takım Üyesi
+                      {member.user?.title || "Takım Üyesi"}
                     </Typography>
+                    {member.user?.department && (
+                      <Typography variant="caption" sx={{ color: "#666", fontSize: "0.75rem" }}>
+                        {member.user.department}
+                      </Typography>
+                    )}
                   </Box>
                   
-                  {/* Kaydırma ipucu veya test butonu */}
-                  {swipedMember !== member._id ? (
-                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
-                      <Typography variant="caption" sx={{ 
-                        color: "#999", 
-                        fontSize: "0.7rem",
-                        fontStyle: "italic"
-                      }}>
-                        ← Kaydır
-                      </Typography>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSwipeStart(member._id);
-                        }}
-                        sx={{
-                          fontSize: "0.7rem",
-                          py: 0.5,
-                          px: 1,
-                          minWidth: "auto"
-                        }}
-                      >
-                        Test
-                      </Button>
-                    </Box>
-                  ) : (
+                  {/* Kaydırma ipucu */}
+                  {swipedMember !== (member.user?._id || member._id) && (
                     <Typography variant="caption" sx={{ 
-                      color: "#dc2626", 
-                      fontSize: "0.8rem",
-                      fontWeight: "600"
+                      color: "#666", 
+                      fontSize: "0.7rem", 
+                      opacity: 0.7,
+                      ml: "auto"
                     }}>
-                      Sil
+                      ← Kaydır
                     </Typography>
                   )}
                 </Box>

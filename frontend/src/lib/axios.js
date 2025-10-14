@@ -10,9 +10,13 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token;
+    console.log("🔄 Axios interceptor - Token:", token ? "Var" : "Yok");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("✅ Authorization header eklendi");
     }
+    console.log("📤 Request URL:", config.url);
+    console.log("📤 Request method:", config.method);
     return config;
   },
   (error) => Promise.reject(error)

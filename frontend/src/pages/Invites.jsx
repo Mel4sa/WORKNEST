@@ -71,11 +71,24 @@ export default function InvitesPage() {
 
   const handleAccept = async (inviteId) => {
     try {
-      await axiosInstance.patch(`/invites/respond/${inviteId}`, 
-        { action: "accepted" },
-        { headers: { Authorization: `Bearer ${token}` }}
+      console.log("✅ Davet kabul ediliyor:", inviteId);
+      console.log("🔑 Token:", token ? "var" : "yok");
+      console.log("🌐 URL:", `http://localhost:3000/api/invites/respond/${inviteId}`);
+      
+      const requestData = { action: "accepted" };
+      console.log("📤 Gönderilen veri:", requestData);
+      
+      const response = await axiosInstance.patch(`/invites/respond/${inviteId}`, 
+        requestData,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
       
+      console.log("✅ Kabul edildi:", response.data);
       setMessage("Davet kabul edildi!");
       setMessageOpen(true);
       fetchInvites(); // Listeyi yenile
@@ -88,11 +101,13 @@ export default function InvitesPage() {
 
   const handleDecline = async (inviteId) => {
     try {
-      await axiosInstance.patch(`/invites/respond/${inviteId}`, 
+      console.log("❌ Davet reddediliyor:", inviteId);
+      const response = await axiosInstance.patch(`/invites/respond/${inviteId}`, 
         { action: "declined" },
         { headers: { Authorization: `Bearer ${token}` }}
       );
       
+      console.log("❌ Reddedildi:", response.data);
       setMessage("Davet reddedildi!");
       setMessageOpen(true);
       fetchInvites(); 

@@ -99,7 +99,7 @@ function UserProfile() {
       console.error("Davet gönderilemedi:", err);
       setSnackbar({
         open: true,
-        message: "Davet gönderilemedi. Tekrar deneyin.",
+        message: err.response?.data?.message || "Davet gönderilemedi. Tekrar deneyin.",
         severity: "error"
       });
     }
@@ -433,11 +433,11 @@ function UserProfile() {
         <DialogContent sx={{ p: 3 }}>
           <Box sx={{ mt: 1 }}>
             <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel sx={{ color: "#6b0f1a" }}>Proje Seçin</InputLabel>
+              <InputLabel sx={{ color: "#6b0f1a" }}>Projeleriniz</InputLabel>
               <Select
                 value={selectedProject}
                 onChange={(e) => setSelectedProject(e.target.value)}
-                label="Proje Seçin"
+                label="Projeleriniz"
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
@@ -452,26 +452,35 @@ function UserProfile() {
                   }
                 }}
               >
-                {projects.length === 0 ? (
-                  <MenuItem disabled>
-                    <Typography color="textSecondary">
-                      Henüz proje oluşturmadınız
-                    </Typography>
-                  </MenuItem>
-                ) : (
-                  projects.map((project) => (
-                    <MenuItem key={project._id} value={project._id}>
-                      <Box>
-                        <Typography variant="body1" fontWeight="500">
-                          {project.title}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {project.description?.substring(0, 50)}...
-                        </Typography>
-                      </Box>
+                {(() => {
+                  // Sadece proje lideri olduğu ve aktif projeleri filtrele
+                  const ownedProjects = projects.filter(project => 
+                    project.owner?._id === currentUser?._id && 
+                    project.status !== 'cancelled' && 
+                    project.status !== 'completed'
+                  );
+                  
+                  return ownedProjects.length === 0 ? (
+                    <MenuItem disabled>
+                      <Typography color="textSecondary">
+                        Henüz lider olduğunuz proje yok
+                      </Typography>
                     </MenuItem>
-                  ))
-                )}
+                  ) : (
+                    ownedProjects.map((project) => (
+                      <MenuItem key={project._id} value={project._id}>
+                        <Box>
+                          <Typography variant="body1" fontWeight="500">
+                            {project.title}
+                          </Typography>
+                          <Typography variant="caption" color="textSecondary">
+                            {project.description?.substring(0, 50)}...
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                    ))
+                  );
+                })()}
               </Select>
             </FormControl>
             
@@ -520,7 +529,7 @@ function UserProfile() {
           <Button 
             onClick={handleSendInvite}
             variant="contained"
-            disabled={!selectedProject}
+            disabled={!selectedProject || projects.find(p => p._id === selectedProject)?.status === 'cancelled' || projects.find(p => p._id === selectedProject)?.status === 'completed'}
             sx={{
               background: "#6b0f1a",
               "&:hover": {

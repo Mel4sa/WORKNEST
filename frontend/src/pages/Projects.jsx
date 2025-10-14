@@ -256,7 +256,14 @@ function Projects() {
                     color: "#6b7280",
                     fontSize: { xs: "0.8rem", md: "0.875rem" }
                   }}>
-                    {project.members?.length || 0}/{project.maxMembers} üye
+                    {(() => {
+                      const regularMembers = project.members?.filter(member => {
+                        const memberUserId = member.user?._id || member._id;
+                        return memberUserId !== project.owner?._id;
+                      }).length || 0;
+                      const totalMembers = regularMembers + 1; // +1 proje lideri için
+                      return `${totalMembers} üye`;
+                    })()}
                   </Typography>
                 </Box>
               </Box>

@@ -24,8 +24,8 @@ export const getAllProjects = async (req, res) => {
     }
 
     const projects = await Project.find(filter)
-      .populate('owner', 'fullname email profileImage')
-      .populate('members.user', 'fullname email profileImage')
+      .populate('owner', 'fullname email profileImage title department university')
+      .populate('members.user', 'fullname email profileImage title department university bio skills')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -72,8 +72,8 @@ export const getProjectById = async (req, res) => {
     const { id } = req.params;
     
     const project = await Project.findOne({ _id: id, isActive: true })
-      .populate('owner', 'fullname email profileImage')
-      .populate('members.user', 'fullname email profileImage');
+      .populate('owner', 'fullname email profileImage title department university')
+      .populate('members.user', 'fullname email profileImage title department university bio skills');
 
     if (!project) {
       return res.status(404).json({ message: "Proje bulunamadı" });
@@ -347,7 +347,24 @@ export const removeMember = async (req, res) => {
     const { id, userId } = req.params;
     const requesterId = req.user._id;
 
+    console.log("🗑️  Üye silme isteği:", { 
+      projectId: id, 
+      userIdToRemove: userId, 
+      requesterId: requesterId.toString(),
+      params: req.params,
+      user: req.user ? req.user._id.toString() : 'No user'
+    });
+
+    // Proje var mı kontrol et
+    console.log("🔍 Proje aranıyor, ID:", id);
     const project = await Project.findOne({ _id: id, isActive: true });
+    console.log("📋 Proje bulundu mu:", project ? "Evet" : "Hayır");
+    
+    if (project) {
+      console.log("👤 Proje sahibi:", project.owner.toString());
+      console.log("🔒 İstek yapan:", requesterId.toString());
+      console.log("🤝 Sahiplik kontrolü:", project.owner.toString() === requesterId.toString());
+    }
 
     if (!project) {
       return res.status(404).json({ message: "Proje bulunamadı" });
@@ -364,21 +381,31 @@ export const removeMember = async (req, res) => {
     }
 
     // Üye var mı kontrol et
+    console.log("👥 Mevcut üyeler:", project.members.map(m => ({ 
+      id: m.user.toString(), 
+      _id: m._id 
+    })));
+    
     const memberIndex = project.members.findIndex(
       member => member.user.toString() === userId
     );
 
+    console.log("🔍 Aranan üye index:", memberIndex);
+
     if (memberIndex === -1) {
+      console.log("❌ Üye bulunamadı");
       return res.status(400).json({ message: "Bu kullanıcı projenin üyesi değil" });
     }
 
     // Üyeyi çıkar
+    console.log("🗑️  Üye çıkarılıyor:", project.members[memberIndex]);
     project.members.splice(memberIndex, 1);
     await project.save();
+    console.log("✅ Üye başarıyla çıkarıldı");
 
     const updatedProject = await Project.findById(id)
-      .populate('owner', 'fullname email profileImage')
-      .populate('members.user', 'fullname email profileImage');
+      .populate('owner', 'fullname email profileImage title department university')
+      .populate('members.user', 'fullname email profileImage title department university bio skills');
 
     res.status(200).json({ 
       message: "Üye başarıyla çıkarıldı",

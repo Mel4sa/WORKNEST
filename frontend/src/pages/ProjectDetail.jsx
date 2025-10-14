@@ -36,6 +36,7 @@ function ProjectDetail() {
   });
   const [editStatusData, setEditStatusData] = useState("");
   const [swipedMember, setSwipedMember] = useState(null);
+
   const animationRef = useRef();
 
   // Backend'den proje detayını getir
@@ -45,25 +46,12 @@ function ProjectDetail() {
       const response = await axiosInstance.get(`/projects/${id}`);
       console.log("Project API response:", response.data); // Debug için
       
-      // Geçici olarak bir takım üyesi ekleyelim
-      const projectData = response.data;
-      if (!projectData.members || projectData.members.length === 0) {
-        projectData.members = [
-          {
-            _id: "temp_member_1",
-            fullname: "Ahmet Yılmaz",
-            profileImage: null,
-            email: "ahmet@example.com"
-          }
-        ];
-      }
-      
-      setProject(projectData); // Backend'den direkt project objesi geliyor
+      setProject(response.data); // Backend'den direkt project objesi geliyor
       setEditFormData({
-        title: projectData.title || "",
-        description: projectData.description || ""
+        title: response.data.title || "",
+        description: response.data.description || ""
       });
-      setEditStatusData(projectData.status || "planned");
+      setEditStatusData(response.data.status || "planned");
     } catch (err) {
       console.error("Proje detayı yüklenemedi:", err);
       setError("Proje detayı yüklenemedi. Lütfen tekrar deneyin.");
@@ -73,30 +61,93 @@ function ProjectDetail() {
   }, [id]);
 
   // Üye silme fonksiyonu
+  // Swipe işlemini başlat
+  const handleSwipeStart = (e, memberId) => {
+    // Eğer memberId null ise swipe'ı kapat
+    if (memberId === null) {
+      setSwipedMember(null);
+      return;
+    }
+    
+    if (e.type === 'touchstart') {
+      const startX = e.touches[0].clientX;
+      
+      const handleTouchMove = (e) => {
+        const currentX = e.touches[0].clientX;
+        const deltaX = startX - currentX;
+        
+        if (deltaX > 30) {
+          setSwipedMember(memberId);
+        } else if (deltaX < -30) {
+          setSwipedMember(null);
+        }
+      };
+      
+      const handleTouchEnd = () => {
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      };
+      
+      document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('touchend', handleTouchEnd);
+    } else if (e.type === 'mousedown') {
+      const startX = e.clientX;
+      
+      const handleMouseMove = (e) => {
+        const currentX = e.clientX;
+        const deltaX = startX - currentX;
+        
+        if (deltaX > 30) {
+          setSwipedMember(memberId);
+        } else if (deltaX < -30) {
+          setSwipedMember(null);
+        }
+      };
+      
+      const handleMouseUp = () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+      
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+  };
+
   const handleRemoveMember = async (memberId) => {
     try {
-      // Eğer geçici üye ise (temp_member ile başlıyorsa) API çağrısı yapmadan sil
-      if (memberId.startsWith('temp_member')) {
-        setProject(prev => ({
-          ...prev,
-          members: prev.members.filter(member => member._id !== memberId)
-        }));
-        setSwipedMember(null);
-        setSuccessSnackbar({ open: true, message: "Üye başarıyla projeden silindi!" });
-        return;
-      }
+      console.log("🗑️  Üye silme işlemi başlıyor:", { 
+        memberId, 
+        projectId: id,
+        currentUser: user?._id 
+      });
       
-      // Gerçek üyeler için API çağrısı yap
-      await axiosInstance.delete(`/projects/${id}/members/${memberId}`);
+      // API çağrısı yap
+      console.log("📡 API çağrısı yapılıyor:", `/projects/${id}/members/${memberId}`);
+      console.log("📡 Full URL:", `${axiosInstance.defaults.baseURL}/projects/${id}/members/${memberId}`);
+      
+      // Önce UI'dan hemen kaldır
       setProject(prev => ({
         ...prev,
-        members: prev.members.filter(member => member._id !== memberId)
+        members: prev.members.filter(member => {
+          const memberUserId = member.user?._id || member._id;
+          console.log("🔍 Karşılaştırma:", { memberUserId, memberId });
+          return memberUserId !== memberId;
+        })
       }));
-      setSwipedMember(null);
+      
+      const response = await axiosInstance.delete(`/projects/${id}/members/${memberId}`);
+      console.log("✅ API yanıtı:", response.data);
       setSuccessSnackbar({ open: true, message: "Üye başarıyla projeden silindi!" });
+      setSwipedMember(null); // Swipe durumunu sıfırla
     } catch (err) {
       console.error("Üye silinemedi:", err);
-      setError("Üye silinemedi. Lütfen tekrar deneyin.");
+      console.error("Error response:", err.response?.data);
+      
+      // Hata durumunda projeyi yeniden yükle
+      fetchProject();
+      
+      setError(err.response?.data?.message || "Üye silinemedi. Lütfen tekrar deneyin.");
     }
   };
 
@@ -313,8 +364,9 @@ function ProjectDetail() {
         <Box sx={{ flex: 1, width: "100%" }}>
           <TeamMembersList
             project={project}
+
             swipedMember={swipedMember}
-            onSwipeStart={setSwipedMember}
+            onSwipeStart={handleSwipeStart}
             onRemoveMember={handleRemoveMember}
             currentUser={user}
             onCancelProject={() => setCancelDialogOpen(true)}
