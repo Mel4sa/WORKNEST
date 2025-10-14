@@ -34,13 +34,14 @@ function UserProfile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState([]); // Current user'ın projeleri (davet için)
+  const [userProjects, setUserProjects] = useState([]); // Görüntülenen kullanıcının projeleri
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState("");
   const [inviteMessage, setInviteMessage] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Kullanıcının projelerini getir
+  // Current user'ın projelerini getir (davet için)
   const fetchUserProjects = useCallback(async () => {
     try {
       const response = await axios.get("/projects/my-projects");
@@ -49,6 +50,28 @@ function UserProfile() {
       console.error("Projeler yüklenemedi:", err);
     }
   }, []);
+
+  // Görüntülenen kullanıcının projelerini getir
+  const fetchDisplayedUserProjects = useCallback(async () => {
+    try {
+      // Tüm projeleri getir ve bu kullanıcının üyesi olduğu projeleri filtrele
+      const response = await axios.get("/projects");
+      const allProjects = response.data.projects || [];
+      
+      // Kullanıcının sahip olduğu veya üyesi olduğu projeler
+      const filteredProjects = allProjects.filter(project => {
+        const isOwner = project.owner?._id === userId;
+        const isMember = project.members?.some(member => 
+          (member.user?._id || member._id) === userId
+        );
+        return isOwner || isMember;
+      });
+      
+      setUserProjects(filteredProjects);
+    } catch (err) {
+      console.error("Kullanıcı projeleri yüklenemedi:", err);
+    }
+  }, [userId]);
 
   const fetchUserProfile = useCallback(async () => {
     try {
@@ -67,8 +90,9 @@ function UserProfile() {
     if (userId) {
       fetchUserProfile();
       fetchUserProjects();
+      fetchDisplayedUserProjects();
     }
-  }, [userId, fetchUserProfile, fetchUserProjects]);
+  }, [userId, fetchUserProfile, fetchUserProjects, fetchDisplayedUserProjects]);
 
   // Davet gönderme fonksiyonu
   const handleSendInvite = async () => {
@@ -349,6 +373,53 @@ function UserProfile() {
               </Stack>
             </Box>
           )}
+
+          {/* Projeler */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ 
+              fontWeight: "600", 
+              color: "#2c3e50",
+              mb: 2
+            }}>
+              Projeler ({userProjects.length})
+            </Typography>
+            
+            {userProjects.length === 0 ? (
+              <Typography variant="body2" sx={{ color: "#666", fontStyle: "italic" }}>
+                Henüz hiçbir projeye katılmamış.
+              </Typography>
+            ) : (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                {userProjects.map((project) => (
+                  <Box
+                    key={project._id}
+                    sx={{
+                      p: 2,
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        borderColor: "#6b0f1a",
+                        backgroundColor: "rgba(107, 15, 26, 0.02)"
+                      }
+                    }}
+                    onClick={() => navigate(`/projects/${project._id}`)}
+                  >
+                    <Typography variant="body1" sx={{ 
+                      fontWeight: "500", 
+                      color: "#1e293b",
+                      "&:hover": {
+                        color: "#6b0f1a"
+                      }
+                    }}>
+                      {project.title}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
 
           {/* Sosyal Medya Linkleri */}
           {(user.github || user.linkedin) && (
