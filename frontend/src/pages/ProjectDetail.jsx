@@ -383,6 +383,7 @@ function ProjectDetail() {
         onDeleteDialogClose={() => setDeleteDialogOpen(false)}
         onConfirmCancel={handleCancelProject}
         onConfirmDelete={handleDeleteProject}
+        project={project}
       />
 
       {/* Success Snackbar */}

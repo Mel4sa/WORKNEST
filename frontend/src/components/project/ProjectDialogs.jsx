@@ -41,7 +41,7 @@ function ProjectDialogs({
         
         <DialogContent sx={{ textAlign: "center", py: 3 }}>
           <Typography variant="body1" sx={{ mb: 2, color: "#666", lineHeight: 1.6 }}>
-            <strong>"{project?.title}"</strong> adlı proje kalıcı olarak silinecek.
+            <strong>{project?.title}</strong> adlı proje kalıcı olarak silinecek.
           </Typography>
           <Typography variant="body2" sx={{ color: "#dc2626", fontWeight: "500" }}>
             Bu işlem geri alınamaz!

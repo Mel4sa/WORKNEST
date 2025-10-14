@@ -61,7 +61,8 @@ export const getReceivedInvites = async (req, res) => {
     const invites = await Invitation.find({ receiver: req.user._id })
       .populate("sender", "fullname profileImage")
       .populate("project", "title")
-      .select("sender receiver project status message createdAt");
+      .select("sender receiver project status message createdAt")
+      .sort({ createdAt: -1 }); // En yeni davetler en üstte
 
     console.log("📋 Bulunan davetler:", invites.length, "adet");
     console.log("📋 Davet detayları:", invites);
@@ -89,7 +90,8 @@ export const getSentInvites = async (req, res) => {
     const invites = await Invitation.find({ sender: req.user._id })
       .populate("receiver", "fullname profileImage")
       .populate("project", "title")
-      .select("sender receiver project status message createdAt");
+      .select("sender receiver project status message createdAt")
+      .sort({ createdAt: -1 }); // En yeni davetler en üstte
 
     console.log("📤 Gönderilen davetler:", invites.length, "adet");
     invites.forEach(invite => {
