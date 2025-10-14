@@ -3,18 +3,13 @@ import User from "../models/user.model.js";
 
 export const protectRoute = async (req, res, next) => {
   try {
-    console.log("🔐 Auth middleware çalışıyor");
-    console.log("📋 Headers:", req.headers.authorization ? "Token var" : "Token yok");
-    
     let token;
 
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
       token = req.headers.authorization.split(" ")[1];
-      console.log("✅ Token alındı:", token ? "Var" : "Yok");
     }
 
     if (!token) {
-      console.log("❌ Token bulunamadı");
       return res.status(401).json({ message: "Token bulunamadı. Yetkisiz erişim." });
     }
 

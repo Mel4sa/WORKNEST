@@ -254,10 +254,7 @@ export const searchUsers = async (req, res) => {
     }
 
     const searchTerm = q.trim();
-    console.log("🔍 Arama terimi:", searchTerm);
-
     const searchRegex = new RegExp(searchTerm, 'i');
-
 
     const users = await User.find({
       _id: { $ne: currentUserId }, 
@@ -270,7 +267,6 @@ export const searchUsers = async (req, res) => {
     .limit(15)
     .lean();
 
-    console.log("✅ Arama sonuçları:", users.length, "kullanıcı bulundu");
     res.status(200).json(users);
   } catch (error) {
     console.error("Kullanıcı arama hatası:", error);

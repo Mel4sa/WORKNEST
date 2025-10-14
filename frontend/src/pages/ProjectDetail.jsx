@@ -44,7 +44,6 @@ function ProjectDetail() {
     try {
       setLoading(true);
       const response = await axiosInstance.get(`/projects/${id}`);
-      console.log("Project API response:", response.data); // Debug için
       
       setProject(response.data); // Backend'den direkt project objesi geliyor
       setEditFormData({
@@ -116,33 +115,20 @@ function ProjectDetail() {
 
   const handleRemoveMember = async (memberId) => {
     try {
-      console.log("🗑️  Üye silme işlemi başlıyor:", { 
-        memberId, 
-        projectId: id,
-        currentUser: user?._id 
-      });
-      
-      // API çağrısı yap
-      console.log("📡 API çağrısı yapılıyor:", `/projects/${id}/members/${memberId}`);
-      console.log("📡 Full URL:", `${axiosInstance.defaults.baseURL}/projects/${id}/members/${memberId}`);
-      
       // Önce UI'dan hemen kaldır
       setProject(prev => ({
         ...prev,
         members: prev.members.filter(member => {
           const memberUserId = member.user?._id || member._id;
-          console.log("🔍 Karşılaştırma:", { memberUserId, memberId });
           return memberUserId !== memberId;
         })
       }));
       
-      const response = await axiosInstance.delete(`/projects/${id}/members/${memberId}`);
-      console.log("✅ API yanıtı:", response.data);
+      await axiosInstance.delete(`/projects/${id}/members/${memberId}`);
       setSuccessSnackbar({ open: true, message: "Üye başarıyla projeden silindi!" });
       setSwipedMember(null); // Swipe durumunu sıfırla
     } catch (err) {
       console.error("Üye silinemedi:", err);
-      console.error("Error response:", err.response?.data);
       
       // Hata durumunda projeyi yeniden yükle
       fetchProject();
