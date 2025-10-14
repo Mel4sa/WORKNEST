@@ -27,7 +27,9 @@ const invitationSchema = new mongoose.Schema({
   
   message: {
     type: String,
-    default: 'Projeye katılmaya davet ediliyorsunuz!'
+    default: 'Projeye katılmaya davet ediliyorsunuz!',
+    maxlength: [500, 'Davet mesajı en fazla 500 karakter olabilir'],
+    trim: true
   },
   }, {
   timestamps: true

@@ -10,6 +10,11 @@ export const sendInvite = async (req, res) => {
 
     console.log("🚀 Davet gönderme isteği:", { projectId, receiverId, senderId, message });
 
+    // Mesaj uzunluğu kontrolü
+    if (message && message.length > 100) {
+      return res.status(400).json({ message: "Davet mesajı en fazla 500 karakter olabilir" });
+    }
+
     // Kontroller
     const project = await Project.findById(projectId);
     const receiver = await User.findById(receiverId);

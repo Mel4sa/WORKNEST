@@ -175,9 +175,36 @@ export default function InvitesPage() {
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
-                  <Avatar src={invite.sender?.profileImage} />
+                  <Avatar 
+                    src={invite.sender?.profileImage}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": {
+                        transform: "scale(1.1)",
+                        boxShadow: "0 4px 12px rgba(107, 15, 26, 0.3)"
+                      },
+                      transition: "all 0.2s ease"
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${invite.sender?._id}`);
+                    }}
+                  />
                   <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontWeight: 600 }}>
+                    <Typography 
+                      sx={{ 
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        "&:hover": {
+                          color: "#6b0f1a",
+                          textDecoration: "underline"
+                        }
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/profile/${invite.sender?._id}`);
+                      }}
+                    >
                       {invite.sender?.fullname}
                     </Typography>
                     <Typography color="text.secondary" sx={{ mb: 1 }}>
@@ -257,9 +284,36 @@ export default function InvitesPage() {
               }}
             >
               <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
-                <Avatar src={invite.receiver?.profileImage} />
+                <Avatar 
+                  src={invite.receiver?.profileImage}
+                  sx={{
+                    cursor: "pointer",
+                    "&:hover": {
+                      transform: "scale(1.1)",
+                      boxShadow: "0 4px 12px rgba(107, 15, 26, 0.3)"
+                    },
+                    transition: "all 0.2s ease"
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/profile/${invite.receiver?._id}`);
+                  }}
+                />
                 <Box sx={{ flex: 1 }}>
-                  <Typography sx={{ fontWeight: 600 }}>
+                  <Typography 
+                    sx={{ 
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      "&:hover": {
+                        color: "#6b0f1a",
+                        textDecoration: "underline"
+                      }
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${invite.receiver?._id}`);
+                    }}
+                  >
                     {invite.receiver?.fullname}
                   </Typography>
                   <Typography color="text.secondary" sx={{ mb: 1 }}>

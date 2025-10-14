@@ -237,16 +237,38 @@ function Projects() {
                       sx={{ 
                         width: { xs: 28, md: 32 }, 
                         height: { xs: 28, md: 32 },
-                        border: "2px solid #6b0f1a"
+                        border: "2px solid #6b0f1a",
+                        cursor: "pointer",
+                        "&:hover": {
+                          transform: "scale(1.1)",
+                          boxShadow: "0 4px 12px rgba(107, 15, 26, 0.3)"
+                        },
+                        transition: "all 0.2s ease"
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/profile/${project.owner?._id}`);
                       }}
                     >
                       {project.owner?.fullname?.[0]}
                     </Avatar>
-                    <Typography variant="body2" sx={{ 
-                      color: "#6b7280", 
-                      fontWeight: "500",
-                      fontSize: { xs: "0.8rem", md: "0.875rem" }
-                    }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: "#6b7280", 
+                        fontWeight: "500",
+                        fontSize: { xs: "0.8rem", md: "0.875rem" },
+                        cursor: "pointer",
+                        "&:hover": {
+                          color: "#6b0f1a",
+                          textDecoration: "underline"
+                        }
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/profile/${project.owner?._id}`);
+                      }}
+                    >
                       {project.owner?.fullname}
                     </Typography>
                   </Box>

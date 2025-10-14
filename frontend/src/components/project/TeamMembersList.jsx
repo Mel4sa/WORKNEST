@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -12,6 +13,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 
 function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, currentUser, onCancelProject, onDeleteProject }) {
+  const navigate = useNavigate();
   return (
     <Card sx={{ 
       borderRadius: "20px", 
@@ -88,12 +90,36 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
           }}>
             <Avatar 
               src={project.owner?.profileImage}
-              sx={{ width: 45, height: 45 }}
+              sx={{ 
+                width: 45, 
+                height: 45,
+                cursor: "pointer",
+                "&:hover": {
+                  transform: "scale(1.1)",
+                  boxShadow: "0 4px 12px rgba(107, 15, 26, 0.3)"
+                },
+                transition: "all 0.2s ease"
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/profile/${project.owner?._id}`);
+              }}
             >
               {project.owner?.fullname?.[0]}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="body1" sx={{ fontWeight: "600" }}>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  fontWeight: "600", 
+                  cursor: "pointer",
+                  "&:hover": {
+                    color: "#6b0f1a",
+                    textDecoration: "underline"
+                  }
+                }}
+                onClick={() => navigate(`/profile/${project.owner?._id}`)}
+              >
                 {project.owner?.fullname}
               </Typography>
               <Typography variant="body2" sx={{ color: "#6b0f1a", fontWeight: "500" }}>
@@ -183,12 +209,36 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
                 >
                   <Avatar 
                     src={member.user?.profileImage || member.profileImage}
-                    sx={{ width: 45, height: 45 }}
+                    sx={{ 
+                      width: 45, 
+                      height: 45,
+                      cursor: "pointer",
+                      "&:hover": {
+                        transform: "scale(1.1)",
+                        boxShadow: "0 4px 12px rgba(107, 15, 26, 0.3)"
+                      },
+                      transition: "all 0.2s ease"
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${member.user?._id || member._id}`);
+                    }}
                   >
                     {(member.user?.fullname || member.fullname)?.[0]}
                   </Avatar>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" sx={{ fontWeight: "500" }}>
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        "&:hover": {
+                          color: "#6b0f1a",
+                          textDecoration: "underline"
+                        }
+                      }}
+                      onClick={() => navigate(`/profile/${member.user?._id || member._id}`)}
+                    >
                       {member.user?.fullname || member.fullname}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">

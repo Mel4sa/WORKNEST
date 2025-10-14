@@ -77,7 +77,7 @@ function Navbar() {
     setSearchQuery("");
     setSearchResults([]);
     setSearchOpen(false);
-    navigate(`/user/${selectedUser._id}`);
+    navigate(`/profile/${selectedUser._id}`);
   };
 
   const menuItems = [
@@ -85,7 +85,7 @@ function Navbar() {
     { label: "AI Analyzer", path: "/ai-analyzer" },
     { label: "Projelerim", path: "/projects" },
     { label: "Davetlerim", path: "/invites" },
-    { label: "Profilim", path: "/profile" },
+        { label: "Profilim", path: "/profile" },
   ];
 
   return (

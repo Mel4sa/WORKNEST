@@ -368,12 +368,40 @@ function Home() {
                       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                         <Avatar 
                           src={project.owner?.profileImage}
-                          sx={{ width: 40, height: 40 }}
+                          sx={{ 
+                            width: 40, 
+                            height: 40,
+                            cursor: "pointer",
+                            "&:hover": {
+                              transform: "scale(1.1)",
+                              boxShadow: "0 4px 12px rgba(107, 15, 26, 0.3)"
+                            },
+                            transition: "all 0.2s ease"
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/profile/${project.owner?._id}`);
+                          }}
                         >
                           {project.owner?.fullname?.[0]}
                         </Avatar>
                         <Box>
-                          <Typography variant="body2" sx={{ fontWeight: "600", color: "#1e293b" }}>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              fontWeight: "600", 
+                              color: "#1e293b",
+                              cursor: "pointer",
+                              "&:hover": {
+                                color: "#6b0f1a",
+                                textDecoration: "underline"
+                              }
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/profile/${project.owner?._id}`);
+                            }}
+                          >
                             {project.owner?.fullname}
                           </Typography>
                           <Typography variant="caption" sx={{ color: "#64748b" }}>

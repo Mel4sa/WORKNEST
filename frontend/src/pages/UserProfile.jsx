@@ -490,8 +490,14 @@ function UserProfile() {
               rows={3}
               label="Davet Mesajı (İsteğe bağlı)"
               value={inviteMessage}
-              onChange={(e) => setInviteMessage(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= 500) {
+                  setInviteMessage(e.target.value);
+                }
+              }}
               placeholder="Projeye katılmaya davet ediliyorsunuz!"
+              inputProps={{ maxLength: 100 }}
+              helperText={`${inviteMessage.length}/100 karakter`}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": {
@@ -509,6 +515,10 @@ function UserProfile() {
                   "&.Mui-focused": {
                     color: "#6b0f1a"
                   }
+                },
+                "& .MuiFormHelperText-root": {
+                  color: inviteMessage.length > 75 ? "#d32f2f" : "#666",
+                  textAlign: "right"
                 }
               }}
             />

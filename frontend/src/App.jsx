@@ -56,8 +56,7 @@ function AppRoutes() {
           <Route element={<ProtectedRoute />}>
             <Route path="/home" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/user/:userId" element={<UserProfile />} />
-            <Route path="/profile/:id" element={<Profile />} />
+            <Route path="/profile/:userId" element={<UserProfile />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/create-project" element={<CreateProject />} />
             <Route path="/projects/:id" element={<ProjectDetail />} /> 
