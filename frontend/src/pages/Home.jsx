@@ -359,12 +359,45 @@ function Home() {
                     )}
 
                     {/* Proje Sahibi ve Durum */}
-                    <Box sx={{ 
-                      display: "flex", 
-                      justifyContent: "space-between", 
-                      alignItems: "center",
-                      mt: "auto"
-                    }}>
+                    <Box sx={{ mt: "auto" }}>
+                      {/* Proje Durumu */}
+                      <Box sx={{ 
+                        display: "flex", 
+                        justifyContent: "flex-end", 
+                        mb: 2 
+                      }}>
+                        <Chip
+                          label={
+                            project.status === "completed" ? "Tamamlandı" :
+                            project.status === "ongoing" ? "Devam Ediyor" :
+                            project.status === "planned" ? "Planlanıyor" :
+                            project.status === "cancelled" ? "İptal Edildi" :
+                            project.status === "on_hold" ? "Beklemede" :
+                            "Planlanıyor"
+                          }
+                          size="small"
+                          sx={{
+                            backgroundColor: 
+                              project.status === "completed" ? "#dcfce7" :
+                              project.status === "ongoing" ? "#fef3c7" :
+                              project.status === "planned" ? "#dbeafe" :
+                              project.status === "cancelled" ? "#fecaca" :
+                              project.status === "on_hold" ? "#f3f4f6" :
+                              "#f3f4f6",
+                            color: 
+                              project.status === "completed" ? "#166534" :
+                              project.status === "ongoing" ? "#92400e" :
+                              project.status === "planned" ? "#1e40af" :
+                              project.status === "cancelled" ? "#dc2626" :
+                              project.status === "on_hold" ? "#374151" :
+                              "#374151",
+                            fontWeight: "600",
+                            fontSize: "0.75rem"
+                          }}
+                        />
+                      </Box>
+
+                      {/* Proje Sahibi */}
                       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                         <Avatar 
                           src={project.owner?.profileImage}
@@ -380,12 +413,12 @@ function Home() {
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/profile/${project.owner?._id}`);
+                            navigate(`/user/${project.owner?._id}`);
                           }}
                         >
                           {project.owner?.fullname?.[0]}
                         </Avatar>
-                        <Box>
+                        <Box sx={{ flex: 1 }}>
                           <Typography 
                             variant="body2" 
                             sx={{ 
@@ -399,7 +432,7 @@ function Home() {
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/profile/${project.owner?._id}`);
+                              navigate(`/user/${project.owner?._id}`);
                             }}
                           >
                             {project.owner?.fullname}
@@ -409,36 +442,6 @@ function Home() {
                           </Typography>
                         </Box>
                       </Box>
-
-                      <Chip
-                        label={
-                          project.status === "completed" ? "Tamamlandı" :
-                          project.status === "ongoing" ? "Devam Ediyor" :
-                          project.status === "planned" ? "Planlanıyor" :
-                          project.status === "cancelled" ? "İptal Edildi" :
-                          project.status === "on_hold" ? "Beklemede" :
-                          "Planlanıyor"
-                        }
-                        size="small"
-                        sx={{
-                          backgroundColor: 
-                            project.status === "completed" ? "#dcfce7" :
-                            project.status === "ongoing" ? "#fef3c7" :
-                            project.status === "planned" ? "#dbeafe" :
-                            project.status === "cancelled" ? "#fecaca" :
-                            project.status === "on_hold" ? "#f3f4f6" :
-                            "#f3f4f6",
-                          color: 
-                            project.status === "completed" ? "#166534" :
-                            project.status === "ongoing" ? "#92400e" :
-                            project.status === "planned" ? "#1e40af" :
-                            project.status === "cancelled" ? "#dc2626" :
-                            project.status === "on_hold" ? "#374151" :
-                            "#374151",
-                          fontWeight: "600",
-                          fontSize: "0.75rem"
-                        }}
-                      />
                     </Box>
                   </CardContent>
                 </Card>

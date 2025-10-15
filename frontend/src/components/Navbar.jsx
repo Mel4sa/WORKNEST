@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -18,9 +18,17 @@ import {
   Paper,
   Popper,
   CircularProgress,
+  Badge,
+  Menu,
+  MenuItem,
+  Divider,
+  ListItemIcon,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import MarkEmailReadIcon from "@mui/icons-material/MarkEmailRead";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 import axiosInstance from "../lib/axios";
@@ -34,11 +42,86 @@ function Navbar() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  
+  // Bildirim state'leri
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationAnchor, setNotificationAnchor] = useState(null);
+  const notificationOpen = Boolean(notificationAnchor);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
+
+  // Bildirim fonksiyonları
+  const fetchNotifications = async () => {
+    try {
+      const response = await axiosInstance.get("/notifications", {
+        params: { limit: 10 }
+      });
+      setNotifications(response.data.notifications);
+      setUnreadCount(response.data.unreadCount);
+    } catch (error) {
+      console.error("Bildirimler getirilemedi:", error);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await axiosInstance.get("/notifications/unread-count");
+      setUnreadCount(response.data.unreadCount);
+    } catch (error) {
+      console.error("Okunmamış bildirim sayısı getirilemedi:", error);
+    }
+  };
+
+  const handleNotificationClick = (event) => {
+    setNotificationAnchor(event.currentTarget);
+    if (notifications.length === 0) {
+      fetchNotifications();
+    }
+  };
+
+  const handleNotificationClose = () => {
+    setNotificationAnchor(null);
+  };
+
+  const markAsRead = async (notificationId) => {
+    try {
+      await axiosInstance.patch(`/notifications/${notificationId}/read`);
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif._id === notificationId 
+            ? { ...notif, isRead: true }
+            : notif
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Bildirim okundu olarak işaretlenemedi:", error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await axiosInstance.patch("/notifications/mark-all-read");
+      setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Tüm bildirimler okundu olarak işaretlenemedi:", error);
+    }
+  };
+
+  // Sayfa yüklendiğinde okunmamış bildirim sayısını getir
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+      // Her 30 saniyede bir okunmamış sayıyı güncelle
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   // Kişi arama fonksiyonu
   const searchUsers = async (query) => {
@@ -158,6 +241,40 @@ function Navbar() {
           </Typography>
         </Link>
 
+        {/* Bildirim İkonu - Logo ile Menü Arasında */}
+        <Box sx={{ 
+          display: { xs: "none", md: "flex" }, 
+          alignItems: "center",
+          ml: { md: 2, lg: 3 }
+        }}>
+          <IconButton
+            onClick={handleNotificationClick}
+            sx={{
+              color: "#000",
+              "&:hover": {
+                backgroundColor: "rgba(0,0,0,0.05)",
+                transform: "scale(1.1)",
+                transition: "all 0.2s ease-in-out",
+              },
+            }}
+          >
+            <Badge 
+              badgeContent={unreadCount} 
+              color="error"
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "#6b0f1a",
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "0.7rem"
+                }
+              }}
+            >
+              <NotificationsIcon sx={{ fontSize: "1.4rem" }} />
+            </Badge>
+          </IconButton>
+        </Box>
+
         {/* Büyük ekran menü */}
         <Box sx={{ 
           display: { xs: "none", md: "flex" }, 
@@ -165,7 +282,7 @@ function Navbar() {
           alignItems: "center",
           flex: 1,
           justifyContent: "center",
-          mx: { md: 1, lg: 2 }
+          ml: { md: 2, lg: 3 }
         }}>
           {/* Menü butonları - Profilim hariç */}
           {menuItems.filter(item => item.label !== "Profilim").map((item) => (
@@ -543,6 +660,154 @@ function Navbar() {
             )}
           </Box>
         </Drawer>
+
+        {/* Bildirim Menüsü */}
+        <Menu
+          anchorEl={notificationAnchor}
+          open={notificationOpen}
+          onClose={handleNotificationClose}
+          PaperProps={{
+            sx: {
+              width: 400,
+              maxHeight: 500,
+              mt: 1,
+              borderRadius: 2,
+              boxShadow: "0 8px 32px rgba(0,0,0,0.12)"
+            }
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          {/* Başlık */}
+          <Box sx={{ p: 2, borderBottom: "1px solid #e0e0e0" }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="h6" sx={{ fontWeight: "600", color: "#333" }}>
+                Bildirimler
+              </Typography>
+              {unreadCount > 0 && (
+                <Button
+                  size="small"
+                  onClick={markAllAsRead}
+                  sx={{
+                    color: "#6b0f1a",
+                    fontSize: "0.75rem",
+                    "&:hover": {
+                      backgroundColor: "rgba(107, 15, 26, 0.04)"
+                    }
+                  }}
+                >
+                  Tümünü Okundu İşaretle
+                </Button>
+              )}
+            </Box>
+          </Box>
+
+          {/* Bildirimler */}
+          {notifications.length === 0 ? (
+            <Box sx={{ p: 3, textAlign: "center" }}>
+              <Typography color="text.secondary">
+                Henüz bildiriminiz yok
+              </Typography>
+            </Box>
+          ) : (
+            notifications.map((notification) => (
+              <MenuItem
+                key={notification._id}
+                onClick={() => {
+                  if (!notification.isRead) {
+                    markAsRead(notification._id);
+                  }
+                }}
+                sx={{
+                  p: 2,
+                  borderBottom: "1px solid #f5f5f5",
+                  backgroundColor: notification.isRead ? "transparent" : "#f8f9ff",
+                  "&:hover": {
+                    backgroundColor: notification.isRead ? "#f5f5f5" : "#f0f2ff"
+                  },
+                  alignItems: "flex-start",
+                  whiteSpace: "normal",
+                  maxWidth: "100%"
+                }}
+              >
+                <Box sx={{ width: "100%" }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        fontWeight: notification.isRead ? "500" : "600",
+                        color: notification.isRead ? "#666" : "#333",
+                        flex: 1
+                      }}
+                    >
+                      {notification.title}
+                    </Typography>
+                    {!notification.isRead && (
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          backgroundColor: "#6b0f1a",
+                          borderRadius: "50%",
+                          ml: 1,
+                          mt: 0.5,
+                          flexShrink: 0
+                        }}
+                      />
+                    )}
+                  </Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "#666",
+                      lineHeight: 1.4,
+                      mb: 1
+                    }}
+                  >
+                    {notification.message}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: "#999",
+                      fontSize: "0.75rem"
+                    }}
+                  >
+                    {new Date(notification.createdAt).toLocaleDateString('tr-TR', {
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))
+          )}
+
+          {/* Alt kısım */}
+          {notifications.length > 0 && (
+            <>
+              <Divider />
+              <Box sx={{ p: 1, textAlign: "center" }}>
+                <Button
+                  size="small"
+                  component={Link}
+                  to="/invites"
+                  onClick={handleNotificationClose}
+                  sx={{
+                    color: "#6b0f1a",
+                    "&:hover": {
+                      backgroundColor: "rgba(107, 15, 26, 0.04)"
+                    }
+                  }}
+                >
+                  Tüm Bildirimleri Gör
+                </Button>
+              </Box>
+            </>
+          )}
+        </Menu>
       </Toolbar>
     </AppBar>
   );

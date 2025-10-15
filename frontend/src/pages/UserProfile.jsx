@@ -81,12 +81,12 @@ function UserProfile() {
         message: inviteMessage || "Projeye katılmaya davet ediliyorsunuz!"
       };
       
-      console.log("🚀 Gönderilen davet verisi:", inviteData);
-      console.log("📝 inviteMessage state:", inviteMessage);
-      console.log("📝 inviteMessage length:", inviteMessage?.length);
+      console.log(" Gönderilen davet verisi:", inviteData);
+      console.log(" inviteMessage state:", inviteMessage);
+      console.log(" inviteMessage length:", inviteMessage?.length);
       
       const response = await axios.post("/invites/send", inviteData);
-      console.log("✅ Sunucu yanıtı:", response.data);
+      console.log(" Sunucu yanıtı:", response.data);
       
       setSnackbar({
         open: true,
@@ -433,7 +433,7 @@ function UserProfile() {
           </Typography>
         </DialogTitle>
         <DialogContent sx={{ p: 3 }}>
-          <Box sx={{ mt: 1 }}>
+          <Box sx={{ mt: 3 }}>
             <FormControl fullWidth sx={{ mb: 3 }}>
               <InputLabel sx={{ color: "#6b0f1a" }}>Projeleriniz</InputLabel>
               <Select
@@ -486,18 +486,19 @@ function UserProfile() {
               </Select>
             </FormControl>
             
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              label="Davet Mesajı (İsteğe bağlı)"
-              value={inviteMessage}
-              onChange={(e) => {
-                if (e.target.value.length <= 500) {
-                  setInviteMessage(e.target.value);
-                }
-              }}
-              placeholder="Projeye katılmaya davet ediliyorsunuz!"
+            <Box sx={{ mt: 2 }}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Davet Mesajı (İsteğe bağlı)"
+                value={inviteMessage}
+                onChange={(e) => {
+                  if (e.target.value.length <= 500) {
+                    setInviteMessage(e.target.value);
+                  }
+                }}
+                placeholder="Projeye katılmaya davet ediliyorsunuz!"
               inputProps={{ maxLength: 100 }}
               helperText={`${inviteMessage.length}/100 karakter`}
               sx={{
@@ -523,7 +524,8 @@ function UserProfile() {
                   textAlign: "right"
                 }
               }}
-            />
+              />
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
@@ -562,8 +564,20 @@ function UserProfile() {
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        message={snackbar.message}
-      />
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ 
+            width: '100%',
+            fontSize: '1rem',
+            fontWeight: '500'
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

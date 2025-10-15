@@ -1,6 +1,7 @@
 import Invitation from "../models/invitation.model.js";
 import User from "../models/user.model.js";
 import Project from "../models/project.model.js";
+import { createNotification } from "./notification.controller.js";
 
 // Davet gönder
 export const sendInvite = async (req, res) => {
@@ -43,6 +44,17 @@ export const sendInvite = async (req, res) => {
       receiver: receiverId,
       status: "pending", // pending, accepted, declined
       message: message || "Projeye katılmaya davet ediliyorsunuz!"
+    });
+
+    // Alıcıya bildirim gönder
+    await createNotification({
+      userId: receiverId,
+      type: 'invite_sent',
+      title: 'Yeni Proje Daveti',
+      message: `${req.user.fullname} sizi "${project.title}" projesine davet etti`,
+      relatedProject: projectId,
+      relatedUser: senderId,
+      relatedInvite: invite._id
     });
 
     console.log("✅ Davet oluşturuldu:", invite);
@@ -207,6 +219,23 @@ export const respondInvite = async (req, res) => {
         });
       }
     }
+
+    // Gönderene bildirim gönder
+    const notificationType = action === "accepted" ? 'invite_accepted' : 'invite_declined';
+    const notificationTitle = action === "accepted" ? 'Davet Kabul Edildi' : 'Davet Reddedildi';
+    const notificationMessage = action === "accepted" 
+      ? `${req.user.fullname} "${invite.project.title}" projesine katılma davetinizi kabul etti`
+      : `${req.user.fullname} "${invite.project.title}" projesine katılma davetinizi reddetti`;
+
+    await createNotification({
+      userId: invite.sender,
+      type: notificationType,
+      title: notificationTitle,
+      message: notificationMessage,
+      relatedProject: invite.project._id,
+      relatedUser: req.user._id,
+      relatedInvite: invite._id
+    });
 
     console.log(`✅ Davet durumu güncellendi: ${oldStatus} → ${action}`);
     res.json({ 
