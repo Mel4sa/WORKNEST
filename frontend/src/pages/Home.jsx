@@ -89,7 +89,7 @@ function Home() {
       backgroundColor: "#f8fafc",
       py: { xs: 3, md: 5 }
     }}>
-      <Box sx={{ maxWidth: "1600px", mx: "auto", px: 3 }}>
+      <Box sx={{ maxWidth: "1200px", mx: "auto", px: { xs: 2, sm: 3, md: 4 } }}>
         {/* Hero Section */}
         <Box sx={{ 
           textAlign: "center", 
@@ -272,9 +272,18 @@ function Home() {
               </Box>
             )}
             
-            <Grid container spacing={2}>
+            <Box sx={{ 
+              display: "grid", 
+              gridTemplateColumns: { 
+                xs: "1fr", 
+                sm: "repeat(2, 1fr)", 
+                md: "repeat(4, 1fr)" 
+              },
+              gap: 3,
+              justifyContent: "center"
+            }}>
               {projects.map((project) => (
-              <Grid item xs={12} sm={6} md={3} key={project._id}>
+                <Box key={project._id} sx={{ display: "flex", justifyContent: "center" }}>
                 <Card 
                   sx={{
                     borderRadius: "20px",
@@ -282,7 +291,11 @@ function Home() {
                     border: "1px solid rgba(226, 232, 240, 0.8)",
                     cursor: "pointer",
                     transition: "all 0.3s ease",
-                    height: "100%",
+                    height: "400px", // Sabit yükseklik
+                    minHeight: "400px",
+                    maxHeight: "400px",
+                    width: "100%",
+                    maxWidth: "280px", // Maksimum genişlik
                     display: "flex",
                     flexDirection: "column",
                     "&:hover": {
@@ -306,7 +319,9 @@ function Home() {
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: "vertical",
-                        overflow: "hidden"
+                        overflow: "hidden",
+                        height: "62px", // Sabit yükseklik (2 satır için)
+                        minHeight: "62px"
                       }}
                     >
                       {project.title}
@@ -319,20 +334,21 @@ function Home() {
                         color: "#64748b",
                         mb: 2,
                         lineHeight: 1.5,
-                        flex: 1,
                         fontSize: "0.9rem",
                         display: "-webkit-box",
                         WebkitLineClamp: 3,
                         WebkitBoxOrient: "vertical",
-                        overflow: "hidden"
+                        overflow: "hidden",
+                        height: "65px", // Sabit yükseklik (3 satır için)
+                        minHeight: "65px"
                       }}
                     >
                       {project.description}
                     </Typography>
 
                     {/* Teknolojiler */}
-                    {project.tags && project.tags.length > 0 && (
-                      <Box sx={{ mb: 2 }}>
+                    <Box sx={{ mb: 2, height: "40px", minHeight: "40px" }}>
+                      {project.tags && project.tags.length > 0 && (
                         <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5 }}>
                           {project.tags.slice(0, 3).map((tag, index) => (
                             <Chip
@@ -360,8 +376,8 @@ function Home() {
                             />
                           )}
                         </Stack>
-                      </Box>
-                    )}
+                      )}
+                    </Box>
 
                     {/* Proje Sahibi ve Durum */}
                     <Box sx={{ mt: "auto" }}>
@@ -451,9 +467,9 @@ function Home() {
                     </Box>
                   </CardContent>
                 </Card>
-              </Grid>
+              </Box>
             ))}
-            </Grid>
+            </Box>
           </>
         ) : !loading && (
           <Box sx={{ 
