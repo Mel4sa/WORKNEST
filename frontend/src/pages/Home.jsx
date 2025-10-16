@@ -89,7 +89,7 @@ function Home() {
       backgroundColor: "#f8fafc",
       py: { xs: 3, md: 5 }
     }}>
-      <Container maxWidth="xl">
+      <Box sx={{ maxWidth: "1600px", mx: "auto", px: 3 }}>
         {/* Hero Section */}
         <Box sx={{ 
           textAlign: "center", 
@@ -272,12 +272,12 @@ function Home() {
               </Box>
             )}
             
-            <Grid container spacing={4}>
+            <Grid container spacing={2}>
               {projects.map((project) => (
-              <Grid item xs={12} sm={6} lg={4} key={project._id}>
+              <Grid item xs={12} sm={6} md={3} key={project._id}>
                 <Card 
                   sx={{
-                    borderRadius: "24px",
+                    borderRadius: "20px",
                     boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                     border: "1px solid rgba(226, 232, 240, 0.8)",
                     cursor: "pointer",
@@ -286,23 +286,27 @@ function Home() {
                     display: "flex",
                     flexDirection: "column",
                     "&:hover": {
-                      transform: "translateY(-8px)",
+                      transform: "translateY(-6px)",
                       boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
                       borderColor: "#6b0f1a"
                     }
                   }}
                   onClick={() => handleProjectClick(project._id)}
                 >
-                  <CardContent sx={{ p: 4, flex: 1, display: "flex", flexDirection: "column" }}>
+                  <CardContent sx={{ p: 3, flex: 1, display: "flex", flexDirection: "column" }}>
                     {/* Proje Başlığı */}
                     <Typography 
-                      variant="h5" 
+                      variant="h6" 
                       sx={{ 
                         fontWeight: "700", 
                         color: "#1e293b",
                         mb: 2,
-                        fontSize: "1.3rem",
-                        lineHeight: 1.3
+                        fontSize: "1.2rem",
+                        lineHeight: 1.3,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden"
                       }}
                     >
                       {project.title}
@@ -313,9 +317,10 @@ function Home() {
                       variant="body2" 
                       sx={{ 
                         color: "#64748b",
-                        mb: 3,
-                        lineHeight: 1.6,
+                        mb: 2,
+                        lineHeight: 1.5,
                         flex: 1,
+                        fontSize: "0.9rem",
                         display: "-webkit-box",
                         WebkitLineClamp: 3,
                         WebkitBoxOrient: "vertical",
@@ -327,8 +332,8 @@ function Home() {
 
                     {/* Teknolojiler */}
                     {project.tags && project.tags.length > 0 && (
-                      <Box sx={{ mb: 3 }}>
-                        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
+                      <Box sx={{ mb: 2 }}>
+                        <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5 }}>
                           {project.tags.slice(0, 3).map((tag, index) => (
                             <Chip
                               key={index}
@@ -398,12 +403,12 @@ function Home() {
                       </Box>
 
                       {/* Proje Sahibi */}
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                         <Avatar 
                           src={project.owner?.profileImage}
                           sx={{ 
-                            width: 40, 
-                            height: 40,
+                            width: 36, 
+                            height: 36,
                             cursor: "pointer",
                             "&:hover": {
                               transform: "scale(1.1)",
@@ -425,6 +430,7 @@ function Home() {
                               fontWeight: "600", 
                               color: "#1e293b",
                               cursor: "pointer",
+                              fontSize: "0.85rem",
                               "&:hover": {
                                 color: "#6b0f1a",
                                 textDecoration: "underline"
@@ -437,7 +443,7 @@ function Home() {
                           >
                             {project.owner?.fullname}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: "#64748b" }}>
+                          <Typography variant="caption" sx={{ color: "#64748b", fontSize: "0.75rem" }}>
                             Proje Lideri
                           </Typography>
                         </Box>
@@ -481,7 +487,7 @@ function Home() {
             </Button>
           </Box>
         )}
-      </Container>
+      </Box>
     </Box>
   );
 }

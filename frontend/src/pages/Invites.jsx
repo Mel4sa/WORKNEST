@@ -156,45 +156,33 @@ export default function InvitesPage() {
       <Box sx={{ 
         mb: 4, 
         textAlign: "center",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "#4a0d16",
         borderRadius: "20px",
         p: 4,
         color: "white",
         position: "relative",
         overflow: "hidden",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "rgba(255,255,255,0.1)",
-          backdropFilter: "blur(10px)",
-          zIndex: 1
-        }
+        boxShadow: "0 8px 32px rgba(74, 13, 22, 0.3)"
       }}>
-        <Box sx={{ position: "relative", zIndex: 2 }}>
-          <Typography 
-            variant="h3" 
-            sx={{ 
-              fontWeight: "800",
-              mb: 2,
-              fontSize: { xs: "2rem", md: "2.5rem" }
-            }}
-          >
-            📬 Davetlerim
-          </Typography>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              opacity: 0.9,
-              fontSize: { xs: "1rem", md: "1.2rem" }
-            }}
-          >
-            Proje davetlerinizi yönetin ve yeni fırsatları keşfedin
-          </Typography>
-        </Box>
+        <Typography 
+          variant="h3" 
+          sx={{ 
+            fontWeight: "800",
+            mb: 2,
+            fontSize: { xs: "2rem", md: "2.5rem" }
+          }}
+        >
+          📬 Davetlerim
+        </Typography>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            opacity: 0.9,
+            fontSize: { xs: "1rem", md: "1.2rem" }
+          }}
+        >
+          Proje davetlerinizi yönetin ve yeni fırsatları keşfedin
+        </Typography>
       </Box>
 
       <Paper sx={{ 
@@ -215,11 +203,11 @@ export default function InvitesPage() {
               fontSize: "1.1rem",
               py: 2,
               "&.Mui-selected": {
-                color: "#6b0f1a"
+                color: "#4a0d16"
               }
             },
             "& .MuiTabs-indicator": {
-              backgroundColor: "#6b0f1a",
+              backgroundColor: "#4a0d16",
               height: "3px"
             }
           }}
@@ -243,7 +231,8 @@ export default function InvitesPage() {
             textAlign: "center", 
             p: 6,
             borderRadius: "16px",
-            background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)"
+            backgroundColor: "#fafbfc",
+            border: "1px solid #e0e0e0"
           }}>
             <Typography variant="h5" sx={{ mb: 2, color: "#666" }}>
               📭 Henüz alınan davetiniz yok
@@ -253,29 +242,29 @@ export default function InvitesPage() {
             </Typography>
           </Card>
         ) : (
-          <Grid container spacing={3}>
+          <Grid container spacing={2}>
             {receivedInvites.map((invite) => (
-              <Grid item xs={12} key={invite._id}>
+              <Grid item xs={12} sm={6} md={4} key={invite._id}>
                 <Card
                   sx={{
                     borderRadius: "16px",
                     boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                     transition: "all 0.3s ease",
-                    border: invite.status === 'pending' ? "2px solid #e3f2fd" : "1px solid #e0e0e0",
+                    border: invite.status === 'pending' ? "2px solid #4a0d16" : "1px solid #e0e0e0",
                     "&:hover": { 
-                      transform: "translateY(-4px)",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.12)"
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 6px 20px rgba(74, 13, 22, 0.3)"
                     },
                   }}
                 >
-                  <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
                       {/* Avatar */}
                       <Avatar 
                         src={invite.sender?.profileImage}
                         sx={{
-                          width: 56,
-                          height: 56,
+                          width: 48,
+                          height: 48,
                           cursor: "pointer",
                           border: "3px solid #fff",
                           boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
@@ -302,7 +291,7 @@ export default function InvitesPage() {
                               fontWeight: 600,
                               cursor: "pointer",
                               "&:hover": {
-                                color: "#6b0f1a",
+                                color: "#4a0d16",
                                 textDecoration: "underline"
                               }
                             }}
@@ -349,7 +338,7 @@ export default function InvitesPage() {
                         <Typography 
                           variant="h6" 
                           sx={{ 
-                            color: "#6b0f1a", 
+                            color: "#4a0d16", 
                             fontWeight: 600,
                             mb: 1
                           }}
@@ -359,10 +348,10 @@ export default function InvitesPage() {
 
                         <Box sx={{ 
                           backgroundColor: '#f8f9fa',
-                          padding: 2,
+                          padding: 1.5,
                           borderRadius: 2,
                           border: '1px solid #e9ecef',
-                          mb: 2
+                          mb: 1.5
                         }}>
                           <Typography 
                             variant="body2" 
@@ -478,7 +467,8 @@ export default function InvitesPage() {
           textAlign: "center", 
           p: 6,
           borderRadius: "16px",
-          background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)"
+          backgroundColor: "#fafbfc",
+          border: "1px solid #e0e0e0"
         }}>
           <Typography variant="h5" sx={{ mb: 2, color: "#666" }}>
             📤 Henüz gönderilen davetiniz yok
@@ -488,29 +478,29 @@ export default function InvitesPage() {
           </Typography>
         </Card>
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {sentInvites.map((invite) => (
-            <Grid item xs={12} key={invite._id}>
+            <Grid item xs={12} sm={6} md={4} key={invite._id}>
               <Card
                 sx={{
                   borderRadius: "16px",
                   boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                   transition: "all 0.3s ease",
-                  border: invite.status === 'pending' ? "2px solid #e8f5e8" : "1px solid #e0e0e0",
+                  border: invite.status === 'pending' ? "2px solid #4a0d16" : "1px solid #e0e0e0",
                   "&:hover": { 
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.12)"
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 6px 20px rgba(74, 13, 22, 0.3)"
                   },
                 }}
               >
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}>
+                <CardContent sx={{ p: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
                     {/* Avatar */}
                     <Avatar 
                       src={invite.receiver?.profileImage}
                       sx={{
-                        width: 56,
-                        height: 56,
+                        width: 48,
+                        height: 48,
                         cursor: "pointer",
                         border: "3px solid #fff",
                         boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
@@ -537,7 +527,7 @@ export default function InvitesPage() {
                             fontWeight: 600,
                             cursor: "pointer",
                             "&:hover": {
-                              color: "#6b0f1a",
+                              color: "#4a0d16",
                               textDecoration: "underline"
                             }
                           }}
@@ -584,7 +574,7 @@ export default function InvitesPage() {
                       <Typography 
                         variant="h6" 
                         sx={{ 
-                          color: "#6b0f1a", 
+                          color: "#4a0d16", 
                           fontWeight: 600,
                           mb: 1
                         }}
@@ -594,10 +584,10 @@ export default function InvitesPage() {
 
                       <Box sx={{ 
                         backgroundColor: '#f8f9fa',
-                        padding: 2,
+                        padding: 1.5,
                         borderRadius: 2,
                         border: '1px solid #e9ecef',
-                        mb: 2
+                        mb: 1.5
                       }}>
                         <Typography 
                           variant="body2" 
