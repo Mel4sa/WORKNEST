@@ -115,6 +115,8 @@ function ProjectDetail() {
 
   const handleRemoveMember = async (memberId) => {
     try {
+      console.log("🚀 Frontend: Üye silme işlemi başlıyor", { memberId, projectId: id });
+      
       // Önce UI'dan hemen kaldır
       setProject(prev => ({
         ...prev,
@@ -124,11 +126,15 @@ function ProjectDetail() {
         })
       }));
       
-      await axiosInstance.delete(`/projects/${id}/members/${memberId}`);
+      console.log("📤 API çağrısı yapılıyor:", `/projects/${id}/members/${memberId}`);
+      const response = await axiosInstance.delete(`/projects/${id}/members/${memberId}`);
+      console.log("✅ API response:", response.data);
+      
       setSuccessSnackbar({ open: true, message: "Üye başarıyla projeden silindi!" });
       setSwipedMember(null); // Swipe durumunu sıfırla
     } catch (err) {
-      console.error("Üye silinemedi:", err);
+      console.error("❌ Üye silinemedi:", err);
+      console.error("❌ Error response:", err.response?.data);
       
       // Hata durumunda projeyi yeniden yükle
       fetchProject();

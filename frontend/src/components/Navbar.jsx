@@ -117,8 +117,8 @@ function Navbar() {
   useEffect(() => {
     if (user) {
       fetchUnreadCount();
-      // Her 30 saniyede bir okunmamış sayıyı güncelle
-      const interval = setInterval(fetchUnreadCount, 30000);
+      // Her 10 saniyede bir okunmamış sayıyı güncelle
+      const interval = setInterval(fetchUnreadCount, 10000);
       return () => clearInterval(interval);
     }
   }, [user]);
@@ -168,6 +168,7 @@ function Navbar() {
     { label: "AI Analyzer", path: "/ai-analyzer" },
     { label: "Projelerim", path: "/projects" },
     { label: "Davetlerim", path: "/invites" },
+    { label: "Bildirimlerim", path: "/notifications" },
         { label: "Profilim", path: "/profile" },
   ];
 
@@ -793,7 +794,7 @@ function Navbar() {
                 <Button
                   size="small"
                   component={Link}
-                  to="/invites"
+                  to="/notifications"
                   onClick={handleNotificationClose}
                   sx={{
                     color: "#6b0f1a",

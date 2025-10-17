@@ -19,7 +19,7 @@ const router = express.Router();
 router.get("/", getAllProjects); 
 router.post("/cleanup", cleanupDeletedProjects); 
 
-// Authentication gerekli
+// Authentication 
 router.use(protectRoute); 
 
 router.get("/my-projects", getUserProjects);

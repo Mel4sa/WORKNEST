@@ -118,7 +118,6 @@ export const forgotPassword = async (req, res) => {
       console.log("✅ Password reset email sent successfully");
     } catch (emailError) {
       console.error("❌ Email sending failed:", emailError);
-      // Email gönderilmese bile frontend'e link döndür
     }
 
     res.status(200).json({
@@ -175,7 +174,7 @@ export const resendResetLink = async (req, res) => {
     const resetToken = crypto.randomBytes(32).toString("hex");
 
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 dakika (forgotPassword ile aynı)
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     await user.save();
 
     const resetLink = `http://localhost:5173/reset-password/${resetToken}`;

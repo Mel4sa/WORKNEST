@@ -2,6 +2,7 @@ import express from "express";
 import { protectRoute } from "../middleware/authMiddleware.js";
 import { 
   getNotifications,
+  getRecentNotifications,
   getUnreadCount,
   markAsRead,
   markAllAsRead,
@@ -14,6 +15,7 @@ const router = express.Router();
 router.use(protectRoute);
 
 router.get("/", getNotifications);
+router.get("/recent", getRecentNotifications);
 router.get("/unread-count", getUnreadCount);
 router.patch("/:notificationId/read", markAsRead);
 router.patch("/mark-all-read", markAllAsRead);

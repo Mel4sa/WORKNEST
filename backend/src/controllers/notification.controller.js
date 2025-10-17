@@ -11,6 +11,16 @@ export const createNotification = async ({
   relatedInvite = null
 }) => {
   try {
+    console.log("🔄 createNotification çağrıldı:", {
+      userId,
+      type,
+      title,
+      message,
+      relatedProject,
+      relatedUser,
+      relatedInvite
+    });
+    
     const notification = await Notification.create({
       user: userId,
       type,
@@ -21,11 +31,37 @@ export const createNotification = async ({
       relatedInvite
     });
     
-    console.log(`📢 Bildirim oluşturuldu: ${type} -> ${title}`);
+    console.log(`✅ Bildirim oluşturuldu: ${type} -> ${title}`, notification);
     return notification;
   } catch (error) {
-    console.error("Bildirim oluşturma hatası:", error);
+    console.error("❌ Bildirim oluşturma hatası:", error);
     throw error;
+  }
+};
+
+export const getRecentNotifications = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { limit = 5 } = req.query;
+
+    const notifications = await Notification.find({ user: userId })
+      .populate('relatedProject', 'title')
+      .populate('relatedUser', 'fullname profileImage')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
+
+    const unreadCount = await Notification.countDocuments({ 
+      user: userId, 
+      isRead: false 
+    });
+
+    res.status(200).json({
+      notifications,
+      unreadCount
+    });
+  } catch (error) {
+    console.error("Son bildirimler getirilemedi:", error);
+    res.status(500).json({ message: "Son bildirimler getirilemedi" });
   }
 };
 
@@ -62,7 +98,6 @@ export const getNotifications = async (req, res) => {
   }
 };
 
-// Okunmamış bildirim sayısını getir
 export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -79,7 +114,6 @@ export const getUnreadCount = async (req, res) => {
   }
 };
 
-// Bildirimi okundu olarak işaretle
 export const markAsRead = async (req, res) => {
   try {
     const { notificationId } = req.params;

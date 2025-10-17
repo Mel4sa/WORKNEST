@@ -39,7 +39,6 @@ app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));
 
-// DB bağlantısı
 connectDB();
 
 const PORT = process.env.PORT || 3000;

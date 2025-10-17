@@ -15,6 +15,7 @@ import Projects from "./pages/Projects";
 import CreateProject from "./pages/CreateProject";
 import ProjectDetail from "./pages/ProjectDetail"; 
 import Invites from "./pages/Invites";
+import Notifications from "./pages/Notifications";
 import SignIn from "./pages/SignIn";
 import Login from "./pages/Login";
 import AIAnalyzer from "./pages/AIAnalyzer";
@@ -32,7 +33,7 @@ function ProtectedRoute() {
 function PublicRoute() {
   const token = useAuthStore((state) => state.token);
   if (token) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to="/home" replace />;
   }
   return <Outlet />;
 }
@@ -61,6 +62,7 @@ function AppRoutes() {
             <Route path="/create-project" element={<CreateProject />} />
             <Route path="/projects/:id" element={<ProjectDetail />} /> 
             <Route path="/invites" element={<Invites />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/ai-analyzer" element={<AIAnalyzer />} />
           </Route>
 
