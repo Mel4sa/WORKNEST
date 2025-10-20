@@ -58,6 +58,7 @@ function AppRoutes() {
             <Route path="/home" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:userId" element={<UserProfile />} />
+            <Route path="/users/:userId" element={<UserProfile />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/create-project" element={<CreateProject />} />
             <Route path="/projects/:id" element={<ProjectDetail />} /> 

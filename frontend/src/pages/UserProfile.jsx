@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import {
   Box,
   Avatar,
@@ -22,6 +22,8 @@ import ChatDialog from "../components/userProfile/ChatDialog";
 function UserProfile() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const currentUser = useAuthStore((state) => state.user);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,8 @@ function UserProfile() {
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [currentChat, setCurrentChat] = useState(null);
+  const [chatLoading, setChatLoading] = useState(false);
 
   // Current user'ın projelerini getir (davet için)
   const fetchUserProjects = useCallback(async () => {
@@ -105,66 +109,111 @@ function UserProfile() {
   };
 
   // Chat fonksiyonları
-  const handleOpenChat = () => {
+  // Chat başlat/aç
+  const handleChatOpen = useCallback(async () => {
+    console.log("🎯 Chat açılıyor, userId:", userId);
     setChatOpen(true);
-    // Burada gerçek uygulamada mevcut mesajları yüklersiniz
-    // Şimdilik örnek mesajlar ekleyelim
-    setMessages([
-      {
-        id: 1,
-        senderId: currentUser._id,
-        senderName: currentUser.fullname,
-        message: "Merhaba! Nasılsın?",
-        timestamp: new Date(Date.now() - 30000),
-        isMe: true
-      },
-      {
-        id: 2,
-        senderId: user._id,
-        senderName: user.fullname,
-        message: "Merhaba! İyiyim, teşekkürler. Sen nasılsın?",
-        timestamp: new Date(Date.now() - 25000),
-        isMe: false
-      },
-      {
-        id: 3,
-        senderId: currentUser._id,
-        senderName: currentUser.fullname,
-        message: "Ben de iyiyim. Projen hakkında konuşabilir miyiz?",
-        timestamp: new Date(Date.now() - 20000),
-        isMe: true
-      }
-    ]);
-  };
-
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+    setChatLoading(true);
     
-    const message = {
-      id: messages.length + 1,
+    try {
+      // Kullanıcıyla chat oluştur veya mevcut chat'i getir
+      console.log("📞 Chat API çağrısı yapılıyor...");
+      const chatResponse = await axios.get(`/chats/user/${userId}`);
+      console.log("💬 Chat response:", chatResponse.data);
+      setCurrentChat(chatResponse.data.chat);
+      
+      // Chat mesajlarını getir
+      const messagesResponse = await axios.get(`/chats/${chatResponse.data.chat._id}/messages`);
+      
+      // Mesajları frontend formatına çevir
+      const formattedMessages = messagesResponse.data.messages.map(msg => ({
+        id: msg._id,
+        senderId: msg.sender._id,
+        senderName: msg.sender.fullname,
+        senderAvatar: msg.sender.profileImage,
+        message: msg.content,
+        timestamp: new Date(msg.createdAt),
+        isMe: msg.sender._id === currentUser._id
+      }));
+      
+      setMessages(formattedMessages);
+    } catch (error) {
+      console.error("Chat yüklenemedi:", error);
+      setSnackbar({ 
+        open: true, 
+        message: "Chat yüklenemedi", 
+        severity: "error" 
+      });
+    } finally {
+      setChatLoading(false);
+    }
+  }, [userId, currentUser]);
+
+  const handleSendMessage = async () => {
+    console.log("🚀 handleSendMessage çağrıldı");
+    
+    if (!newMessage.trim() || !currentChat) {
+      console.log("❌ Mesaj boş veya chat yok, çıkılıyor");
+      return;
+    }
+    
+    const messageText = newMessage;
+    const tempId = `temp-${Date.now()}`; // Geçici ID
+    setNewMessage(""); // Hemen temizle
+    
+    // Optimistic update - mesajı hemen UI'a ekle
+    const optimisticMsg = {
+      id: tempId,
       senderId: currentUser._id,
       senderName: currentUser.fullname,
-      message: newMessage,
+      senderAvatar: currentUser.profileImage,
+      message: messageText,
       timestamp: new Date(),
-      isMe: true
+      isMe: true,
+      sending: true // Gönderiliyor durumu
     };
     
-    setMessages(prev => [...prev, message]);
-    setNewMessage("");
+    setMessages(prev => [...prev, optimisticMsg]);
     
-    // Burada gerçek uygulamada backend'e mesaj gönderilir
-    // Simülasyon için otomatik cevap ekleyelim
-    setTimeout(() => {
-      const autoReply = {
-        id: messages.length + 2,
-        senderId: user._id,
-        senderName: user.fullname,
-        message: "Mesajın için teşekkürler! Yakında cevap vereceğim.",
-        timestamp: new Date(),
-        isMe: false
-      };
-      setMessages(prev => [...prev, autoReply]);
-    }, 1000);
+    try {
+      console.log("� Mesaj gönderiliyor:", messageText);
+      
+      // Backend'e mesaj gönder
+      const response = await axios.post(`/chats/${currentChat._id}/messages`, {
+        content: messageText,
+        messageType: "text"
+      });
+      
+      console.log("✅ Mesaj gönderildi, response:", response.data);
+      
+      // Geçici mesajı gerçek mesajla değiştir
+      setMessages(prev => prev.map(msg => 
+        msg.id === tempId 
+          ? {
+              id: response.data.message._id,
+              senderId: response.data.message.sender._id,
+              senderName: response.data.message.sender.fullname,
+              senderAvatar: response.data.message.sender.profileImage,
+              message: response.data.message.content,
+              timestamp: new Date(response.data.message.createdAt),
+              isMe: true,
+              sending: false
+            }
+          : msg
+      ));
+    } catch (error) {
+      console.error("Mesaj gönderilemedi:", error);
+      
+      // Hata durumunda geçici mesajı kaldır ve mesajı geri koy
+      setMessages(prev => prev.filter(msg => msg.id !== tempId));
+      setNewMessage(messageText);
+      
+      setSnackbar({ 
+        open: true, 
+        message: "Mesaj gönderilemedi", 
+        severity: "error" 
+      });
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -174,12 +223,86 @@ function UserProfile() {
     }
   };
 
+  // Mesaj silme fonksiyonu
+  const handleDeleteMessage = async (messageId) => {
+    console.log("🗑️ Mesaj siliniyor:", messageId);
+    
+    try {
+      // Optimistic update - mesajı hemen kaldır
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+      
+      // Backend'den sil
+      await axios.delete(`/chats/messages/${messageId}`);
+      
+      console.log("✅ Mesaj silindi");
+      
+      setSnackbar({ 
+        open: true, 
+        message: "Mesaj silindi", 
+        severity: "success" 
+      });
+    } catch (error) {
+      console.error("Mesaj silinemedi:", error);
+      
+      // Hata durumunda sayfayı yenile
+      window.location.reload();
+      
+      setSnackbar({ 
+        open: true, 
+        message: error.response?.data?.message || "Mesaj silinemedi", 
+        severity: "error" 
+      });
+    }
+  };
+
   // Eğer kendi profilini görmeye çalışıyorsa, normal Profile sayfasına yönlendir
   useEffect(() => {
     if (currentUser && userId === currentUser._id) {
       navigate("/profile");
     }
   }, [currentUser, userId, navigate]);
+
+  // URL parametresinde openChat=true varsa otomatik chat aç
+  useEffect(() => {
+    const openChat = searchParams.get('openChat');
+    console.log("🔍 URL Parametresi Kontrolü:", { 
+      openChat, 
+      user: !!user, 
+      chatOpen, 
+      shouldOpen: openChat === 'true' && user && !chatOpen 
+    });
+    
+    if (openChat === 'true' && user && !chatOpen) {
+      console.log("🎯 URL parametresinden chat açılıyor");
+      setTimeout(() => {
+        handleChatOpen();
+      }, 500); // Biraz gecikme ekleyelim
+      
+      // URL'den parametreyi temizle
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [searchParams, user, chatOpen, handleChatOpen]);
+
+  // Navigation state'inden openChat kontrolü
+  useEffect(() => {
+    const shouldOpenChat = location.state?.openChat;
+    console.log("🔍 Navigation State Kontrolü:", { 
+      shouldOpenChat, 
+      user: !!user, 
+      chatOpen,
+      locationState: location.state,
+      currentUrl: window.location.href
+    });
+    
+    if (shouldOpenChat && user && !chatOpen && !loading) {
+      console.log("🎯 Navigation state'inden chat açılıyor - ŞIMDI!");
+      handleChatOpen();
+      
+      // State'i temizle
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, user, chatOpen, handleChatOpen, location.pathname, loading, navigate]);
 
   if (loading) {
     return (
@@ -231,7 +354,10 @@ function UserProfile() {
       <UserProfileActions
         onGoBack={() => navigate(-1)}
         onInviteClick={() => setInviteDialogOpen(true)}
-        onChatClick={handleOpenChat}
+        onChatClick={() => {
+          console.log("🔵 Chat button tıklandı!");
+          handleChatOpen();
+        }}
       />
 
       {/* Profil Kartı */}
@@ -301,6 +427,8 @@ function UserProfile() {
         setNewMessage={setNewMessage}
         onSendMessage={handleSendMessage}
         onKeyPress={handleKeyPress}
+        onDeleteMessage={handleDeleteMessage}
+        loading={chatLoading}
       />
 
       {/* Snackbar */}
