@@ -104,39 +104,6 @@ function UserProfile() {
     }
   };
 
-  // Chat fonksiyonları
-  const handleOpenChat = () => {
-    setChatOpen(true);
-    // Burada gerçek uygulamada mevcut mesajları yüklersiniz
-    // Şimdilik örnek mesajlar ekleyelim
-    setMessages([
-      {
-        id: 1,
-        senderId: currentUser._id,
-        senderName: currentUser.fullname,
-        message: "Merhaba! Nasılsın?",
-        timestamp: new Date(Date.now() - 30000),
-        isMe: true
-      },
-      {
-        id: 2,
-        senderId: user._id,
-        senderName: user.fullname,
-        message: "Merhaba! İyiyim, teşekkürler. Sen nasılsın?",
-        timestamp: new Date(Date.now() - 25000),
-        isMe: false
-      },
-      {
-        id: 3,
-        senderId: currentUser._id,
-        senderName: currentUser.fullname,
-        message: "Ben de iyiyim. Projen hakkında konuşabilir miyiz?",
-        timestamp: new Date(Date.now() - 20000),
-        isMe: true
-      }
-    ]);
-  };
-
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
     
@@ -231,7 +198,6 @@ function UserProfile() {
       <UserProfileActions
         onGoBack={() => navigate(-1)}
         onInviteClick={() => setInviteDialogOpen(true)}
-        onChatClick={handleOpenChat}
       />
 
       {/* Profil Kartı */}

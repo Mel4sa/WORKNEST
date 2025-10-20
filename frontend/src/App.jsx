@@ -21,6 +21,7 @@ import Login from "./pages/Login";
 import AIAnalyzer from "./pages/AIAnalyzer";
 import ResetPassword from "./pages/ResetPassword";
 import useAuthStore from "./store/useAuthStore";
+import GlobalChatButton from "./components/GlobalChatButton";
 
 function ProtectedRoute() {
   const token = useAuthStore((state) => state.token);
@@ -78,6 +79,9 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
+      
+      {/* Global Chat Button */}
+      <GlobalChatButton />
     </>
   );
 }
