@@ -31,7 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../lib/axios';
 
 
-function Notifications() {
+function Bildirimler() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -176,14 +176,9 @@ function Notifications() {
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Badge badgeContent={unreadCount} color="error">
-                <NotificationIcon sx={{ fontSize: 32, color: '#4a0d16' }} />
-              </Badge>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                Bildirimlerim
-              </Typography>
-            </Box>
+            <Typography variant="body1" sx={{ color: '#64748b' }}>
+              Tüm bildirimlerinizi buradan takip edebilirsiniz
+            </Typography>
             
             {unreadCount > 0 && (
               <Button
@@ -203,10 +198,6 @@ function Notifications() {
               </Button>
             )}
           </Box>
-
-          <Typography variant="body1" sx={{ color: '#64748b' }}>
-            Tüm bildirimlerinizi buradan takip edebilirsiniz
-          </Typography>
         </Box>
 
         {error && (
@@ -399,4 +390,4 @@ function Notifications() {
   );
 }
 
-export default Notifications;
+export default Bildirimler;

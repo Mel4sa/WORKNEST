@@ -6,6 +6,7 @@ import {
   Settings,
   Person,
   Email,
+  Delete,
 } from "@mui/icons-material";
 import {
   Box,
@@ -91,6 +92,27 @@ export default function ProfilePage() {
 
   // Profil fotoğrafı değişimi
   const handleChangeProfilePhoto = () => fileInputRef.current.click();
+  
+  // Profil fotoğrafı silme
+  const handleDeleteProfilePhoto = async () => {
+    try {
+      await axios.delete("/users/delete-photo", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      setPreview("");
+      await fetchUser();
+      
+      setMessageText("Profil fotoğrafı başarıyla silindi!");
+      setMessageType("success");
+      setMessageOpen(true);
+    } catch {
+      setMessageText("Profil fotoğrafı silinirken hata oluştu!");
+      setMessageType("error");
+      setMessageOpen(true);
+    }
+  };
+  
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -228,41 +250,74 @@ export default function ProfilePage() {
               height: 140,
               borderRadius: "50%",
               overflow: "hidden",
-              cursor: "pointer",
               mb: 3,
-              "&:hover .cameraOverlay": { opacity: 1 },
             }}
-            onClick={handleChangeProfilePhoto}
           >
-            <Avatar
-              src={preview || undefined}
-              sx={{
-                width: "100%",
-                height: "100%",
-                border: "4px solid #ffd166",
-                bgcolor: "#ffd166",
-              }}
-            >
-              {!preview && <Person sx={{ fontSize: 70, color: "#6b0f1a" }} />} 
-            </Avatar>
             <Box
-              className="cameraOverlay"
               sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
                 width: "100%",
                 height: "100%",
-                bgcolor: "rgba(0,0,0,0.4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: 0,
-                transition: "opacity 0.3s",
+                position: "relative",
+                cursor: "pointer",
+                "&:hover .cameraOverlay": { opacity: 1 },
               }}
+              onClick={handleChangeProfilePhoto}
             >
-                            <CameraAlt sx={{ color: "#fff", fontSize: 40 }} /> 
+              <Avatar
+                src={preview || undefined}
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  border: "4px solid #ffd166",
+                  bgcolor: "#ffd166",
+                }}
+              >
+                {!preview && <Person sx={{ fontSize: 70, color: "#6b0f1a" }} />} 
+              </Avatar>
+              <Box
+                className="cameraOverlay"
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  bgcolor: "rgba(0,0,0,0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: 0,
+                  transition: "opacity 0.3s",
+                }}
+              >
+                <CameraAlt sx={{ color: "#fff", fontSize: 40 }} /> 
+              </Box>
             </Box>
+            
+            {/* Delete Button - only show if user has a profile image */}
+            {preview && (
+              <IconButton
+                onClick={handleDeleteProfilePhoto}
+                sx={{
+                  position: "absolute",
+                  top: -5,
+                  right: -5,
+                  backgroundColor: "#ef4444",
+                  color: "#fff",
+                  width: 35,
+                  height: 35,
+                  zIndex: 10,
+                  "&:hover": {
+                    backgroundColor: "#dc2626",
+                    transform: "scale(1.1)",
+                  },
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 2px 8px rgba(239, 68, 68, 0.3)",
+                }}
+              >
+                <Delete sx={{ fontSize: 18 }} />
+              </IconButton>
+            )}
           </Box>
 
           <input
@@ -380,20 +435,46 @@ export default function ProfilePage() {
               mt: 1  // Top margin küçültüldü
             }}
           >
-            <Avatar
-              src={preview || undefined}
-              sx={{
-                width: 120,
-                height: 120,
-                border: "3px solid #003fd3ff",
-                bgcolor: "#003fd3ff",
-                mb: 2,
-                cursor: "pointer"
-              }}
-              onClick={handleChangeProfilePhoto}
-            >
-              {!preview && <Person sx={{ fontSize: 60, color: "#fff" }} />}
-            </Avatar>
+            <Box sx={{ position: "relative", mb: 2 }}>
+              <Avatar
+                src={preview || undefined}
+                sx={{
+                  width: 120,
+                  height: 120,
+                  border: "3px solid #003fd3ff",
+                  bgcolor: "#003fd3ff",
+                  cursor: "pointer"
+                }}
+                onClick={handleChangeProfilePhoto}
+              >
+                {!preview && <Person sx={{ fontSize: 60, color: "#fff" }} />}
+              </Avatar>
+              
+              {/* Delete Button for mobile - only show if user has a profile image */}
+              {preview && (
+                <IconButton
+                  onClick={handleDeleteProfilePhoto}
+                  sx={{
+                    position: "absolute",
+                    top: -5,
+                    right: -5,
+                    backgroundColor: "#ef4444",
+                    color: "#fff",
+                    width: 30,
+                    height: 30,
+                    zIndex: 10,
+                    "&:hover": {
+                      backgroundColor: "#dc2626",
+                      transform: "scale(1.1)",
+                    },
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 2px 8px rgba(239, 68, 68, 0.3)",
+                  }}
+                >
+                  <Delete sx={{ fontSize: 16 }} />
+                </IconButton>
+              )}
+            </Box>
             <Typography
               variant="h5"
               sx={{ 

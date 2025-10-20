@@ -8,7 +8,7 @@ export const getUserProfile = async (req, res) => {
     const { userId } = req.params;
     
     const user = await User.findById(userId)
-      .select('fullname username profileImage university department bio skills createdAt') 
+      .select('fullname username profileImage university department bio skills github linkedin title createdAt') 
       .populate('projects', 'title description status createdAt');
     if (!user) {
       return res.status(404).json({ message: "Kullanıcı bulunamadı" });

@@ -177,6 +177,16 @@ export const respondInvite = async (req, res) => {
               project.members.push(newMember);
               await project.save();
               
+              // Proje sahibine yeni üye katıldı bildirimi gönder
+              await createNotification({
+                userId: project.owner,
+                type: 'member_joined',
+                title: 'Yeni Üye Katıldı',
+                message: `${req.user.fullname} "${project.title}" projesine katıldı`,
+                relatedProject: project._id,
+                relatedUser: req.user._id
+              });
+              
               const updatedProject = await Project.findById(project._id)
                 .populate('owner', 'fullname email profileImage title department university')
                 .populate('members.user', 'fullname email profileImage title department university bio skills');

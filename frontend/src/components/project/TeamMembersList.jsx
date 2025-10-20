@@ -74,9 +74,10 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
         <Box sx={{ 
           display: "flex", 
           flexDirection: "column", 
-          gap: 2,
+          gap: 3,
           flex: 1,
-          overflow: "auto"
+          overflow: "auto",
+          paddingRight: "8px"
         }}>
           {/* Proje Lideri */}
           <Box sx={{ 
@@ -86,7 +87,10 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
             p: 2,
             backgroundColor: "#f8f9fa",
             borderRadius: "12px",
-            border: "2px solid #6b0f1a"
+            border: "2px solid #6b0f1a",
+            minHeight: "76px",
+            marginBottom: "8px",
+            boxShadow: "0 2px 8px rgba(107, 15, 26, 0.1)"
           }}>
             <Avatar 
               src={project.owner?.profileImage}
@@ -142,7 +146,10 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
                 sx={{ 
                   position: "relative",
                   overflow: "hidden",
-                  borderRadius: "12px"
+                  borderRadius: "12px",
+                  minHeight: "80px",
+                  isolation: "isolate",
+                  marginBottom: "4px"
                 }}
               >
                 {/* Silme butonu arka planı */}
@@ -157,8 +164,9 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    borderRadius: "12px",
+                    borderRadius: "0 12px 12px 0",
                     cursor: "pointer",
+                    zIndex: 0,
                     "&:hover": {
                       backgroundColor: "#b91c1c"
                     }
@@ -190,12 +198,17 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
                     borderRadius: "12px",
                     border: "1px solid #e5e7eb",
                     position: "relative",
-                    zIndex: 1,
-                    transition: "transform 0.3s ease",
+                    zIndex: 10,
+                    minHeight: "76px",
+                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
                     transform: swipedMember === (member.user?._id || member._id) ? "translateX(-80px)" : "translateX(0)",
                     cursor: "grab",
+                    boxShadow: swipedMember === (member.user?._id || member._id) ? "0 4px 12px rgba(0,0,0,0.15)" : "0 2px 4px rgba(0,0,0,0.05)",
                     "&:active": {
                       cursor: "grabbing"
+                    },
+                    "&:hover": {
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
                     }
                   }}
                   onTouchStart={(e) => onSwipeStart(e, member.user?._id || member._id)}
@@ -270,7 +283,8 @@ function TeamMembersList({ project, swipedMember, onSwipeStart, onRemoveMember, 
               textAlign: "center", 
               py: 3,
               border: "2px dashed #e5e7eb",
-              borderRadius: "12px"
+              borderRadius: "12px",
+              marginTop: "8px"
             }}>
               <Typography variant="body2" color="text.secondary">
                 Henüz başka takım üyesi yok

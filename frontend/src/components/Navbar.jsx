@@ -168,8 +168,7 @@ function Navbar() {
     { label: "AI Analyzer", path: "/ai-analyzer" },
     { label: "Projelerim", path: "/projects" },
     { label: "Davetlerim", path: "/invites" },
-    { label: "Bildirimlerim", path: "/notifications" },
-        { label: "Profilim", path: "/profile" },
+    { label: "Profilim", path: "/profile" },
   ];
 
   return (
@@ -242,48 +241,15 @@ function Navbar() {
           </Typography>
         </Link>
 
-        {/* Bildirim İkonu - Logo ile Menü Arasında */}
-        <Box sx={{ 
-          display: { xs: "none", md: "flex" }, 
-          alignItems: "center",
-          ml: { md: 2, lg: 3 }
-        }}>
-          <IconButton
-            onClick={handleNotificationClick}
-            sx={{
-              color: "#000",
-              "&:hover": {
-                backgroundColor: "rgba(0,0,0,0.05)",
-                transform: "scale(1.1)",
-                transition: "all 0.2s ease-in-out",
-              },
-            }}
-          >
-            <Badge 
-              badgeContent={unreadCount} 
-              color="error"
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "#6b0f1a",
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: "0.7rem"
-                }
-              }}
-            >
-              <NotificationsIcon sx={{ fontSize: "1.4rem" }} />
-            </Badge>
-          </IconButton>
-        </Box>
-
         {/* Büyük ekran menü */}
         <Box sx={{ 
           display: { xs: "none", md: "flex" }, 
-          gap: { md: 1, lg: 2 }, 
+          gap: { md: 0.8, lg: 1.5 }, 
           alignItems: "center",
           flex: 1,
           justifyContent: "center",
-          ml: { md: 2, lg: 3 }
+          ml: { md: 2, lg: 3 },
+          mr: { md: 0.5, lg: 1 }
         }}>
           {/* Menü butonları - Profilim hariç */}
           {menuItems.filter(item => item.label !== "Profilim").map((item) => (
@@ -331,19 +297,18 @@ function Navbar() {
           </Button>
         </Box>
 
-        {/* Sağ taraf - Arama ve Çıkış */}
+        {/* Sağ taraf - Arama, Bildirim ve Çıkış */}
         <Box sx={{ 
           display: { xs: "none", md: "flex" }, 
-          gap: { md: 2, lg: 3 }, 
+          gap: { md: 2, lg: 2.5 }, 
           alignItems: "center",
           flexShrink: 0
         }}>
           {/* Kişi Arama */}
           <Box sx={{ 
             position: "relative", 
-            minWidth: { md: "180px", lg: "250px" }, 
-            maxWidth: { md: "200px", lg: "280px" },
-            mr: { md: 1, lg: 1.5 }
+            minWidth: { md: "200px", lg: "260px" }, 
+            maxWidth: { md: "220px", lg: "300px" }
           }}>
             <Autocomplete
               freeSolo
@@ -464,6 +429,35 @@ function Navbar() {
             />
           </Box>
 
+          {/* Bildirim İkonu */}
+          <IconButton
+            onClick={handleNotificationClick}
+            sx={{
+              color: "#000",
+              p: 1,
+              "&:hover": {
+                backgroundColor: "rgba(0,0,0,0.05)",
+                transform: "scale(1.1)",
+                transition: "all 0.2s ease-in-out",
+              },
+            }}
+          >
+            <Badge 
+              badgeContent={unreadCount} 
+              color="error"
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "#6b0f1a",
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "0.7rem"
+                }
+              }}
+            >
+              <NotificationsIcon sx={{ fontSize: "1.3rem" }} />
+            </Badge>
+          </IconButton>
+
           {/* Çıkış Butonu */}
           {user && (
             <Button
@@ -472,11 +466,11 @@ function Navbar() {
               sx={{
                 backgroundColor: "#8b0000",
                 color: "#fff",
-                borderRadius: "50px",
-                padding: { md: "4px 12px", lg: "6px 16px" },
+                borderRadius: "25px",
+                padding: { md: "4px 10px", lg: "6px 14px" },
                 textTransform: "none",
                 fontWeight: "bold",
-                fontSize: { md: "0.75rem", lg: "0.8rem" },
+                fontSize: { md: "0.7rem", lg: "0.75rem" },
                 minWidth: "auto",
                 whiteSpace: "nowrap",
                 "&:hover": {
