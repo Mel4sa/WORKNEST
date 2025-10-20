@@ -709,8 +709,34 @@ function Navbar() {
               <MenuItem
                 key={notification._id}
                 onClick={() => {
+                  // Mesaj bildirimi kontrolü
+                  if (notification.type === 'new_message' && notification.relatedUser) {
+                    if (!notification.isRead) {
+                      // İlk tıklamada sadece okundu yap
+                      markAsRead(notification._id);
+                      return;
+                    } else {
+                      // İkinci tıklamada (zaten okunmuşsa) chat'e git
+                      handleNotificationClose();
+                      navigate(`/users/${notification.relatedUser._id}`, { 
+                        state: { openChat: true }
+                      });
+                      return;
+                    }
+                  }
+                  
+                  // Diğer bildirimler için normal davranış
                   if (!notification.isRead) {
                     markAsRead(notification._id);
+                  }
+                  
+                  // Diğer bildirim türleri için yönlendirme
+                  if (notification.relatedProject && notification.type.includes('invite')) {
+                    handleNotificationClose();
+                    navigate('/invites');
+                  } else if (notification.relatedProject) {
+                    handleNotificationClose();
+                    navigate(`/projects/${notification.relatedProject._id}`);
                   }
                 }}
                 sx={{

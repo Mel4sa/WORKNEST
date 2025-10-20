@@ -126,6 +126,8 @@ function Bildirimler() {
         return <Person sx={{ color: '#10b981' }} />;
       case 'member_left':
         return <Group sx={{ color: '#ef4444' }} />;
+      case 'new_message':
+        return <Mail sx={{ color: '#3b82f6' }} />;
       default:
         return <NotificationIcon sx={{ color: '#6b7280' }} />;
     }
@@ -143,13 +145,44 @@ function Bildirimler() {
         return 'rgba(16, 185, 129, 0.1)';
       case 'member_left':
         return 'rgba(239, 68, 68, 0.1)';
+      case 'new_message':
+        return 'rgba(59, 130, 246, 0.1)';
       default:
         return 'rgba(107, 114, 128, 0.1)';
     }
   };
 
   const handleNotificationClick = (notification) => {
-    // Eğer okunmamışsa okundu olarak işaretle
+    console.log("🔥 handleNotificationClick çağrıldı:", {
+      type: notification.type,
+      relatedUser: notification.relatedUser,
+      isRead: notification.isRead
+    });
+
+    // Mesaj bildirimlerinde direkt chat'e git
+    if (notification.type === 'new_message' && notification.relatedUser) {
+      console.log("✅ Mesaj bildirimi tespit edildi!");
+      
+      // Okunmamışsa okundu olarak işaretle
+      if (!notification.isRead) {
+        console.log("📖 Bildirim okundu olarak işaretleniyor...");
+        handleMarkAsRead(notification._id);
+      }
+      
+      // Direkt profile git ve chat aç
+      const targetUrl = `/users/${notification.relatedUser._id}`;
+      console.log("🎯 Mesaj bildirimine tıklandı, gidilecek URL:", targetUrl);
+      console.log("🚀 Navigate çağrılıyor state ile:", { openChat: true });
+      
+      navigate(targetUrl, { 
+        state: { openChat: true }
+      });
+      return;
+    }
+
+    console.log("❌ Mesaj bildirimi değil, normal akış devam ediyor");
+
+    // Diğer bildirimler için eski davranış
     if (!notification.isRead) {
       handleMarkAsRead(notification._id);
     }
@@ -219,7 +252,9 @@ function Bildirimler() {
               </Typography>
             </Card>
           ) : (
-            notifications.map((notification) => (
+            notifications.map((notification) => {
+              console.log("🔍 Bildirim render ediliyor:", notification.type, notification._id);
+              return (
               <Card
                 key={notification._id}
                 sx={{
@@ -232,7 +267,10 @@ function Bildirimler() {
                     boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
                   }
                 }}
-                onClick={() => handleNotificationClick(notification)}
+                onClick={() => {
+                  console.log("📱 Bildirim kartına tıklandı:", notification.type, notification);
+                  handleNotificationClick(notification);
+                }}
               >
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', gap: 2 }}>
@@ -303,8 +341,22 @@ function Bildirimler() {
                         sx={{
                           color: '#64748b',
                           lineHeight: 1.5,
-                          mb: 2
+                          mb: 2,
+                          ...(notification.type === 'new_message' && notification.relatedUser && {
+                            cursor: 'pointer',
+                            '&:hover': {
+                              color: '#4a0d16',
+                              textDecoration: 'underline'
+                            }
+                          })
                         }}
+                        onClick={notification.type === 'new_message' && notification.relatedUser ? (e) => {
+                          e.stopPropagation();
+                          console.log("💬 Mesaj linkine tıklandı!");
+                          navigate(`/users/${notification.relatedUser._id}`, { 
+                            state: { openChat: true }
+                          });
+                        } : undefined}
                       >
                         {notification.message}
                       </Typography>
@@ -354,7 +406,8 @@ function Bildirimler() {
                   </Box>
                 </CardContent>
               </Card>
-            ))
+              );
+            })
           )}
         </Stack>
 

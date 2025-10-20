@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { 
   Dialog,
   DialogTitle,
@@ -10,9 +11,12 @@ import {
   ListItem,
   Paper,
   TextField,
-  InputAdornment
+  InputAdornment,
+  CircularProgress,
+  Menu,
+  MenuItem
 } from "@mui/material";
-import { Chat, Close, EmojiEmotions, Send } from "@mui/icons-material";
+import { Chat, Close, EmojiEmotions, Send, MoreVert, Delete } from "@mui/icons-material";
 
 function ChatDialog({ 
   open, 
@@ -22,8 +26,47 @@ function ChatDialog({
   newMessage, 
   setNewMessage, 
   onSendMessage, 
-  onKeyPress 
+  onKeyPress,
+  onDeleteMessage,
+  loading = false
 }) {
+  const messagesEndRef = useRef(null);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Menu işlemleri
+  const handleMenuOpen = (event, message) => {
+    setMenuAnchor(event.currentTarget);
+    setSelectedMessage(message);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+    setSelectedMessage(null);
+  };
+
+  // Mesajın silinebilir olup olmadığını kontrol et (1 gün kontrolü)
+  const canDeleteMessage = (message) => {
+    if (!message.isMe) return false;
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    return new Date(message.timestamp) > oneDayAgo;
+  };
+
+  const handleDeleteMessage = () => {
+    if (selectedMessage && onDeleteMessage) {
+      onDeleteMessage(selectedMessage.id);
+    }
+    handleMenuClose();
+  };
   return (
     <Dialog
       open={open}
@@ -75,7 +118,16 @@ function ChatDialog({
           p: 2,
           backgroundColor: "#f8f9fa"
         }}>
-          {messages.length === 0 ? (
+          {loading ? (
+            <Box sx={{ 
+              display: "flex", 
+              justifyContent: "center", 
+              alignItems: "center", 
+              height: "200px" 
+            }}>
+              <CircularProgress sx={{ color: "#6b0f1a" }} />
+            </Box>
+          ) : messages.length === 0 ? (
             <Box sx={{ 
               textAlign: "center", 
               color: "#666", 
@@ -92,37 +144,89 @@ function ChatDialog({
                 <ListItem 
                   key={message.id}
                   sx={{ 
-                    justifyContent: message.isMe ? "flex-end" : "flex-start",
+                    display: "block",
                     px: 0,
                     py: 0.5
                   }}
                 >
-                  <Paper sx={{
-                    maxWidth: "70%",
-                    p: 2,
-                    backgroundColor: message.isMe ? "#6b0f1a" : "#fff",
-                    color: message.isMe ? "#fff" : "#333",
-                    borderRadius: message.isMe ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                  <Box sx={{ 
+                    display: "flex", 
+                    alignItems: "flex-end", 
+                    gap: 1,
+                    flexDirection: message.isMe ? "row-reverse" : "row",
+                    maxWidth: "85%",
+                    ml: message.isMe ? "auto" : 0,
+                    mr: message.isMe ? 0 : "auto"
                   }}>
-                    <Typography variant="body1" sx={{ mb: 0.5 }}>
-                      {message.message}
-                    </Typography>
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        opacity: 0.7,
-                        fontSize: "0.7rem"
+                    {/* Profil Fotoğrafı */}
+                    <Avatar
+                      src={message.senderAvatar}
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        fontSize: "0.875rem",
+                        flexShrink: 0
                       }}
                     >
-                      {message.timestamp.toLocaleTimeString('tr-TR', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </Typography>
-                  </Paper>
+                      {message.senderName?.[0]}
+                    </Avatar>
+
+                    <Paper sx={{
+                      maxWidth: "calc(100% - 40px)",
+                      p: 2,
+                      backgroundColor: message.isMe ? "#6b0f1a" : "#fff",
+                      color: message.isMe ? "#fff" : "#333",
+                      borderRadius: message.isMe ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                      opacity: message.sending ? 0.7 : 1,
+                      position: "relative"
+                    }}>
+                      <Typography variant="body1" sx={{ mb: 0.5 }}>
+                        {message.message}
+                      </Typography>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            opacity: 0.7,
+                            fontSize: "0.7rem"
+                          }}
+                        >
+                          {message.timestamp.toLocaleTimeString('tr-TR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </Typography>
+                        {message.sending && (
+                          <CircularProgress 
+                            size={12} 
+                            sx={{ 
+                              color: message.isMe ? "#fff" : "#6b0f1a",
+                              ml: 1
+                            }} 
+                          />
+                        )}
+                      </Box>
+                    </Paper>
+                    
+                    {/* Kendi mesajlarında menu butonu */}
+                    {message.isMe && canDeleteMessage(message) && (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuOpen(e, message)}
+                        sx={{ 
+                          opacity: 0.6,
+                          "&:hover": { opacity: 1 },
+                          color: "#666"
+                        }}
+                      >
+                        <MoreVert fontSize="small" />
+                      </IconButton>
+                    )}
+                  </Box>
                 </ListItem>
               ))}
+              <div ref={messagesEndRef} />
             </List>
           )}
         </Box>
@@ -190,6 +294,24 @@ function ChatDialog({
           </Box>
         </Box>
       </DialogContent>
+
+      {/* Mesaj Menüsü */}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: "8px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.15)"
+          }
+        }}
+      >
+        <MenuItem onClick={handleDeleteMessage} sx={{ color: "error.main" }}>
+          <Delete fontSize="small" sx={{ mr: 1 }} />
+          Mesajı Sil
+        </MenuItem>
+      </Menu>
     </Dialog>
   );
 }
