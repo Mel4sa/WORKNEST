@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -12,14 +12,21 @@ import {
   IconButton,
   Collapse,
   Fab,
-  Badge
+  Badge,
+  Menu,
+  MenuItem,
+  Tooltip
 } from '@mui/material';
 import {
   Send,
   Close,
   Chat,
   Remove,
-  ArrowBack
+  ArrowBack,
+  Delete,
+  MoreVert,
+  Edit,
+  Cancel
 } from '@mui/icons-material';
 import axiosInstance from '../lib/axios';
 import useAuthStore from '../store/useAuthStore';
@@ -33,6 +40,11 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [isMinimized, setIsMinimized] = useState(initialMinimized);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [editContent, setEditContent] = useState('');
+  const messagesEndRef = useRef(null);
 
   // Partner bilgilerini getir
   const fetchPartner = useCallback(async () => {
@@ -64,20 +76,45 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
     if (!newMessage.trim() || sending) return;
 
     setSending(true);
+    const messageContent = newMessage.trim();
+    
+    console.log('📤 Mesaj gönderiliyor:', messageContent.substring(0, 50));
+    
     try {
-      await axiosInstance.post('/messages', {
+      const response = await axiosInstance.post('/messages', {
         receiverId: partnerId,
-        content: newMessage.trim()
+        content: messageContent
       });
       
+      console.log('✅ Mesaj gönderildi, response:', response.data);
+      console.log('📝 Mevcut mesaj sayısı:', messages.length);
+      
+      // Yeni mesajı hemen ekle (optimistic update)
+      setMessages(prevMessages => {
+        console.log('🔄 Mesajlar güncelleniyor, önceki sayı:', prevMessages.length);
+        const newMessages = [...prevMessages, response.data];
+        console.log('🔄 Yeni mesaj sayısı:', newMessages.length);
+        return newMessages;
+      });
       setNewMessage('');
-      fetchMessages(); // Mesajları yenile
+      
+      // Navbar'ın unread count'unu güncelle
+      window.dispatchEvent(new CustomEvent('messageCountChanged'));
+      
+      // Mesaj gönderildikten sonra aşağıya kaydır
+      setTimeout(scrollToBottom, 100);
+      
     } catch (err) {
-      console.error('Mesaj gönderilemedi:', err);
+      console.error('❌ Mesaj gönderilemedi:', err);
       setError('Mesaj gönderilemedi');
     } finally {
       setSending(false);
     }
+  };
+
+  // Scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   // Enter tuşuyla mesaj gönder
@@ -88,6 +125,145 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
     }
   };
 
+  // Mesaj menüsünü aç
+  const handleMessageMenu = (event, message) => {
+    setMenuAnchor(event.currentTarget);
+    setSelectedMessage(message);
+  };
+
+  // Mesaj menüsünü kapat
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+    setSelectedMessage(null);
+  };
+
+  // Mesaj sil
+  const handleDeleteMessage = async () => {
+    if (!selectedMessage) return;
+
+    console.log('🗑️ Mesaj silme başlatıldı:', selectedMessage._id);
+
+    try {
+      const response = await axiosInstance.delete(`/chats/messages/${selectedMessage._id}`);
+      
+      console.log('✅ Silme response:', response.status, response.data);
+      
+      // Başarılı silme - optimistic update
+      setMessages(prevMessages => 
+        prevMessages.filter(msg => msg._id !== selectedMessage._id)
+      );
+      handleCloseMenu();
+      
+      // Error state'i temizle (eğer varsa)
+      setError('');
+      
+      console.log('✅ Mesaj başarıyla silindi ve UI güncellendi:', selectedMessage._id);
+    } catch (err) {
+      console.error('❌ Mesaj silme hatası detayları:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message,
+        selectedMessageId: selectedMessage._id
+      });
+      
+      handleCloseMenu();
+      
+      // Hata durumunda mesajları yenile (rollback)
+      fetchMessages();
+      
+      // Hata mesajını göster ama chat'i kapatma
+      if (err.response?.status === 400) {
+        setError('Bu mesaj 1 günden eski olduğu için silinemez');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Mesaj silinemedi, lütfen tekrar deneyin');
+      }
+      
+      // 3 saniye sonra hata mesajını temizle
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
+  // Mesajın silinebilir olup olmadığını kontrol et
+  const canDeleteMessage = (message) => {
+    if (message.sender._id !== currentUser._id) return false;
+    
+    const messageDate = new Date(message.createdAt);
+    const now = new Date();
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    
+    return (now - messageDate) < oneDayInMs;
+  };
+
+  // Mesajın düzenlenebilir olup olmadığını kontrol et (10 dakika)
+  const canEditMessage = (message) => {
+    if (message.sender._id !== currentUser._id) return false;
+    
+    const messageDate = new Date(message.createdAt);
+    const now = new Date();
+    const tenMinutesInMs = 10 * 60 * 1000;
+    
+    return (now - messageDate) < tenMinutesInMs;
+  };
+
+  // Mesaj düzenlemeyi başlat
+  const handleEditMessage = () => {
+    if (!selectedMessage) return;
+    setEditingMessage(selectedMessage._id);
+    setEditContent(selectedMessage.content);
+    handleCloseMenu();
+  };
+
+  // Mesaj düzenlemeyi kaydet
+  const handleSaveEdit = async () => {
+    console.log('🔄 handleSaveEdit çağrıldı:', {
+      editingMessage,
+      editContent: editContent.trim(),
+      hasContent: !!editContent.trim()
+    });
+
+    if (!editingMessage || !editContent.trim()) {
+      console.log('❌ Validation failed: editingMessage veya editContent boş');
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.put(`/chats/messages/${editingMessage}`, {
+        content: editContent.trim()
+      });
+
+      // Mesajı güncelle (eski model için sadece content)
+      setMessages(prevMessages =>
+        prevMessages.map(msg =>
+          msg._id === editingMessage 
+            ? { ...msg, content: editContent.trim() }
+            : msg
+        )
+      );
+
+      setEditingMessage(null);
+      setEditContent('');
+      
+      console.log('✅ Mesaj düzenlendi:', response.data);
+    } catch (err) {
+      console.error('❌ Mesaj düzenlenemedi:', err);
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Mesaj düzenlenemedi');
+      }
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
+  // Mesaj düzenlemeyi iptal et
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setEditContent('');
+  };
+
   useEffect(() => {
     if (partnerId) {
       fetchPartner();
@@ -95,12 +271,19 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
     }
   }, [partnerId, fetchPartner, fetchMessages]);
 
+  // Mesajlar yüklendiğinde aşağıya kaydır
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages]);
+
   if (!partnerId) return null;
 
   if (!partnerId) {
     return (
       <Box sx={{ 
-        width: 380,
+        width: 450,
         height: 'auto',
         zIndex: 1000 
       }}>
@@ -114,7 +297,7 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
   if (loading && !partner) {
     return (
       <Box sx={{ 
-        width: 'auto',
+        width: 450,
         height: 'auto',
         zIndex: 1000 
       }}>
@@ -123,7 +306,8 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
     );
   }
 
-  if (error) {
+  // Critical error durumunda (partner bulunamadı vs.) chat'i kapat
+  if (error && (!partner || error.includes('bulunamadı'))) {
     return (
       <Box sx={{ 
         width: 'auto',
@@ -141,8 +325,10 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
     <>
       {/* Floating Chat Widget */}
       <Box sx={{ 
-        width: isMinimized ? 'auto' : 380,
-        height: isMinimized ? 'auto' : 500
+        width: isMinimized ? 'auto' : 450,
+        height: isMinimized ? 'auto' : 500,
+        position: 'relative',
+        zIndex: 10001
       }}>
         {/* Chat Header */}
         <Paper 
@@ -231,6 +417,23 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
               p: 2, 
               backgroundColor: '#f8f9fa' 
             }}>
+              {/* Hata Mesajı */}
+              {error && (
+                <Alert 
+                  severity="error" 
+                  sx={{ 
+                    mb: 2, 
+                    fontSize: '0.8rem',
+                    '& .MuiAlert-message': {
+                      fontSize: '0.8rem'
+                    }
+                  }}
+                  onClose={() => setError('')}
+                >
+                  {error}
+                </Alert>
+              )}
+              
               {messages.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 4 }}>
                   <Chat sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
@@ -240,47 +443,187 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
                 </Box>
               ) : (
                 <Stack spacing={1}>
-                  {messages.map((message) => (
-                    <Box
-                      key={message._id}
-                      sx={{
-                        display: 'flex',
-                        justifyContent: message.sender._id === currentUser._id ? 'flex-end' : 'flex-start'
-                      }}
-                    >
-                      <Paper
+                  {messages.map((message) => {
+                    const isCurrentUser = message.sender._id === currentUser._id;
+                    return (
+                      <Box
+                        key={message._id}
                         sx={{
-                          p: 1.5,
-                          maxWidth: '80%',
-                          backgroundColor: message.sender._id === currentUser._id ? '#4a0d16' : 'white',
-                          color: message.sender._id === currentUser._id ? 'white' : 'black',
-                          borderRadius: message.sender._id === currentUser._id ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                          boxShadow: '0 1px 4px rgba(0,0,0,0.1)'
+                          display: 'flex',
+                          alignItems: 'flex-end',
+                          gap: 1,
+                          flexDirection: isCurrentUser ? 'row-reverse' : 'row'
                         }}
                       >
-                        <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                          {message.content}
-                        </Typography>
-                        <Typography 
-                          variant="caption" 
+                        {/* Profil Fotoğrafı */}
+                        <Avatar
+                          src={isCurrentUser ? currentUser.profileImage : (partner?.profileImage)}
                           sx={{ 
-                            opacity: 0.7,
-                            display: 'block',
-                            textAlign: 'right',
-                            mt: 0.5,
-                            fontSize: '0.7rem'
+                            width: 28, 
+                            height: 28,
+                            fontSize: '0.8rem'
                           }}
                         >
-                          {new Date(message.createdAt).toLocaleTimeString('tr-TR', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </Typography>
-                      </Paper>
-                    </Box>
-                  ))}
+                          {isCurrentUser 
+                            ? currentUser.fullname?.[0] 
+                            : partner?.fullname?.[0]
+                          }
+                        </Avatar>
+
+                        {/* Mesaj Balonu */}
+                        <Box sx={{ position: 'relative', maxWidth: '70%' }}>
+                          <Paper
+                            sx={{
+                              p: 1.5,
+                              backgroundColor: isCurrentUser ? '#4a0d16' : 'white',
+                              color: isCurrentUser ? 'white' : 'black',
+                              borderRadius: isCurrentUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+                              '&:hover .message-menu': {
+                                opacity: 1
+                              }
+                            }}
+                          >
+                            {editingMessage === message._id ? (
+                              // Düzenleme modu
+                              <Box sx={{ width: '100%' }}>
+                                <TextField
+                                  fullWidth
+                                  multiline
+                                  maxRows={3}
+                                  value={editContent}
+                                  onChange={(e) => setEditContent(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    console.log('⌨️ Key pressed:', e.key, 'shiftKey:', e.shiftKey);
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      console.log('🔄 Enter pressed, validation:', {
+                                        content: editContent.trim(),
+                                        original: message.content,
+                                        hasChanged: editContent.trim() !== message.content,
+                                        hasContent: !!editContent.trim()
+                                      });
+                                      if (editContent.trim()) {
+                                        console.log('✅ Calling handleSaveEdit');
+                                        handleSaveEdit();
+                                      } else {
+                                        console.log('❌ Validation failed - content is empty');
+                                      }
+                                    } else if (e.key === 'Escape') {
+                                      e.preventDefault();
+                                      handleCancelEdit();
+                                    }
+                                  }}
+                                  variant="standard"
+                                  placeholder="Mesajınızı düzenleyin... (Enter: kaydet, ESC: iptal, Shift+Enter: yeni satır)"
+                                  autoFocus
+                                  sx={{
+                                    '& .MuiInput-root': {
+                                      color: isCurrentUser ? 'white' : 'black',
+                                      '&:before': {
+                                        borderBottomColor: isCurrentUser ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                                      },
+                                      '&:after': {
+                                        borderBottomColor: isCurrentUser ? 'white' : '#1976d2',
+                                      },
+                                    },
+                                    '& .MuiInput-input::placeholder': {
+                                      color: isCurrentUser ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
+                                      fontSize: '0.75rem'
+                                    },
+                                    mb: 1
+                                  }}
+                                />
+                                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                                  <IconButton
+                                    size="small"
+                                    onClick={handleCancelEdit}
+                                    sx={{
+                                      color: isCurrentUser ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+                                      width: 24,
+                                      height: 24
+                                    }}
+                                  >
+                                    <Cancel sx={{ fontSize: 16 }} />
+                                  </IconButton>
+                                  <Typography 
+                                    variant="caption" 
+                                    sx={{ 
+                                      color: isCurrentUser ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
+                                      fontSize: '0.65rem',
+                                      alignSelf: 'center'
+                                    }}
+                                  >
+                                    Enter: Kaydet • ESC: İptal
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            ) : (
+                              // Normal mesaj görünümü
+                              <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                                {message.content}
+                              </Typography>
+                            )}
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between',
+                              mt: 0.5 
+                            }}>
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  opacity: 0.7,
+                                  fontSize: '0.7rem'
+                                }}
+                              >
+                                {new Date(message.createdAt).toLocaleTimeString('tr-TR', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </Typography>
+                              
+                              {/* Kendi mesajında menü butonu (sadece düzenleme modunda değilse) */}
+                              {isCurrentUser && editingMessage !== message._id && (
+                                <Tooltip title={canEditMessage(message) ? "Düzenle/Sil" : canDeleteMessage(message) ? "Sil" : "İşlem yapılamaz"}>
+                                  <IconButton
+                                    className="message-menu"
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMessageMenu(e, message);
+                                    }}
+                                    disabled={!canDeleteMessage(message) && !canEditMessage(message)}
+                                    sx={{
+                                      opacity: 0,
+                                      transition: 'opacity 0.2s',
+                                      color: isCurrentUser ? 'rgba(255,255,255,0.8)' : 'inherit',
+                                      width: 20,
+                                      height: 20,
+                                      '&:hover': {
+                                        backgroundColor: 'rgba(255,255,255,0.1)',
+                                        color: isCurrentUser ? 'white' : 'inherit'
+                                      },
+                                      '&:disabled': {
+                                        color: isCurrentUser ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'
+                                      }
+                                    }}
+                                  >
+                                    <MoreVert sx={{ fontSize: 14 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                            </Box>
+                          </Paper>
+                        </Box>
+                      </Box>
+                    );
+                  })}
                 </Stack>
               )}
+              
+              {/* Scroll to bottom referansı */}
+              <div ref={messagesEndRef} />
             </Box>
             
             <Divider />
@@ -328,6 +671,61 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
           </Paper>
         </Collapse>
       </Box>
+
+      {/* Mesaj Menüsü */}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleCloseMenu}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        slotProps={{
+          paper: {
+            style: {
+              zIndex: 20000,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            }
+          }
+        }}
+        sx={{
+          zIndex: 20000
+        }}
+      >
+        {selectedMessage && canEditMessage(selectedMessage) && (
+          <MenuItem 
+            onClick={handleEditMessage}
+            sx={{
+              color: '#1976d2',
+              '&:hover': {
+                backgroundColor: 'rgba(25, 118, 210, 0.08)'
+              }
+            }}
+          >
+            <Edit sx={{ mr: 1, fontSize: 18 }} />
+            Mesajı Düzenle
+          </MenuItem>
+        )}
+        {selectedMessage && canDeleteMessage(selectedMessage) && (
+          <MenuItem 
+            onClick={handleDeleteMessage}
+            sx={{
+              color: '#d32f2f',
+              '&:hover': {
+                backgroundColor: 'rgba(211, 47, 47, 0.08)'
+              }
+            }}
+          >
+            <Delete sx={{ mr: 1, fontSize: 18 }} />
+            Mesajı Sil
+          </MenuItem>
+        )}
+      </Menu>
       
       {/* Minimized Chat Badge */}
       {isMinimized && messages.length > 0 && (

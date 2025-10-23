@@ -102,14 +102,18 @@ export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;
     
+    console.log('🔔 Notification unread count istendi, kullanıcı:', userId);
+    
     const unreadCount = await Notification.countDocuments({ 
       user: userId, 
       isRead: false 
     });
 
+    console.log('📊 Notification unread count sonucu:', unreadCount);
+
     res.status(200).json({ unreadCount });
   } catch (error) {
-    console.error("Okunmamış bildirim sayısı getirilemedi:", error);
+    console.error("❌ Notification unread count hatası:", error);
     res.status(500).json({ message: "Okunmamış bildirim sayısı getirilemedi" });
   }
 };

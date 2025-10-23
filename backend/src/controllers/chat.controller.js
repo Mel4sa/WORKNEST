@@ -238,6 +238,12 @@ export const editMessage = async (req, res) => {
     const { content } = req.body;
     const userId = req.user._id;
 
+    console.log('🔄 EDIT MESSAGE İSTEK:', {
+      messageId,
+      userId: userId.toString(),
+      content: content?.trim()
+    });
+
     if (!content || !content.trim()) {
       return res.status(400).json({ message: "Mesaj içeriği boş olamaz" });
     }
@@ -248,31 +254,57 @@ export const editMessage = async (req, res) => {
     });
 
     if (!message) {
+      console.log('❌ Mesaj bulunamadı:', messageId);
       return res.status(404).json({ message: "Mesaj bulunamadı veya düzenleme yetkiniz yok" });
     }
 
-    // Orijinal içeriği sakla
-    const originalContent = message.content;
+    // 10 dakika (600 saniye) kontrolü
+    const tenMinutesAgo = new Date();
+    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10);
     
-    // Mesajı güncelle
-    message.content = content.trim();
-    message.edited.isEdited = true;
-    message.edited.editedAt = new Date();
-    message.edited.originalContent = originalContent;
+    if (message.createdAt < tenMinutesAgo) {
+      console.log('⏰ Mesaj çok eski, düzenlenemez:', {
+        messageDate: message.createdAt,
+        tenMinutesAgo
+      });
+      return res.status(400).json({ 
+        message: "Bu mesaj 10 dakikadan eski olduğu için düzenlenemez",
+        canEdit: false,
+        timeLeft: 0
+      });
+    }
 
-    await message.save();
+    console.log('📝 Mesaj düzenleniyor - ESKİ MODEL KULLANILIYOR:', {
+      messageId: message._id,
+      oldContent: message.content,
+      newContent: content.trim()
+    });
 
-    // Güncellenmiş mesajı populate et
+    // ESKİ MESSAGE MODEL - SADECE CONTENT GÜNCELLEMESİ
+    await Message.findByIdAndUpdate(messageId, {
+      content: content.trim()
+    });
+
+    console.log('✅ Mesaj başarıyla güncellendi (findByIdAndUpdate kullanıldı)');
+
+    // Güncellenmiş mesajı getir
     const updatedMessage = await Message.findById(messageId)
       .populate({
         path: 'sender',
         select: 'fullname username profileImage'
       });
 
-    res.status(200).json({ message: updatedMessage });
+    res.status(200).json({ 
+      success: true,
+      message: updatedMessage 
+    });
+
   } catch (error) {
-    console.error("Mesaj düzenleme hatası:", error);
-    res.status(500).json({ message: "Mesaj düzenlenemedi", error: error.message });
+    console.error("❌ Mesaj düzenleme hatası:", error);
+    res.status(500).json({ 
+      message: "Mesaj düzenlenemedi", 
+      error: error.message 
+    });
   }
 };
 
@@ -282,20 +314,38 @@ export const deleteMessage = async (req, res) => {
     const { messageId } = req.params;
     const userId = req.user._id;
 
+    console.log('🗑️ DELETE MESSAGE İSTEK:', {
+      messageId,
+      userId: userId.toString(),
+      timestamp: new Date().toISOString()
+    });
+
     const message = await Message.findOne({
       _id: messageId,
       sender: userId
     });
 
     if (!message) {
+      console.log('❌ Mesaj bulunamadı:', messageId);
       return res.status(404).json({ message: "Mesaj bulunamadı veya silme yetkiniz yok" });
     }
+
+    console.log('📝 Mesaj bulundu:', {
+      messageId: message._id,
+      createdAt: message.createdAt,
+      sender: message.sender.toString()
+    });
 
     // 1 gün (24 saat) kontrolü
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
     
     if (message.createdAt < oneDayAgo) {
+      console.log('⏰ Mesaj çok eski:', {
+        messageDate: message.createdAt,
+        oneDayAgo,
+        canDelete: false
+      });
       return res.status(400).json({ 
         message: "Bu mesaj 1 günden eski olduğu için silinemez",
         canDelete: false,
@@ -303,21 +353,19 @@ export const deleteMessage = async (req, res) => {
       });
     }
 
+    console.log('✅ Mesaj siliniyor:', messageId);
     await Message.findByIdAndDelete(messageId);
 
-    // Eğer bu son mesajsa, sohbetin son mesajını güncelle
-    const chat = await Chat.findById(message.chat);
-    if (chat.lastMessage && chat.lastMessage.toString() === messageId) {
-      const lastMessage = await Message.findOne({ chat: message.chat })
-        .sort({ createdAt: -1 });
-      
-      await Chat.findByIdAndUpdate(message.chat, {
-        lastMessage: lastMessage ? lastMessage._id : null,
-        lastActivity: new Date()
-      });
-    }
+    // Eski message model yapısında chat referansı yok, 
+    // bu yüzden chat güncelleme yapmıyoruz
+    console.log('ℹ️ Eski message model kullanıldığı için chat güncellemesi atlanıyor');
 
-    res.status(200).json({ message: "Mesaj silindi" });
+    console.log('✅ Mesaj başarıyla silindi:', messageId);
+    res.status(200).json({ 
+      success: true,
+      message: "Mesaj silindi",
+      deletedMessageId: messageId
+    });
   } catch (error) {
     console.error("Mesaj silme hatası:", error);
     res.status(500).json({ message: "Mesaj silinemedi", error: error.message });

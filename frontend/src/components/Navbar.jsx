@@ -45,7 +45,7 @@ function Navbar() {
   
   // Bildirim state'leri
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const notificationOpen = Boolean(notificationAnchor);
 
@@ -60,8 +60,9 @@ function Navbar() {
       const response = await axiosInstance.get("/notifications", {
         params: { limit: 10 }
       });
-      setNotifications(response.data.notifications);
-      setUnreadCount(response.data.unreadCount);
+      setNotifications(response.data.notifications || []);
+      // Unread count'u ayrıca fetch ediyoruz
+      fetchUnreadCount();
     } catch (error) {
       console.error("Bildirimler getirilemedi:", error);
     }
@@ -69,12 +70,34 @@ function Navbar() {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await axiosInstance.get("/notifications/unread-count");
-      setUnreadCount(response.data.unreadCount);
+      let total = 0;
+      
+      // Normal bildirimler
+      try {
+        const notificationResponse = await axiosInstance.get("/notifications/unread-count");
+        const notifCount = notificationResponse.data.unreadCount || 0;
+        total += notifCount;
+      } catch (notifError) {
+        console.error('❌ Notification unread count hatası:', notifError);
+      }
+
+      // Mesaj bildirimleri - yeni mesajları bildirim olarak göster
+      try {
+        const messageResponse = await axiosInstance.get("/messages/unread-count");
+        const msgCount = messageResponse.data.unreadCount || 0;
+        total += msgCount; // Hem bildirimleri hem mesajları say
+      } catch (msgError) {
+        console.log('ℹ️ Message unread count endpoint bulunamadı:', msgError.response?.status);
+      }
+
+      setTotalUnreadCount(total);
     } catch (error) {
-      console.error("Okunmamış bildirim sayısı getirilemedi:", error);
+      console.error("❌ Genel unread count hatası:", error);
+      setTotalUnreadCount(0);
     }
   };
+
+
 
   const handleNotificationClick = (event) => {
     setNotificationAnchor(event.currentTarget);
@@ -97,7 +120,7 @@ function Navbar() {
             : notif
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setTotalUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error("Bildirim okundu olarak işaretlenemedi:", error);
     }
@@ -105,11 +128,21 @@ function Navbar() {
 
   const markAllAsRead = async () => {
     try {
-      await axiosInstance.patch("/notifications/mark-all-read");
+      console.log('🧹 Tüm bildirimler ve mesajlar okundu işaretleniyor...');
+      
+      // Hem bildirimleri hem mesajları işaretle
+      await Promise.all([
+        axiosInstance.patch("/notifications/mark-all-read"),
+        axiosInstance.put("/messages/mark-all-read")
+      ]);
+      
       setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
-      setUnreadCount(0);
+      // Unread count'u yeniden fetch et
+      fetchUnreadCount();
+      
+      console.log('✅ Tüm bildirimler ve mesajlar okundu işaretlendi');
     } catch (error) {
-      console.error("Tüm bildirimler okundu olarak işaretlenemedi:", error);
+      console.error("❌ Tüm bildirimler okundu olarak işaretlenemedi:", error);
     }
   };
 
@@ -117,9 +150,21 @@ function Navbar() {
   useEffect(() => {
     if (user) {
       fetchUnreadCount();
-      // Her 10 saniyede bir okunmamış sayıyı güncelle
-      const interval = setInterval(fetchUnreadCount, 10000);
-      return () => clearInterval(interval);
+      // Her 5 saniyede bir okunmamış sayıyı güncelle (mesajlar için daha sık)
+      const interval = setInterval(fetchUnreadCount, 5000);
+      
+      // Mesaj count değiştiğinde hemen güncelle
+      const handleMessageCountChange = () => {
+        console.log('📨 Message count değişti, unread count güncelleniyor...');
+        setTimeout(fetchUnreadCount, 500); // Biraz gecikme ile güncelle
+      };
+      
+      window.addEventListener('messageCountChanged', handleMessageCountChange);
+      
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('messageCountChanged', handleMessageCountChange);
+      };
     }
   }, [user]);
 
@@ -443,7 +488,7 @@ function Navbar() {
             }}
           >
             <Badge 
-              badgeContent={unreadCount} 
+              badgeContent={totalUnreadCount} 
               color="error"
               sx={{
                 "& .MuiBadge-badge": {
@@ -677,9 +722,9 @@ function Navbar() {
           <Box sx={{ p: 2, borderBottom: "1px solid #e0e0e0" }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Typography variant="h6" sx={{ fontWeight: "600", color: "#333" }}>
-                Bildirimler
+                Bildirimler & Mesajlar
               </Typography>
-              {unreadCount > 0 && (
+              {totalUnreadCount > 0 && (
                 <Button
                   size="small"
                   onClick={markAllAsRead}

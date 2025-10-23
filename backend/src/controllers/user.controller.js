@@ -260,10 +260,11 @@ export const searchUsers = async (req, res) => {
       _id: { $ne: currentUserId }, 
       $or: [
         { fullname: searchRegex },
+        { username: searchRegex },
         { title: searchRegex }
       ]
     })
-    .select('_id fullname title profileImage')
+    .select('_id fullname username title profileImage')
     .limit(15)
     .lean();
 

@@ -48,11 +48,23 @@ function GlobalChatButton() {
     try {
       console.log('🚀 fetchConversations başladı');
       setLoading(true);
-      const response = await axiosInstance.get('/messages/conversations');
+      
+      // Timeout ekleyelim - 5 saniyeden fazla sürerse iptal et
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout')), 5000);
+      });
+      
+      const fetchPromise = axiosInstance.get('/messages/conversations');
+      
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+      
       console.log('✅ Konuşmalar geldi:', response.data);
       setConversations(response.data);
     } catch (error) {
       console.error('❌ Konuşmalar getirilemedi:', error);
+      if (error.message === 'Timeout') {
+        console.log('⏰ Konuşmalar yükleme zaman aşımı');
+      }
       setConversations([]);
     } finally {
       setLoading(false);
@@ -92,7 +104,13 @@ function GlobalChatButton() {
     } else {
       console.log('📱 Chat açılıyor...');
       setIsOpen(true);
-      fetchConversations();
+      
+      // Chat'i hemen aç, konuşmaları arka planda yükle
+      setTimeout(() => {
+        if (activeTab === 0) { // Sadece konuşmalar tab'ındaysak
+          fetchConversations();
+        }
+      }, 100);
     }
   };
 
@@ -114,7 +132,8 @@ function GlobalChatButton() {
     setActiveTab(newValue);
     setSearchQuery('');
     setUsers([]);
-    if (newValue === 0) {
+    if (newValue === 0 && conversations.length === 0) {
+      // Sadece konuşmalar boşsa yükle
       fetchConversations();
     }
   };
@@ -177,8 +196,8 @@ function GlobalChatButton() {
             <Paper 
               elevation={8}
               sx={{ 
-                width: 380,
-                maxHeight: 500,
+                width: 450,
+                height: 400,
                 borderRadius: '12px',
                 overflow: 'hidden'
               }}
@@ -253,29 +272,49 @@ function GlobalChatButton() {
               )}
 
               {/* Content */}
-              <Box sx={{ maxHeight: 320, overflow: 'auto' }}>
+              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 280 }}>
                 {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                    <CircularProgress />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3 }}>
+                    <CircularProgress size={24} />
+                    <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+                      Konuşmalar yükleniyor...
+                    </Typography>
                   </Box>
                 ) : activeTab === 0 ? (
                   // Konuşmalar listesi
                   conversations.length === 0 ? (
-                    <Box sx={{ p: 3, textAlign: 'center' }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Henüz konuşmanız bulunmuyor
+                    <Box sx={{ 
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      height: '100%',
+                      minHeight: 280,
+                      p: 4
+                    }}>
+                      <ChatBubble sx={{ fontSize: 64, color: '#e0e0e0', mb: 3 }} />
+                      <Typography variant="h6" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
+                        Mesajlarınız
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
+                        Henüz hiç mesajlaşmanız yok.{'\n'}Yeni bir konuşma başlatın!
                       </Typography>
                       <Button
-                        variant="outlined"
+                        variant="contained"
                         startIcon={<Add />}
                         onClick={() => setActiveTab(1)}
                         sx={{
-                          borderColor: '#6b0f1a',
-                          color: '#6b0f1a',
+                          background: 'linear-gradient(135deg, #6b0f1a, #8c1c2b)',
+                          color: 'white',
+                          borderRadius: '20px',
+                          px: 3,
+                          py: 1,
                           '&:hover': {
-                            borderColor: '#8c1c2b',
-                            backgroundColor: 'rgba(107, 15, 26, 0.08)'
-                          }
+                            background: 'linear-gradient(135deg, #8c1c2b, #a82936)',
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 4px 12px rgba(107, 15, 26, 0.3)'
+                          },
+                          transition: 'all 0.3s ease'
                         }}
                       >
                         Yeni Konuşma Başlat
@@ -377,7 +416,7 @@ function GlobalChatButton() {
                             </ListItemAvatar>
                             <ListItemText
                               primary={searchedUser.fullname}
-                              secondary={`@${searchedUser.username}`}
+                              secondary={searchedUser.username ? `@${searchedUser.username}` : (searchedUser.title || `ID: ${searchedUser._id.slice(-6)}`)}
                               primaryTypographyProps={{
                                 fontSize: '0.9rem'
                               }}

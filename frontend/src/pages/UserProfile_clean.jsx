@@ -26,13 +26,13 @@ function UserProfile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState([]); // Current user'ın projeleri (davet için)
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState("");
   const [inviteMessage, setInviteMessage] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Current user'ın projelerini getir
+  // Current user'ın projelerini getir (davet için)
   const fetchUserProjects = useCallback(async () => {
     try {
       const response = await axios.get("/projects/my-projects");
@@ -71,7 +71,12 @@ function UserProfile() {
         message: inviteMessage || "Projeye katılmaya davet ediliyorsunuz!"
       };
       
-      await axios.post("/invites/send", inviteData);
+      console.log(" Gönderilen davet verisi:", inviteData);
+      console.log(" inviteMessage state:", inviteMessage);
+      console.log(" inviteMessage length:", inviteMessage?.length);
+      
+      const response = await axios.post("/invites/send", inviteData);
+      console.log(" Sunucu yanıtı:", response.data);
       
       setSnackbar({
         open: true,
