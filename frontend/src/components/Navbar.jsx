@@ -70,27 +70,15 @@ function Navbar() {
 
   const fetchUnreadCount = async () => {
     try {
-      let total = 0;
-      
-      // Normal bildirimler
+      // Sadece bildirim sayısını göster, mesaj sayısını ekleme
       try {
         const notificationResponse = await axiosInstance.get("/notifications/unread-count");
         const notifCount = notificationResponse.data.unreadCount || 0;
-        total += notifCount;
+        setTotalUnreadCount(notifCount);
       } catch (notifError) {
         console.error('❌ Notification unread count hatası:', notifError);
+        setTotalUnreadCount(0);
       }
-
-      // Mesaj bildirimleri - yeni mesajları bildirim olarak göster
-      try {
-        const messageResponse = await axiosInstance.get("/messages/unread-count");
-        const msgCount = messageResponse.data.unreadCount || 0;
-        total += msgCount; // Hem bildirimleri hem mesajları say
-      } catch (msgError) {
-        console.log('ℹ️ Message unread count endpoint bulunamadı:', msgError.response?.status);
-      }
-
-      setTotalUnreadCount(total);
     } catch (error) {
       console.error("❌ Genel unread count hatası:", error);
       setTotalUnreadCount(0);
@@ -133,7 +121,7 @@ function Navbar() {
       // Hem bildirimleri hem mesajları işaretle
       await Promise.all([
         axiosInstance.patch("/notifications/mark-all-read"),
-        axiosInstance.put("/messages/mark-all-read")
+  axiosInstance.put("/api/messages/mark-all-read")
       ]);
       
       setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));

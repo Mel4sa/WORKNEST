@@ -31,7 +31,7 @@ import {
 import axiosInstance from '../lib/axios';
 import useAuthStore from '../store/useAuthStore';
 
-function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) {
+function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false, onMessagesRead }) {
   const currentUser = useAuthStore((state) => state.user);
   const [partner, setPartner] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -51,8 +51,7 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
     try {
       const response = await axiosInstance.get(`/users/profile/${partnerId}`);
       setPartner(response.data);
-    } catch (err) {
-      console.error('Partner bilgileri getirilemedi:', err);
+    } catch {
       setError('Kullanıcı bulunamadı');
     }
   }, [partnerId]);
@@ -61,10 +60,9 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
   const fetchMessages = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/messages/${partnerId}`);
+      const response = await axiosInstance.get(`/api/messages/${partnerId}`);
       setMessages(response.data);
-    } catch (err) {
-      console.error('Mesajlar getirilemedi:', err);
+    } catch {
       setError('Mesajlar yüklenemedi');
     } finally {
       setLoading(false);
@@ -74,38 +72,18 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
   // Mesaj gönder
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sending) return;
-
     setSending(true);
     const messageContent = newMessage.trim();
-    
-    console.log('📤 Mesaj gönderiliyor:', messageContent.substring(0, 50));
-    
     try {
-      const response = await axiosInstance.post('/messages', {
+      const response = await axiosInstance.post('/api/messages', {
         receiverId: partnerId,
         content: messageContent
       });
-      
-      console.log('✅ Mesaj gönderildi, response:', response.data);
-      console.log('📝 Mevcut mesaj sayısı:', messages.length);
-      
-      // Yeni mesajı hemen ekle (optimistic update)
-      setMessages(prevMessages => {
-        console.log('🔄 Mesajlar güncelleniyor, önceki sayı:', prevMessages.length);
-        const newMessages = [...prevMessages, response.data];
-        console.log('🔄 Yeni mesaj sayısı:', newMessages.length);
-        return newMessages;
-      });
+      setMessages(prevMessages => [...prevMessages, response.data]);
       setNewMessage('');
-      
-      // Navbar'ın unread count'unu güncelle
       window.dispatchEvent(new CustomEvent('messageCountChanged'));
-      
-      // Mesaj gönderildikten sonra aşağıya kaydır
       setTimeout(scrollToBottom, 100);
-      
-    } catch (err) {
-      console.error('❌ Mesaj gönderilemedi:', err);
+    } catch {
       setError('Mesaj gönderilemedi');
     } finally {
       setSending(false);
@@ -116,6 +94,19 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Mesajları okundu olarak işaretle
+  const markMessagesAsRead = useCallback(async () => {
+    if (!partnerId) return;
+    try {
+  await axiosInstance.put(`/api/messages/${partnerId}/read`);
+      window.dispatchEvent(new CustomEvent('messageCountChanged'));
+    } finally {
+      if (typeof onMessagesRead === 'function') {
+        onMessagesRead();
+      }
+    }
+  }, [partnerId, onMessagesRead]);
 
   // Enter tuşuyla mesaj gönder
   const handleKeyPress = (e) => {
@@ -141,12 +132,8 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
   const handleDeleteMessage = async () => {
     if (!selectedMessage) return;
 
-    console.log('🗑️ Mesaj silme başlatıldı:', selectedMessage._id);
-
     try {
-      const response = await axiosInstance.delete(`/chats/messages/${selectedMessage._id}`);
-      
-      console.log('✅ Silme response:', response.status, response.data);
+  await axiosInstance.delete(`/api/messages/${selectedMessage._id}`);
       
       // Başarılı silme - optimistic update
       setMessages(prevMessages => 
@@ -157,16 +144,7 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
       // Error state'i temizle (eğer varsa)
       setError('');
       
-      console.log('✅ Mesaj başarıyla silindi ve UI güncellendi:', selectedMessage._id);
     } catch (err) {
-      console.error('❌ Mesaj silme hatası detayları:', {
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        message: err.message,
-        selectedMessageId: selectedMessage._id
-      });
-      
       handleCloseMenu();
       
       // Hata durumunda mesajları yenile (rollback)
@@ -218,19 +196,13 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
 
   // Mesaj düzenlemeyi kaydet
   const handleSaveEdit = async () => {
-    console.log('🔄 handleSaveEdit çağrıldı:', {
-      editingMessage,
-      editContent: editContent.trim(),
-      hasContent: !!editContent.trim()
-    });
-
     if (!editingMessage || !editContent.trim()) {
-      console.log('❌ Validation failed: editingMessage veya editContent boş');
+      handleCancelEdit();
       return;
     }
 
     try {
-      const response = await axiosInstance.put(`/chats/messages/${editingMessage}`, {
+  await axiosInstance.put(`/api/messages/${editingMessage}`, {
         content: editContent.trim()
       });
 
@@ -246,9 +218,11 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
       setEditingMessage(null);
       setEditContent('');
       
-      console.log('✅ Mesaj düzenlendi:', response.data);
+      // Başarı mesajı göster
+      setError('Mesaj başarıyla güncellendi');
+      setTimeout(() => setError(''), 3000);
+      
     } catch (err) {
-      console.error('❌ Mesaj düzenlenemedi:', err);
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else {
@@ -268,8 +242,12 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
     if (partnerId) {
       fetchPartner();
       fetchMessages();
+      markMessagesAsRead();
+      if (typeof onMessagesRead === 'function') {
+        onMessagesRead();
+      }
     }
-  }, [partnerId, fetchPartner, fetchMessages]);
+  }, [partnerId, fetchPartner, fetchMessages, markMessagesAsRead, onMessagesRead]);
 
   // Mesajlar yüklendiğinde aşağıya kaydır
   useEffect(() => {
@@ -321,6 +299,9 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
     );
   }
 
+  // Minimized Chat Badge
+  const unreadCount = messages.filter(m => m.receiver._id === currentUser._id && m.isRead === false).length;
+
   return (
     <>
       {/* Floating Chat Widget */}
@@ -359,9 +340,6 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
                   <Box>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                       {partner.fullname}
-                    </Typography>
-                    <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                      Aktif
                     </Typography>
                   </Box>
                 )}
@@ -494,20 +472,10 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
                                   value={editContent}
                                   onChange={(e) => setEditContent(e.target.value)}
                                   onKeyDown={(e) => {
-                                    console.log('⌨️ Key pressed:', e.key, 'shiftKey:', e.shiftKey);
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                       e.preventDefault();
-                                      console.log('🔄 Enter pressed, validation:', {
-                                        content: editContent.trim(),
-                                        original: message.content,
-                                        hasChanged: editContent.trim() !== message.content,
-                                        hasContent: !!editContent.trim()
-                                      });
                                       if (editContent.trim()) {
-                                        console.log('✅ Calling handleSaveEdit');
                                         handleSaveEdit();
-                                      } else {
-                                        console.log('❌ Validation failed - content is empty');
                                       }
                                     } else if (e.key === 'Escape') {
                                       e.preventDefault();
@@ -728,7 +696,7 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
       </Menu>
       
       {/* Minimized Chat Badge */}
-      {isMinimized && messages.length > 0 && (
+      {isMinimized && unreadCount > 0 && (
         <Fab 
           size="small" 
           sx={{ 
@@ -743,7 +711,7 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false }) 
           }}
           onClick={() => setIsMinimized(false)}
         >
-          <Badge badgeContent={messages.length} color="error">
+          <Badge badgeContent={unreadCount} color="error">
             <Chat />
           </Badge>
         </Fab>

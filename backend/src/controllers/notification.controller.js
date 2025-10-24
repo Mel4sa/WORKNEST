@@ -11,15 +11,7 @@ export const createNotification = async ({
   relatedInvite = null
 }) => {
   try {
-    console.log("🔄 createNotification çağrıldı:", {
-      userId,
-      type,
-      title,
-      message,
-      relatedProject,
-      relatedUser,
-      relatedInvite
-    });
+  // ...
     
     const notification = await Notification.create({
       user: userId,
@@ -31,10 +23,10 @@ export const createNotification = async ({
       relatedInvite
     });
     
-    console.log(`✅ Bildirim oluşturuldu: ${type} -> ${title}`, notification);
+  // ...
     return notification;
   } catch (error) {
-    console.error("❌ Bildirim oluşturma hatası:", error);
+  // ...
     throw error;
   }
 };
@@ -60,7 +52,7 @@ export const getRecentNotifications = async (req, res) => {
       unreadCount
     });
   } catch (error) {
-    console.error("Son bildirimler getirilemedi:", error);
+  // ...
     res.status(500).json({ message: "Son bildirimler getirilemedi" });
   }
 };
@@ -93,7 +85,7 @@ export const getNotifications = async (req, res) => {
       total
     });
   } catch (error) {
-    console.error("Bildirimler getirilemedi:", error);
+  // ...
     res.status(500).json({ message: "Bildirimler getirilemedi" });
   }
 };
@@ -102,18 +94,18 @@ export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;
     
-    console.log('🔔 Notification unread count istendi, kullanıcı:', userId);
+  // ...
     
     const unreadCount = await Notification.countDocuments({ 
       user: userId, 
       isRead: false 
     });
 
-    console.log('📊 Notification unread count sonucu:', unreadCount);
+  // ...
 
     res.status(200).json({ unreadCount });
   } catch (error) {
-    console.error("❌ Notification unread count hatası:", error);
+  // ...
     res.status(500).json({ message: "Okunmamış bildirim sayısı getirilemedi" });
   }
 };
@@ -135,7 +127,7 @@ export const markAsRead = async (req, res) => {
 
     res.status(200).json({ message: "Bildirim okundu olarak işaretlendi" });
   } catch (error) {
-    console.error("Bildirim güncellenemedi:", error);
+  // ...
     res.status(500).json({ message: "Bildirim güncellenemedi" });
   }
 };
@@ -152,7 +144,7 @@ export const markAllAsRead = async (req, res) => {
 
     res.status(200).json({ message: "Tüm bildirimler okundu olarak işaretlendi" });
   } catch (error) {
-    console.error("Bildirimler güncellenemedi:", error);
+  // ...
     res.status(500).json({ message: "Bildirimler güncellenemedi" });
   }
 };
@@ -174,7 +166,7 @@ export const deleteNotification = async (req, res) => {
 
     res.status(200).json({ message: "Bildirim silindi" });
   } catch (error) {
-    console.error("Bildirim silinemedi:", error);
+  // ...
     res.status(500).json({ message: "Bildirim silinemedi" });
   }
 };

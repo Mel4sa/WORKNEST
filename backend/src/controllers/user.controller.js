@@ -16,7 +16,7 @@ export const getUserProfile = async (req, res) => {
 
     res.status(200).json(user);
   } catch (error) {
-    console.error("Profil getirme hatası:", error);
+  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -49,7 +49,7 @@ export const updateProfile = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    console.error("Profil güncelleme hatası:", error);
+  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -160,7 +160,7 @@ export const updateUsername = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    console.error("Kullanıcı adı güncelleme hatası:", error);
+  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -190,7 +190,7 @@ export const updateEmail = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    console.error("Email güncelleme hatası:", error);
+  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -222,7 +222,7 @@ export const updatePassword = async (req, res) => {
 
     res.status(200).json({ message: "Şifre başarıyla güncellendi" });
   } catch (error) {
-    console.error("Şifre güncelleme hatası:", error);
+  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -239,7 +239,7 @@ export const deleteAccount = async (req, res) => {
 
     res.status(200).json({ message: "Hesap başarıyla silindi" });
   } catch (error) {
-    console.error("Hesap silme hatası:", error);
+  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -270,7 +270,7 @@ export const searchUsers = async (req, res) => {
 
     res.status(200).json(users);
   } catch (error) {
-    console.error("Kullanıcı arama hatası:", error);
+  // ...
     res.status(500).json({ message: "Arama sırasında bir hata oluştu" });
   }
 };

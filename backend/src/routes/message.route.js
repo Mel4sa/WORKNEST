@@ -6,7 +6,8 @@ import {
   markAsRead,
   getUnreadCount,
   markAllAsRead,
-  getRecentMessageNotifications
+  getRecentMessageNotifications,
+  deleteConversation
 } from '../controllers/message.controller.js';
 import { protectRoute } from '../middleware/authMiddleware.js';
 
@@ -26,6 +27,9 @@ router.get('/recent-notifications', getRecentMessageNotifications);
 
 // PUT /messages/mark-all-read - Tüm mesajları okundu olarak işaretle (partnerId route'undan önce olmalı)
 router.put('/mark-all-read', markAllAsRead);
+
+// DELETE /messages/:partnerId/delete-all - Bir kişiyle olan tüm mesajları sil
+router.delete('/:partnerId/delete-all', deleteConversation);
 
 // GET /messages/:partnerId - Belirli bir kullanıcıyla olan mesajları getir
 router.get('/:partnerId', getMessages);

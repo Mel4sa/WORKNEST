@@ -19,11 +19,12 @@ import {
   Tab,
   Tabs
 } from '@mui/material';
-import { ChatBubble, Remove, Close, Add, Search, Person } from '@mui/icons-material';
+import { ChatBubble, MoreVert, Add, Search, Person, Close } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import FloatingChat from './FloatingChat';
 import useAuthStore from '../store/useAuthStore';
 import axiosInstance from '../lib/axios';
+
 
 function GlobalChatButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,42 +34,27 @@ function GlobalChatButton() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState(0); // 0: conversations, 1: new chat
+  // ...menu ile ilgili kodlar kaldırıldı...
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
 
   // Sadece profil sayfasında göster
   const shouldShow = location.pathname === '/profile' && user;
 
-  console.log('🎯 GlobalChatButton render - pathname:', location.pathname, 'user:', !!user, 'shouldShow:', shouldShow);
+  // ...
 
   if (!shouldShow) return null;
 
   // Konuşmaları getir
   const fetchConversations = async () => {
     try {
-      console.log('🚀 fetchConversations başladı');
       setLoading(true);
-      
-      // Timeout ekleyelim - 5 saniyeden fazla sürerse iptal et
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout')), 5000);
-      });
-      
-      const fetchPromise = axiosInstance.get('/messages/conversations');
-      
-      const response = await Promise.race([fetchPromise, timeoutPromise]);
-      
-      console.log('✅ Konuşmalar geldi:', response.data);
+  const response = await axiosInstance.get('/api/messages/conversations');
       setConversations(response.data);
-    } catch (error) {
-      console.error('❌ Konuşmalar getirilemedi:', error);
-      if (error.message === 'Timeout') {
-        console.log('⏰ Konuşmalar yükleme zaman aşımı');
-      }
+    } catch {
       setConversations([]);
     } finally {
       setLoading(false);
-      console.log('🏁 fetchConversations bitti');
     }
   };
 
@@ -85,8 +71,7 @@ function GlobalChatButton() {
       // Kendimizi hariç tutalım
       const filteredUsers = response.data.filter(u => u._id !== user._id);
       setUsers(filteredUsers);
-    } catch (error) {
-      console.error('Kullanıcılar getirilemedi:', error);
+    } catch {
       setUsers([]);
     } finally {
       setLoading(false);
@@ -94,7 +79,7 @@ function GlobalChatButton() {
   };
 
   const handleChatToggle = () => {
-    console.log('🔄 Chat toggle tıklandı, isOpen:', isOpen);
+  // ...
     if (isOpen) {
       setIsOpen(false);
       setSelectedPartnerId(null);
@@ -102,7 +87,7 @@ function GlobalChatButton() {
       setSearchQuery('');
       setUsers([]);
     } else {
-      console.log('📱 Chat açılıyor...');
+  // ...
       setIsOpen(true);
       
       // Chat'i hemen aç, konuşmaları arka planda yükle
@@ -126,6 +111,7 @@ function GlobalChatButton() {
     setSelectedPartnerId(null);
     setSearchQuery('');
     setUsers([]);
+    fetchConversations(); // Konuşmadan çıkınca konuşmaları güncelle
   };
 
   const handleTabChange = (event, newValue) => {
@@ -171,7 +157,7 @@ function GlobalChatButton() {
             transition: 'all 0.3s ease',
           }}
         >
-          {isOpen ? <Remove /> : <ChatBubble />}
+          {isOpen ? <Close /> : <ChatBubble />}
         </Fab>
       </Tooltip>
 
@@ -190,6 +176,7 @@ function GlobalChatButton() {
               onClose={() => setIsOpen(false)}
               onBack={handleBackToList}
               initialMinimized={false}
+              onMessagesRead={fetchConversations}
             />
           ) : (
             // Konuşmalar listesi veya yeni chat
@@ -330,7 +317,9 @@ function GlobalChatButton() {
                             sx={{
                               '&:hover': {
                                 backgroundColor: 'rgba(107, 15, 26, 0.08)'
-                              }
+                              },
+                              display: 'flex',
+                              alignItems: 'center'
                             }}
                           >
                             <ListItemAvatar>
@@ -367,7 +356,8 @@ function GlobalChatButton() {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 fontSize: '0.7rem',
-                                fontWeight: 600
+                                fontWeight: 600,
+                                mr: 1
                               }}>
                                 {conversation.unreadCount}
                               </Box>
