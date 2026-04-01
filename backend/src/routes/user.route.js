@@ -14,15 +14,16 @@ import {
   updatePassword,
   deleteAccount,
   searchUsers,
-  getUserProfile 
+  getUserProfile,
+  getAllUsers
 } from "../controllers/user.controller.js";
+
+const router = express.Router();
 
 const uploadsDir = "uploads/";
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-
-const router = express.Router();
 
 const upload = multer({ 
   dest: uploadsDir,
@@ -55,6 +56,7 @@ router.put("/update", protectRoute, updateProfile);
 router.get("/me", protectRoute, getMe);
 router.get("/search", protectRoute, searchUsers);
 router.get("/profile/:userId", protectRoute, getUserProfile);
+router.get("/", getAllUsers);
 
 router.post("/upload-photo", protectRoute, upload.single("photo"), uploadPhoto);
 router.delete("/delete-photo", protectRoute, deletePhoto);

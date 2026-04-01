@@ -1,3 +1,12 @@
+// Tüm kullanıcıları getir
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, "-password"); // şifreyi gönderme
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Kullanıcılar alınamadı", error: err.message });
+  }
+};
 import User from "../models/user.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import fs from "fs";

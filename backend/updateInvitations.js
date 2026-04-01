@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 import Invitation from './src/models/invitation.model.js';
 
-// MongoDB Atlas bağlantısı
-const MONGO_URI = "mongodb+srv://elifors:elif111121@cluster0.wmh0npe.mongodb.net/worknest?retryWrites=true&w=majority&appName=Cluster0";
 
 async function updateInvitations() {
   try {

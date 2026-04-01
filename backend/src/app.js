@@ -11,6 +11,7 @@ import notificationRoutes from "./routes/notification.route.js";
 import messageRoutes from "./routes/message.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import connectDB from "./lib/db.js";
+import aiRoutes from "./routes/ai.route.js";
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/chats", chatRoutes);
+app.use("/api/ai", aiRoutes);
 
 
 app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));

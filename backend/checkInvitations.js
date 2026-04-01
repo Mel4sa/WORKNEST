@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import Invitation from './src/models/invitation.model.js';
 
-mongoose.connect('mongodb://localhost:27017/worknest');
 
 const checkInvitations = async () => {
   try {
