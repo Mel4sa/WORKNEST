@@ -2,6 +2,7 @@ import express from "express";
 import {
   getAllProjects,
   getUserProjects,
+  getOwnedProjects,
   getProjectById,
   createProject,
   updateProject,
@@ -23,8 +24,9 @@ router.post("/cleanup", cleanupDeletedProjects);
 router.use(protectRoute); 
 
 router.get("/my-projects", getUserProjects);
-router.get("/:id", getProjectById);
+router.get("/owned-projects", getOwnedProjects);
 router.post("/", createProject);
+router.get("/:id", getProjectById);
 router.put("/:id", updateProject);
 router.delete("/:id", deleteProject);
 router.post("/:id/join", joinProject);

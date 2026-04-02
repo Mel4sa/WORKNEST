@@ -15,19 +15,12 @@ import {
   Card,
   CardContent,
   Chip,
-  Divider,
   Container,
-  Grid,
   IconButton,
   Tooltip,
 } from "@mui/material";
 import { 
-  CheckCircle, 
-  Cancel, 
-  Schedule, 
-  Visibility,
-  PersonAdd,
-  Email
+  Visibility
 } from "@mui/icons-material";
 import axiosInstance from "../lib/axios";
 import useAuthStore from "../store/useAuthStore";
@@ -156,40 +149,34 @@ export default function InvitesPage() {
       <Box sx={{ 
         mb: 4, 
         textAlign: "center",
-        background: "#4a0d16",
-        borderRadius: "20px",
-        p: 4,
-        color: "white",
-        position: "relative",
-        overflow: "hidden",
-        boxShadow: "0 8px 32px rgba(74, 13, 22, 0.3)"
       }}>
         <Typography 
           variant="h3" 
           sx={{ 
-            fontWeight: "800",
-            mb: 2,
-            fontSize: { xs: "2rem", md: "2.5rem" }
+            fontWeight: "700",
+            mb: 1,
+            fontSize: { xs: "1.8rem", md: "2.5rem" },
+            color: "#2c3e50"
           }}
         >
-          📬 Davetlerim
+          Davetlerim
         </Typography>
         <Typography 
-          variant="h6" 
+          variant="body1" 
           sx={{ 
-            opacity: 0.9,
-            fontSize: { xs: "1rem", md: "1.2rem" }
+            color: "#64748b",
+            fontSize: { xs: "0.95rem", md: "1.1rem" }
           }}
         >
-          Proje davetlerinizi yönetin ve yeni fırsatları keşfedin
+          Proje davetlerinizi yönetin
         </Typography>
       </Box>
 
       <Paper sx={{ 
         mb: 4,
-        borderRadius: "16px",
+        borderRadius: "8px",
         overflow: "hidden",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.1)"
+        boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
       }}>
         <Tabs
           value={tab}
@@ -198,30 +185,25 @@ export default function InvitesPage() {
           textColor="primary"
           variant="fullWidth"
           sx={{
+            backgroundColor: "#f8fafc",
             "& .MuiTab-root": {
-              fontWeight: "600",
-              fontSize: "1.1rem",
-              py: 2,
+              fontWeight: "500",
+              fontSize: "1rem",
+              py: 1.5,
+              textTransform: "none",
+              color: "#64748b",
               "&.Mui-selected": {
-                color: "#4a0d16"
+                color: "#6b0f1a"
               }
             },
             "& .MuiTabs-indicator": {
-              backgroundColor: "#4a0d16",
-              height: "3px"
+              backgroundColor: "#6b0f1a",
+              height: "2px"
             }
           }}
         >
-          <Tab 
-            label="Alınan Davetler" 
-            icon={<Email />}
-            iconPosition="start"
-          />
-          <Tab 
-            label="Gönderilen Davetler" 
-            icon={<PersonAdd />}
-            iconPosition="start"
-          />
+          <Tab label="Alınan Davetler" />
+          <Tab label="Gönderilen Davetler" />
         </Tabs>
       </Paper>
 
@@ -229,400 +211,246 @@ export default function InvitesPage() {
         receivedInvites.length === 0 ? (
           <Card sx={{ 
             textAlign: "center", 
-            p: 6,
-            borderRadius: "16px",
-            backgroundColor: "#fafbfc",
-            border: "1px solid #e0e0e0"
+            p: 4,
+            borderRadius: "8px",
+            backgroundColor: "#f8fafc",
+            border: "1px solid #e2e8f0"
           }}>
-            <Typography variant="h5" sx={{ mb: 2, color: "#666" }}>
-              📭 Henüz alınan davetiniz yok
-            </Typography>
-            <Typography color="text.secondary">
-              Projelere davet edildiğinizde burada görünecek
+            <Typography variant="body1" sx={{ color: "#64748b" }}>
+              Henüz alınan davetiniz yok
             </Typography>
           </Card>
         ) : (
-          <Grid container spacing={2}>
+          <Stack spacing={2}>
             {receivedInvites.map((invite) => (
-              <Grid item xs={12} sm={6} md={4} key={invite._id}>
-                <Card
-                  sx={{
-                    borderRadius: "16px",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                    transition: "all 0.3s ease",
-                    border: invite.status === 'pending' ? "2px solid #4a0d16" : "1px solid #e0e0e0",
-                    "&:hover": { 
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 6px 20px rgba(74, 13, 22, 0.3)"
-                    },
-                  }}
-                >
-                  <CardContent sx={{ p: 2 }}>
-                    <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                      {/* Avatar */}
+              <Card
+                key={invite._id}
+                sx={{
+                  borderRadius: "8px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  border: "1px solid #e2e8f0",
+                  transition: "all 0.2s ease",
+                  "&:hover": { 
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "space-between" }}>
+                    {/* Sol Taraf - Gönderici Bilgisi */}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
                       <Avatar 
                         src={invite.sender?.profileImage}
                         sx={{
-                          width: 48,
-                          height: 48,
+                          width: 40,
+                          height: 40,
                           cursor: "pointer",
-                          border: "3px solid #fff",
-                          boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-                          "&:hover": {
-                            transform: "scale(1.1)",
-                            boxShadow: "0 4px 20px rgba(107, 15, 26, 0.3)"
-                          },
-                          transition: "all 0.2s ease"
+                          bgcolor: "#6b0f1a"
                         }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/profile/${invite.sender?._id}`);
-                        }}
+                        onClick={() => navigate(`/users/${invite.sender?._id}`)}
                       >
                         {invite.sender?.fullname?.[0]}
                       </Avatar>
 
-                      {/* İçerik */}
                       <Box sx={{ flex: 1 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-                          <Typography 
-                            variant="h6"
-                            sx={{ 
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              "&:hover": {
-                                color: "#4a0d16",
-                                textDecoration: "underline"
-                              }
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/profile/${invite.sender?._id}`);
-                            }}
-                          >
-                            {invite.sender?.fullname}
-                          </Typography>
-                          
-                          {/* Durum Chip'i */}
-                          <Chip
-                            icon={
-                              invite.status === 'accepted' ? <CheckCircle /> :
-                              invite.status === 'declined' ? <Cancel /> : <Schedule />
-                            }
-                            label={
-                              invite.status === 'accepted' ? 'Kabul Edildi' :
-                              invite.status === 'declined' ? 'Reddedildi' : 'Bekliyor'
-                            }
-                            size="small"
-                            sx={{
-                              fontWeight: 600,
-                              ...(invite.status === 'accepted' && {
-                                backgroundColor: "#e8f5e8",
-                                color: "#2e7d32",
-                                "& .MuiChip-icon": { color: "#2e7d32" }
-                              }),
-                              ...(invite.status === 'declined' && {
-                                backgroundColor: "#ffebee",
-                                color: "#c62828",
-                                "& .MuiChip-icon": { color: "#c62828" }
-                              }),
-                              ...(invite.status === 'pending' && {
-                                backgroundColor: "#fff3e0",
-                                color: "#ef6c00",
-                                "& .MuiChip-icon": { color: "#ef6c00" }
-                              })
-                            }}
-                          />
-                        </Box>
-
                         <Typography 
-                          variant="h6" 
+                          variant="subtitle1"
                           sx={{ 
-                            color: "#4a0d16", 
-                            fontWeight: 600,
-                            mb: 1
-                          }}
-                        >
-                          📋 {invite.project?.title}
-                        </Typography>
-
-                        <Box sx={{ 
-                          backgroundColor: '#f8f9fa',
-                          padding: 1.5,
-                          borderRadius: 2,
-                          border: '1px solid #e9ecef',
-                          mb: 1.5
-                        }}>
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              fontStyle: 'italic', 
-                              color: '#495057',
-                              lineHeight: 1.6
-                            }}
-                          >
-                            💬 "{invite.message || 'Projeye katılmaya davet ediliyorsunuz!'}"
-                          </Typography>
-                        </Box>
-
-                        <Typography 
-                          variant="caption" 
-                          sx={{ 
-                            color: "text.secondary",
-                            display: "block",
-                            mb: 2
-                          }}
-                        >
-                          📅 {new Date(invite.createdAt).toLocaleDateString('tr-TR', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </Typography>
-
-                        {/* Aksiyon Butonları */}
-                        {invite.status === 'pending' ? (
-                          <Stack direction="row" spacing={1}>
-                            <Tooltip title="Projeyi İncele">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleViewProject(invite.project?._id)}
-                                sx={{
-                                  backgroundColor: "#e3f2fd",
-                                  color: "#1976d2",
-                                  "&:hover": {
-                                    backgroundColor: "#bbdefb"
-                                  }
-                                }}
-                              >
-                                <Visibility />
-                              </IconButton>
-                            </Tooltip>
-                            
-                            <Button
-                              variant="contained"
-                              size="small"
-                              onClick={() => handleAccept(invite._id)}
-                              sx={{
-                                backgroundColor: "#4caf50",
-                                color: "white",
-                                fontWeight: 600,
-                                "&:hover": {
-                                  backgroundColor: "#388e3c"
-                                }
-                              }}
-                            >
-                              ✅ Kabul Et
-                            </Button>
-                            
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => handleDecline(invite._id)}
-                              sx={{
-                                borderColor: "#f44336",
-                                color: "#f44336",
-                                fontWeight: 600,
-                                "&:hover": {
-                                  backgroundColor: "#ffebee",
-                                  borderColor: "#d32f2f"
-                                }
-                              }}
-                            >
-                              ❌ Reddet
-                            </Button>
-                          </Stack>
-                        ) : (
-                          <Button 
-                            variant="outlined" 
-                            size="small"
-                            disabled
-                            sx={{
-                              fontWeight: 600,
-                              ...(invite.status === 'accepted' && {
-                                borderColor: "#4caf50",
-                                color: "#4caf50"
-                              }),
-                              ...(invite.status === 'declined' && {
-                                borderColor: "#f44336",
-                                color: "#f44336"
-                              })
-                            }}
-                          >
-                            {invite.status === 'accepted' ? '✅ Kabul Edildi' : '❌ Reddedildi'}
-                          </Button>
-                        )}
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )
-      ) : sentInvites.length === 0 ? (
-        <Card sx={{ 
-          textAlign: "center", 
-          p: 6,
-          borderRadius: "16px",
-          backgroundColor: "#fafbfc",
-          border: "1px solid #e0e0e0"
-        }}>
-          <Typography variant="h5" sx={{ mb: 2, color: "#666" }}>
-            📤 Henüz gönderilen davetiniz yok
-          </Typography>
-          <Typography color="text.secondary">
-            Başkalarını projelere davet ettiğinizde burada görünecek
-          </Typography>
-        </Card>
-      ) : (
-        <Grid container spacing={2}>
-          {sentInvites.map((invite) => (
-            <Grid item xs={12} sm={6} md={4} key={invite._id}>
-              <Card
-                sx={{
-                  borderRadius: "16px",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                  transition: "all 0.3s ease",
-                  border: invite.status === 'pending' ? "2px solid #4a0d16" : "1px solid #e0e0e0",
-                  "&:hover": { 
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 6px 20px rgba(74, 13, 22, 0.3)"
-                  },
-                }}
-              >
-                <CardContent sx={{ p: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                    {/* Avatar */}
-                    <Avatar 
-                      src={invite.receiver?.profileImage}
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        cursor: "pointer",
-                        border: "3px solid #fff",
-                        boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-                        "&:hover": {
-                          transform: "scale(1.1)",
-                          boxShadow: "0 4px 20px rgba(107, 15, 26, 0.3)"
-                        },
-                        transition: "all 0.2s ease"
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/profile/${invite.receiver?._id}`);
-                      }}
-                    >
-                      {invite.receiver?.fullname?.[0]}
-                    </Avatar>
-
-                    {/* İçerik */}
-                    <Box sx={{ flex: 1 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-                        <Typography 
-                          variant="h6"
-                          sx={{ 
-                            fontWeight: 600,
+                            fontWeight: "600",
+                            color: "#2c3e50",
                             cursor: "pointer",
-                            "&:hover": {
-                              color: "#4a0d16",
-                              textDecoration: "underline"
-                            }
+                            "&:hover": { color: "#6b0f1a" }
                           }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/profile/${invite.receiver?._id}`);
-                          }}
+                          onClick={() => navigate(`/users/${invite.sender?._id}`)}
                         >
-                          {invite.receiver?.fullname}
+                          {invite.sender?.fullname}
                         </Typography>
-                        
-                        {/* Durum Chip'i */}
-                        <Chip
-                          icon={
-                            invite.status === 'accepted' ? <CheckCircle /> :
-                            invite.status === 'declined' ? <Cancel /> : <Schedule />
-                          }
-                          label={
-                            invite.status === 'accepted' ? 'Kabul Edildi' :
-                            invite.status === 'declined' ? 'Reddedildi' : 'Bekliyor'
-                          }
-                          size="small"
-                          sx={{
-                            fontWeight: 600,
-                            ...(invite.status === 'accepted' && {
-                              backgroundColor: "#e8f5e8",
-                              color: "#2e7d32",
-                              "& .MuiChip-icon": { color: "#2e7d32" }
-                            }),
-                            ...(invite.status === 'declined' && {
-                              backgroundColor: "#ffebee",
-                              color: "#c62828",
-                              "& .MuiChip-icon": { color: "#c62828" }
-                            }),
-                            ...(invite.status === 'pending' && {
-                              backgroundColor: "#fff3e0",
-                              color: "#ef6c00",
-                              "& .MuiChip-icon": { color: "#ef6c00" }
-                            })
-                          }}
-                        />
-                      </Box>
-
-                      <Typography 
-                        variant="h6" 
-                        sx={{ 
-                          color: "#4a0d16", 
-                          fontWeight: 600,
-                          mb: 1
-                        }}
-                      >
-                        📋 {invite.project?.title}
-                      </Typography>
-
-                      <Box sx={{ 
-                        backgroundColor: '#f8f9fa',
-                        padding: 1.5,
-                        borderRadius: 2,
-                        border: '1px solid #e9ecef',
-                        mb: 1.5
-                      }}>
                         <Typography 
                           variant="body2" 
-                          sx={{ 
-                            fontStyle: 'italic', 
-                            color: '#495057',
-                            lineHeight: 1.6
-                          }}
+                          sx={{ color: "#64748b" }}
                         >
-                          💬 "{invite.message || 'Projeye katılmaya davet ediliyorsunuz!'}"
+                          {invite.project?.title}
                         </Typography>
                       </Box>
+                    </Box>
 
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          color: "text.secondary",
-                          display: "block"
+                    {/* Sağ Taraf - Durum ve Aksiyon */}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Chip
+                        label={
+                          invite.status === 'accepted' ? 'Kabul Edildi' :
+                          invite.status === 'declined' ? 'Reddedildi' : 'Bekliyor'
+                        }
+                        size="small"
+                        sx={{
+                          fontWeight: "500",
+                          ...(invite.status === 'accepted' && {
+                            backgroundColor: "#e8f5e8",
+                            color: "#2e7d32",
+                          }),
+                          ...(invite.status === 'declined' && {
+                            backgroundColor: "#ffebee",
+                            color: "#c62828",
+                          }),
+                          ...(invite.status === 'pending' && {
+                            backgroundColor: "#fff3e0",
+                            color: "#ef6c00",
+                          })
                         }}
-                      >
-                        📅 {new Date(invite.createdAt).toLocaleDateString('tr-TR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </Typography>
+                      />
+
+                      {invite.status === 'pending' && (
+                        <Stack direction="row" spacing={1}>
+                          <Tooltip title="Projeyi İncele">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleViewProject(invite.project?._id)}
+                              sx={{
+                                color: "#6b0f1a",
+                                "&:hover": { backgroundColor: "#f0e4e6" }
+                              }}
+                            >
+                              <Visibility fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => handleAccept(invite._id)}
+                            sx={{
+                              backgroundColor: "#4caf50",
+                              color: "white",
+                              fontWeight: "600",
+                              textTransform: "none",
+                              "&:hover": {
+                                backgroundColor: "#388e3c"
+                              }
+                            }}
+                          >
+                            Kabul Et
+                          </Button>
+                          
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleDecline(invite._id)}
+                            sx={{
+                              borderColor: "#f44336",
+                              color: "#f44336",
+                              fontWeight: "600",
+                              textTransform: "none",
+                              "&:hover": {
+                                backgroundColor: "#ffebee",
+                                borderColor: "#d32f2f"
+                              }
+                            }}
+                          >
+                            Reddet
+                          </Button>
+                        </Stack>
+                      )}
                     </Box>
                   </Box>
                 </CardContent>
               </Card>
-            </Grid>
+            ))}
+          </Stack>
+        )
+      ) : sentInvites.length === 0 ? (
+        <Card sx={{ 
+          textAlign: "center", 
+          p: 4,
+          borderRadius: "8px",
+          backgroundColor: "#f8fafc",
+          border: "1px solid #e2e8f0"
+        }}>
+          <Typography variant="body1" sx={{ color: "#64748b" }}>
+            Henüz gönderilen davetiniz yok
+          </Typography>
+        </Card>
+      ) : (
+        <Stack spacing={2}>
+          {sentInvites.map((invite) => (
+            <Card
+              key={invite._id}
+              sx={{
+                borderRadius: "8px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                border: "1px solid #e2e8f0",
+                transition: "all 0.2s ease",
+                "&:hover": { 
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                },
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "space-between" }}>
+                  {/* Sol Taraf - Alıcı Bilgisi */}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
+                    <Avatar 
+                      src={invite.receiver?.profileImage}
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        cursor: "pointer",
+                        bgcolor: "#6b0f1a"
+                      }}
+                      onClick={() => navigate(`/users/${invite.receiver?._id}`)}
+                    >
+                      {invite.receiver?.fullname?.[0]}
+                    </Avatar>
+
+                    <Box sx={{ flex: 1 }}>
+                      <Typography 
+                        variant="subtitle1"
+                        sx={{ 
+                          fontWeight: "600",
+                          color: "#2c3e50",
+                          cursor: "pointer",
+                          "&:hover": { color: "#6b0f1a" }
+                        }}
+                        onClick={() => navigate(`/users/${invite.receiver?._id}`)}
+                      >
+                        {invite.receiver?.fullname}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ color: "#64748b" }}
+                      >
+                        {invite.project?.title}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Sağ Taraf - Durum */}
+                  <Chip
+                    label={
+                      invite.status === 'accepted' ? 'Kabul Edildi' :
+                      invite.status === 'declined' ? 'Reddedildi' : 'Bekliyor'
+                    }
+                    size="small"
+                    sx={{
+                      fontWeight: "500",
+                      ...(invite.status === 'accepted' && {
+                        backgroundColor: "#e8f5e8",
+                        color: "#2e7d32",
+                      }),
+                      ...(invite.status === 'declined' && {
+                        backgroundColor: "#ffebee",
+                        color: "#c62828",
+                      }),
+                      ...(invite.status === 'pending' && {
+                        backgroundColor: "#fff3e0",
+                        color: "#ef6c00",
+                      })
+                    }}
+                  />
+                </Box>
+              </CardContent>
+            </Card>
           ))}
-        </Grid>
+        </Stack>
       )}
       
       <Snackbar 

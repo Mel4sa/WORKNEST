@@ -3,20 +3,18 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Avatar,
-  Card,
-  CardContent,
   CircularProgress,
   Alert,
   Button,
   Divider,
   Snackbar,
-  Typography
+  Typography,
+  Chip,
+  IconButton
 } from "@mui/material";
+import { GitHub, LinkedIn } from "@mui/icons-material";
 import axios from "../lib/axios";
 import useAuthStore from "../store/useAuthStore";
-import UserProfileActions from "../components/userProfile/UserProfileActions";
-import UserProfileHeader from "../components/userProfile/UserProfileHeader";
-import UserProfileDetails from "../components/userProfile/UserProfileDetails";
 import InviteDialog from "../components/userProfile/InviteDialog";
 
 function UserProfile() {
@@ -32,10 +30,10 @@ function UserProfile() {
   const [inviteMessage, setInviteMessage] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Current user'ın projelerini getir
+  // Current user'ın sahip olduğu projeleri getir (davet için)
   const fetchUserProjects = useCallback(async () => {
     try {
-      const response = await axios.get("/projects/my-projects");
+      const response = await axios.get("/projects/owned-projects");
       setProjects(response.data.projects || []);
     } catch (err) {
       console.error("Projeler yüklenemedi:", err);
@@ -62,7 +60,6 @@ function UserProfile() {
     }
   }, [userId, fetchUserProfile, fetchUserProjects]);
 
-  // Davet gönderme fonksiyonu
   const handleSendInvite = async () => {
     try {
       const inviteData = {
@@ -91,20 +88,6 @@ function UserProfile() {
         message: errorMessage,
         severity: "error"
       });
-    }
-  };
-
-  // Chat sayfasına yönlendir ve chat oluştur
-  const handleChatClick = async () => {
-    try {
-      // Kullanıcı ile chat oluştur veya mevcut chat'i getir
-      await axios.get(`/chats/user/${userId}`);
-      // Messages sayfasına yönlendir
-      navigate('/messages');
-    } catch (err) {
-      console.error('Chat oluşturulamadı:', err);
-      // Hata olsa bile Messages sayfasına yönlendir
-      navigate('/messages');
     }
   };
 
@@ -154,62 +137,237 @@ function UserProfile() {
 
   return (
     <Box sx={{ 
-      padding: "40px", 
+      padding: { xs: "20px", md: "40px" }, 
       minHeight: "100vh", 
-      backgroundColor: "#fafbfc",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center"
+      backgroundColor: "#f8fafc"
     }}>
-      {/* Geri Dön ve Davet At Butonları */}
-      <UserProfileActions
-        onGoBack={() => navigate(-1)}
-        onInviteClick={() => setInviteDialogOpen(true)}
-        onChatClick={handleChatClick}
-      />
-
-      {/* Profil Kartı */}
-      <Card sx={{
-        width: "100%",
-        maxWidth: "800px",
-        borderRadius: "20px",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-        overflow: "visible",
-        position: "relative",
-        mt: 4
+      {/* Header Section */}
+      <Box sx={{ 
+        display: "flex", 
+        justifyContent: "space-between", 
+        alignItems: "center",
+        mb: 4,
+        maxWidth: "900px",
+        mx: "auto"
       }}>
-        {/* Profil Avatar */}
+        <Button 
+          variant="text" 
+          onClick={() => navigate(-1)}
+          sx={{ 
+            color: "#64748b",
+            textTransform: "none",
+            fontSize: "1rem",
+            "&:hover": { color: "#6b0f1a" }
+          }}
+        >
+          ← Geri Dön
+        </Button>
+
+        <Box sx={{ display: "flex", gap: 1.5 }}>
+          <Button 
+            variant="contained"
+            onClick={() => setInviteDialogOpen(true)}
+            sx={{ 
+              background: "#6b0f1a",
+              color: "#fff",
+              fontWeight: "600",
+              textTransform: "none",
+              borderRadius: "6px",
+              px: 4,
+              "&:hover": { background: "#8c1c2b" }
+            }}
+          >
+            Davet Et
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Main Content */}
+      <Box sx={{
+        maxWidth: "900px",
+        mx: "auto"
+      }}>
+        {/* Profile Header with Avatar */}
         <Box sx={{
-          display: "flex",
-          justifyContent: "center",
-          position: "absolute",
-          top: "-60px",
-          left: 0,
-          right: 0,
-          zIndex: 10
+          padding: { xs: "20px", md: "30px" },
+          textAlign: "center"
         }}>
           <Avatar
             src={user.profileImage}
             sx={{
-              width: 120,
-              height: 120,
-              border: "6px solid white",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-              fontSize: "3rem",
+              width: 100,
+              height: 100,
+              border: "3px solid white",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              fontSize: "2.5rem",
               fontWeight: "bold",
-              bgcolor: "#6b0f1a"
+              bgcolor: "#6b0f1a",
+              mx: "auto",
+              mb: 2
             }}
           >
             {user.fullname?.[0]?.toUpperCase()}
           </Avatar>
+
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: "700", 
+              color: "#2c3e50",
+              mb: 0.5
+            }}
+          >
+            {user.fullname}
+          </Typography>
+
+          {/* Joined Date */}
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              color: "#94a3b8",
+              display: "block",
+              textAlign: "center",
+              mb: 2
+            }}
+          >
+            {new Date(user.createdAt).toLocaleDateString('tr-TR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })} tarihinde katıldı
+          </Typography>
+
+          {user.title && (
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: "#64748b",
+                mb: 1.5
+              }}
+            >
+              {user.title}
+            </Typography>
+          )}
+
+          {/* Social Links */}
+          {((user.github && user.github.trim() !== "") || (user.linkedin && user.linkedin.trim() !== "")) ? (
+            <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 2 }}>
+              {user.github && user.github.trim() !== "" && (
+                <IconButton
+                  href={user.github.startsWith("http") ? user.github : `https://${user.github}`}
+                  target="_blank"
+                  sx={{ 
+                    color: "#24292e",
+                    "&:hover": { 
+                      color: "#fff",
+                      backgroundColor: "#24292e"
+                    }
+                  }}
+                >
+                  <GitHub />
+                </IconButton>
+              )}
+              {user.linkedin && user.linkedin.trim() !== "" && (
+                <IconButton
+                  href={user.linkedin.startsWith("http") ? user.linkedin : `https://${user.linkedin}`}
+                  target="_blank"
+                  sx={{ 
+                    color: "#0077b5",
+                    "&:hover": { 
+                      color: "#fff",
+                      backgroundColor: "#0077b5"
+                    }
+                  }}
+                >
+                  <LinkedIn />
+                </IconButton>
+              )}
+            </Box>
+          ) : null}
         </Box>
 
-        <CardContent sx={{ pt: 12, pb: 4 }}>
-          <UserProfileHeader user={user} />
-          <Divider sx={{ my: 3 }} />
-          <UserProfileDetails user={user} />
-        </CardContent>
-      </Card>
+        {/* Profile Content */}
+        <Box sx={{ p: { xs: 2, md: 3 } }}>
+          {/* Education */}
+          {(user.university || user.department) ? (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ 
+                fontWeight: "700", 
+                color: "#2c3e50",
+                mb: 1,
+                textTransform: "uppercase",
+                fontSize: "0.8rem",
+                letterSpacing: "0.5px"
+              }}>
+                Eğitim
+              </Typography>
+              {user.university && (
+                <Typography variant="body2" sx={{ color: "#2c3e50", mb: 0.5 }}>
+                  {user.university}
+                </Typography>
+              )}
+              {user.department && (
+                <Typography variant="body2" sx={{ color: "#64748b" }}>
+                  {user.department}
+                </Typography>
+              )}
+            </Box>
+          ) : null}
+
+          {/* Bio */}
+          {user.bio ? (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ 
+                fontWeight: "700", 
+                color: "#2c3e50",
+                mb: 1,
+                textTransform: "uppercase",
+                fontSize: "0.8rem",
+                letterSpacing: "0.5px"
+              }}>
+                Hakkında
+              </Typography>
+              <Typography variant="body2" sx={{ 
+                lineHeight: 1.6,
+                color: "#475569"
+              }}>
+                {user.bio}
+              </Typography>
+            </Box>
+          ) : null}
+
+          {/* Skills */}
+          {user.skills && user.skills.length > 0 ? (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ 
+                fontWeight: "700", 
+                color: "#2c3e50",
+                mb: 1.5,
+                textTransform: "uppercase",
+                fontSize: "0.8rem",
+                letterSpacing: "0.5px"
+              }}>
+                Yetenekler
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {user.skills.map((skill, index) => (
+                  <Chip
+                    key={index}
+                    label={skill}
+                    size="small"
+                    sx={{
+                      bgcolor: "#eef2ff",
+                      color: "#4f46e5",
+                      fontWeight: "500",
+                      height: "28px"
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          ) : null}
+        </Box>
+      </Box>
 
       {/* Davet Dialogu */}
       <InviteDialog
@@ -219,13 +377,13 @@ function UserProfile() {
           setSelectedProject("");
           setInviteMessage("");
         }}
+        user={user}
         projects={projects}
         selectedProject={selectedProject}
         setSelectedProject={setSelectedProject}
         inviteMessage={inviteMessage}
         setInviteMessage={setInviteMessage}
         onSendInvite={handleSendInvite}
-        receiverName={user.fullname}
       />
 
       {/* Snackbar */}

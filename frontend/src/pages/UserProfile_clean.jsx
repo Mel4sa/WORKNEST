@@ -99,21 +99,16 @@ function UserProfile() {
     }
   };
 
-  // Chat sayfasına yönlendir ve chat oluştur
   const handleChatClick = async () => {
     try {
-      // Kullanıcı ile chat oluştur veya mevcut chat'i getir
       await axios.get(`/chats/user/${userId}`);
-      // Messages sayfasına yönlendir
       navigate('/messages');
     } catch (err) {
       console.error('Chat oluşturulamadı:', err);
-      // Hata olsa bile Messages sayfasına yönlendir
       navigate('/messages');
     }
   };
 
-  // Eğer kendi profilini görmeye çalışıyorsa, normal Profile sayfasına yönlendir
   useEffect(() => {
     if (currentUser && userId === currentUser._id) {
       navigate("/profile");
@@ -166,14 +161,12 @@ function UserProfile() {
       flexDirection: "column",
       alignItems: "center"
     }}>
-      {/* Geri Dön ve Davet At Butonları */}
       <UserProfileActions
         onGoBack={() => navigate(-1)}
         onInviteClick={() => setInviteDialogOpen(true)}
         onChatClick={handleChatClick}
       />
 
-      {/* Profil Kartı */}
       <Card sx={{
         width: "100%",
         maxWidth: "800px",
@@ -183,7 +176,6 @@ function UserProfile() {
         position: "relative",
         mt: 4
       }}>
-        {/* Profil Avatar */}
         <Box sx={{
           display: "flex",
           justifyContent: "center",

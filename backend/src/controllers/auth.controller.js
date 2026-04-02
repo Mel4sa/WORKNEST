@@ -22,6 +22,13 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // İsim ve soyadının her kelimesinin baş harfini büyüt
+    const capitalizedFullname = fullname
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
     const newUser = await User.create({
       fullname,
       email,

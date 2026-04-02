@@ -6,7 +6,6 @@ import {
   Button, 
   Box, 
   FormControl, 
-  InputLabel, 
   Select, 
   MenuItem, 
   TextField, 
@@ -18,7 +17,6 @@ function InviteDialog({
   onClose, 
   user, 
   projects, 
-  currentUser,
   selectedProject, 
   setSelectedProject,
   inviteMessage, 
@@ -31,119 +29,123 @@ function InviteDialog({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: "12px"
+        }
+      }}
     >
       <DialogTitle sx={{ 
-        bgcolor: "#6b0f1a", 
-        color: "white",
-        borderRadius: "4px 4px 0 0"
+        borderBottom: "1px solid #e2e8f0",
+        pb: 2
       }}>
-        <Typography variant="h6" sx={{ fontWeight: "bold", color: "white" }}>
-          {user?.fullname} kullanıcısını projeye davet et
+        <Typography variant="h6" sx={{ fontWeight: "700", color: "#2c3e50" }}>
+          {user?.fullname} adlı kullanıcıyı projeye davet et
         </Typography>
       </DialogTitle>
+      
       <DialogContent sx={{ p: 3 }}>
-        <Box sx={{ mt: 3 }}>
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel sx={{ color: "#6b0f1a" }}>Projeleriniz</InputLabel>
+        {/* Project Selection */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ 
+            fontWeight: "700", 
+            color: "#2c3e50",
+            mb: 1,
+            textTransform: "uppercase",
+            fontSize: "0.75rem",
+            letterSpacing: "0.5px"
+          }}>
+            Proje Seçin
+          </Typography>
+          <FormControl fullWidth>
             <Select
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
-              label="Projeleriniz"
+              displayEmpty
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": {
-                    borderColor: "#6b0f1a"
+                    borderColor: "#e2e8f0"
                   },
                   "&:hover fieldset": {
-                    borderColor: "#8c1c2b"
+                    borderColor: "#cbd5e1"
                   },
                   "&.Mui-focused fieldset": {
-                    borderColor: "#6b0f1a"
+                    borderColor: "#6b0f1a",
+                    borderWidth: "2px"
                   }
                 }
               }}
             >
-              {(() => {
-                // Sadece proje lideri olduğu ve aktif projeleri filtrele
-                const ownedProjects = projects.filter(project => 
-                  project.owner?._id === currentUser?._id && 
-                  project.status !== 'cancelled' && 
-                  project.status !== 'completed'
-                );
-                
-                return ownedProjects.length === 0 ? (
-                  <MenuItem disabled>
-                    <Typography color="textSecondary">
-                      Henüz lider olduğunuz proje yok
+              <MenuItem value="">
+                <Typography variant="body2" color="textSecondary">
+                  Bir proje seçin...
+                </Typography>
+              </MenuItem>
+              {projects.length === 0 ? (
+                <MenuItem disabled>
+                  <Typography variant="body2" color="textSecondary">
+                    Proje bulunamadı
+                  </Typography>
+                </MenuItem>
+              ) : (
+                projects.map((project) => (
+                  <MenuItem key={project._id} value={project._id}>
+                    <Typography variant="body2" fontWeight="500">
+                      {project.title}
                     </Typography>
                   </MenuItem>
-                ) : (
-                  ownedProjects.map((project) => (
-                    <MenuItem key={project._id} value={project._id}>
-                      <Box>
-                        <Typography variant="body1" fontWeight="500">
-                          {project.title}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {project.description?.substring(0, 50)}...
-                        </Typography>
-                      </Box>
-                    </MenuItem>
-                  ))
-                );
-              })()}
+                ))
+              )}
             </Select>
           </FormControl>
-          
-          <Box sx={{ mt: 2 }}>
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              label="Davet Mesajı (İsteğe bağlı)"
-              value={inviteMessage}
-              onChange={(e) => {
-                if (e.target.value.length <= 500) {
-                  setInviteMessage(e.target.value);
-                }
-              }}
-              placeholder="Projeye katılmaya davet ediliyorsunuz!"
-              inputProps={{ maxLength: 100 }}
-              helperText={`${inviteMessage.length}/100 karakter`}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "#6b0f1a"
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#8c1c2b"
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#6b0f1a"
-                  }
-                },
-                "& .MuiInputLabel-root": {
-                  color: "#6b0f1a",
-                  "&.Mui-focused": {
-                    color: "#6b0f1a"
-                  }
-                },
-                "& .MuiFormHelperText-root": {
-                  color: inviteMessage.length > 75 ? "#d32f2f" : "#666",
-                  textAlign: "right"
-                }
-              }}
-            />
-          </Box>
         </Box>
+        
+        {/* Invitation Message */}
+        <TextField
+          fullWidth
+          multiline
+          rows={3}
+          label="Davet Mesajı (İsteğe bağlı)"
+          value={inviteMessage}
+          onChange={(e) => {
+            if (e.target.value.length <= 100) {
+              setInviteMessage(e.target.value);
+            }
+          }}
+          placeholder="Projeye katılmaya davet ediliyorsunuz!"
+          helperText={`${inviteMessage.length}/100 karakter`}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: "#e2e8f0"
+              },
+              "&:hover fieldset": {
+                borderColor: "#cbd5e1"
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#6b0f1a",
+                borderWidth: "2px"
+              }
+            },
+            "& .MuiInputLabel-root": {
+              color: "#64748b",
+              "&.Mui-focused": {
+                color: "#6b0f1a"
+              }
+            }
+          }}
+        />
       </DialogContent>
-      <DialogActions sx={{ p: 3 }}>
+      
+      <DialogActions sx={{ p: 2.5, borderTop: "1px solid #e2e8f0", gap: 1 }}>
         <Button 
           onClick={onClose}
           sx={{
-            color: "#6b0f1a",
+            textTransform: "none",
+            color: "#64748b",
             "&:hover": {
-              backgroundColor: "rgba(107, 15, 26, 0.04)"
+              backgroundColor: "#f1f5f9"
             }
           }}
         >
@@ -152,14 +154,18 @@ function InviteDialog({
         <Button 
           onClick={onSendInvite}
           variant="contained"
-          disabled={!selectedProject || projects.find(p => p._id === selectedProject)?.status === 'cancelled' || projects.find(p => p._id === selectedProject)?.status === 'completed'}
+          disabled={!selectedProject}
           sx={{
+            textTransform: "none",
             background: "#6b0f1a",
+            color: "white",
+            fontWeight: "600",
             "&:hover": {
               background: "#8c1c2b"
             },
             "&:disabled": {
-              background: "#ccc"
+              background: "#cbd5e1",
+              color: "#94a3b8"
             }
           }}
         >

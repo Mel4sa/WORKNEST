@@ -63,6 +63,26 @@ export const getUserProjects = async (req, res) => {
   }
 };
 
+// Sadece kendi (sahip olunan) projeleri getir - davet gönderme için
+export const getOwnedProjects = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    const projects = await Project.find({
+      owner: userId,
+      isActive: true,
+      status: { $nin: ['completed', 'cancelled'] }
+    })
+      .populate('owner', 'fullname email profileImage')
+      .select('title description status owner')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ projects });
+  } catch (error) {
+    res.status(500).json({ message: "Kendi projeleri getirilemedi", error: error.message });
+  }
+};
+
 // Tek proje detayı getir
 export const getProjectById = async (req, res) => {
   try {

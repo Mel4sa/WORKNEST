@@ -97,15 +97,15 @@ export const getSentInvites = async (req, res) => {
       .select("sender receiver project status message createdAt")
       .sort({ createdAt: -1 }); // En yeni davetler en üstte
 
-    console.log("📤 Gönderilen davetler:", invites.length, "adet");
-    invites.forEach(invite => {
-      console.log(`📤 Sent Invite ID ${invite._id}:`, {
-        message: invite.message,
-        messageType: typeof invite.message,
-        messageLength: invite.message?.length,
-        hasMessage: !!invite.message
-      });
-    });
+    // console.log("📤 Gönderilen davetler:", invites.length, "adet");
+    // invites.forEach(invite => {
+    //   console.log(`📤 Sent Invite ID ${invite._id}:`, {
+    //     message: invite.message,
+    //     messageType: typeof invite.message,
+    //     messageLength: invite.message?.length,
+    //     hasMessage: !!invite.message
+    //   });
+    // });
 
     res.json(invites);
   } catch (error) {
