@@ -2,17 +2,12 @@ import React from "react";
 import {
   Box,
   Typography,
-  Chip,
   IconButton,
   TextField,
-  FormControl,
-  Select,
-  MenuItem,
   Card,
   CardContent,
   Avatar,
-  Divider,
-  LinearProgress
+  Divider
 } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -23,33 +18,26 @@ function ProjectHeader({
   currentUser, 
   isEditing, 
   editFormData, 
-  editStatusData, 
   onEditToggle,
   onFormDataChange,
-  onStatusChange,
   onSave,
-  onCancel,
-  progress
+  onCancel
 }) {
   const handleSave = async () => {
     await onSave();
   };
 
-  const handleCancel = () => {
-    onCancel();
-  };
-
   return (
-    <Card sx={{ 
-      borderRadius: "20px", 
-      boxShadow: "0 4px 20px rgba(0,0,0,0.08)", 
+    <Card sx={{
+      borderRadius: "20px",
+      boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
       mb: 3,
       height: { xs: "auto", lg: "600px" },
       display: "flex",
       flexDirection: "column"
     }}>
-      <CardContent sx={{ 
-        p: 4, 
+      <CardContent sx={{
+        p: 4,
         flex: 1,
         display: "flex",
         flexDirection: "column",
@@ -84,7 +72,7 @@ function ProjectHeader({
               {project.title}
             </Typography>
           )}
-          
+
           {/* Düzenleme Butonu - Sadece proje sahibi için */}
           {currentUser && project.owner?._id === currentUser._id && (
             <>
@@ -105,7 +93,7 @@ function ProjectHeader({
                     <SaveIcon />
                   </IconButton>
                   <IconButton
-                    onClick={handleCancel}
+                    onClick={onCancel}
                     sx={{
                       backgroundColor: "#f44336",
                       color: "#fff",
@@ -139,31 +127,6 @@ function ProjectHeader({
           )}
         </Box>
 
-        {/* Durum */}
-        <Box sx={{ mb: 3 }}>
-          {isEditing ? (
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <Select
-                value={editStatusData}
-                onChange={(e) => onStatusChange(e.target.value)}
-                sx={{
-                  borderRadius: "12px",
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#6b0f1a",
-                    borderWidth: "2px"
-                  }
-                }}
-              >
-                <MenuItem value="planned">Planlanıyor</MenuItem>
-                <MenuItem value="ongoing">Devam Ediyor</MenuItem>
-                <MenuItem value="completed">Tamamlandı</MenuItem>
-                <MenuItem value="on_hold">Beklemede</MenuItem>
-                <MenuItem value="cancelled">İptal Edildi</MenuItem>
-              </Select>
-            </FormControl>
-          ) : null}
-        </Box>
-
         {/* Proje Lideri */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
           <Avatar 
@@ -189,7 +152,7 @@ function ProjectHeader({
 
         <Divider sx={{ my: 3 }} />
 
-        {/* Açıklama */}
+        {/* Proje Açıklaması */}
         <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
           Proje Açıklaması
         </Typography>
@@ -203,47 +166,23 @@ function ProjectHeader({
             variant="outlined"
             sx={{
               mb: 4,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "12px",
-                "&.Mui-focused fieldset": {
-                  borderColor: "#6b0f1a",
-                  borderWidth: "2px"
-                }
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '12px',
+                '&.Mui-focused fieldset': {
+                  borderColor: '#6b0f1a',
+                  borderWidth: '2px',
+                },
               },
-              "& .MuiInputLabel-root.Mui-focused": {
-                color: "#6b0f1a"
-              }
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: '#6b0f1a',
+              },
             }}
           />
         ) : (
-          <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.8, color: "#666" }}>
+          <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.8, color: '#666' }}>
             {project.description}
           </Typography>
         )}
-
-        {/* İlerleme Çubuğu */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
-            Proje İlerleme Durumu
-          </Typography>
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{
-              height: 12,
-              borderRadius: 6,
-              backgroundColor: "#e0e0e0",
-              "& .MuiLinearProgress-bar": {
-                borderRadius: 6,
-                background: "linear-gradient(90deg, #6b0f1a, #8c1c2b)",
-                transition: "all 0.3s ease-in-out",
-              },
-            }}
-          />
-          <Typography variant="body2" sx={{ mt: 1, color: "#666" }}>
-            %{Math.round(progress)} tamamlandı
-          </Typography>
-        </Box>
       </CardContent>
     </Card>
   );

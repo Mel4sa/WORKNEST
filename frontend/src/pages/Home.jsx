@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ProfileSnackbar from "../components/profile/ProfileSnackbar";
 import { useNavigate } from "react-router-dom";
 import { 
   Box,
@@ -22,6 +23,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showError, setShowError] = useState(false);
 
   const fetchAllProjects = async () => {
     try {
@@ -33,6 +35,7 @@ function Home() {
     } catch (err) {
       console.error("Projeler yüklenemedi:", err);
       setError("Projeler yüklenemedi. Lütfen tekrar deneyin.");
+      setShowError(true);
     } finally {
       setLoading(false);
     }
@@ -144,17 +147,8 @@ function Home() {
           </Button>
         </Box>
 
-        {error && (
-          <Alert 
-            severity="error" 
-            sx={{ 
-              mb: 4, 
-              borderRadius: "8px"
-            }}
-          >
-            {error}
-          </Alert>
-        )}
+
+        <ProfileSnackbar open={showError} message={error} severity="error" onClose={() => setShowError(false)} />
 
         {/* Search Bar */}
         <Box sx={{ 

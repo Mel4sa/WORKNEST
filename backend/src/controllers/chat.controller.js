@@ -144,12 +144,6 @@ export const sendMessage = async (req, res) => {
     const { content, messageType = "text" } = req.body;
     const userId = req.user._id;
     
-    console.log("💬 MESAJ GÖNDERİLİYOR:", {
-      chatId,
-      content,
-      userId: userId.toString(),
-      messageType
-    });
 
     if (!content || !content.trim()) {
       return res.status(400).json({ message: "Mesaj içeriği boş olamaz" });
@@ -161,11 +155,6 @@ export const sendMessage = async (req, res) => {
       participants: userId
     });
 
-    console.log("🔍 CHAT BULUNDU:", {
-      chatId,
-      chatFound: !!chat,
-      participants: chat?.participants?.map(p => p.toString())
-    });
 
     if (!chat) {
       return res.status(404).json({ message: "Sohbet bulunamadı veya erişim yetkiniz yok" });
@@ -197,17 +186,10 @@ export const sendMessage = async (req, res) => {
       participantId => participantId.toString() !== userId.toString()
     );
 
-    console.log("🎯 BİLDİRİM GÖNDERME:", {
-      allParticipants: chat.participants.map(p => p.toString()),
-      currentUser: userId.toString(),
-      otherParticipants: otherParticipants.map(p => p.toString()),
-      senderName: populatedMessage.sender.fullname
-    });
 
     // Her katılımcı için bildirim oluştur
     for (const participantId of otherParticipants) {
       try {
-        console.log(`📤 Bildirim oluşturuluyor: ${participantId}`);
         
         await createNotification({
           userId: participantId,
@@ -217,7 +199,6 @@ export const sendMessage = async (req, res) => {
           relatedUser: userId
         });
         
-        console.log(`📱 Bildirim gönderildi: ${participantId} <- ${populatedMessage.sender.fullname}`);
       } catch (notificationError) {
         console.error("❌ Bildirim gönderilemedi:", notificationError);
         // Bildirim hatası mesaj göndermeyi engellemez
@@ -238,11 +219,6 @@ export const editMessage = async (req, res) => {
     const { content } = req.body;
     const userId = req.user._id;
 
-    console.log('🔄 EDIT MESSAGE İSTEK:', {
-      messageId,
-      userId: userId.toString(),
-      content: content?.trim()
-    });
 
     if (!content || !content.trim()) {
       return res.status(400).json({ message: "Mesaj içeriği boş olamaz" });
@@ -254,7 +230,6 @@ export const editMessage = async (req, res) => {
     });
 
     if (!message) {
-      console.log('❌ Mesaj bulunamadı:', messageId);
       return res.status(404).json({ message: "Mesaj bulunamadı veya düzenleme yetkiniz yok" });
     }
 
@@ -263,10 +238,6 @@ export const editMessage = async (req, res) => {
     tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10);
     
     if (message.createdAt < tenMinutesAgo) {
-      console.log('⏰ Mesaj çok eski, düzenlenemez:', {
-        messageDate: message.createdAt,
-        tenMinutesAgo
-      });
       return res.status(400).json({ 
         message: "Bu mesaj 10 dakikadan eski olduğu için düzenlenemez",
         canEdit: false,
@@ -274,18 +245,12 @@ export const editMessage = async (req, res) => {
       });
     }
 
-    console.log('📝 Mesaj düzenleniyor - ESKİ MODEL KULLANILIYOR:', {
-      messageId: message._id,
-      oldContent: message.content,
-      newContent: content.trim()
-    });
 
     // ESKİ MESSAGE MODEL - SADECE CONTENT GÜNCELLEMESİ
     await Message.findByIdAndUpdate(messageId, {
       content: content.trim()
     });
 
-    console.log('✅ Mesaj başarıyla güncellendi (findByIdAndUpdate kullanıldı)');
 
     // Güncellenmiş mesajı getir
     const updatedMessage = await Message.findById(messageId)
@@ -314,11 +279,6 @@ export const deleteMessage = async (req, res) => {
     const { messageId } = req.params;
     const userId = req.user._id;
 
-    console.log('🗑️ DELETE MESSAGE İSTEK:', {
-      messageId,
-      userId: userId.toString(),
-      timestamp: new Date().toISOString()
-    });
 
     const message = await Message.findOne({
       _id: messageId,
@@ -326,26 +286,15 @@ export const deleteMessage = async (req, res) => {
     });
 
     if (!message) {
-      console.log('❌ Mesaj bulunamadı:', messageId);
       return res.status(404).json({ message: "Mesaj bulunamadı veya silme yetkiniz yok" });
     }
 
-    console.log('📝 Mesaj bulundu:', {
-      messageId: message._id,
-      createdAt: message.createdAt,
-      sender: message.sender.toString()
-    });
 
     // 1 gün (24 saat) kontrolü
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
     
     if (message.createdAt < oneDayAgo) {
-      console.log('⏰ Mesaj çok eski:', {
-        messageDate: message.createdAt,
-        oneDayAgo,
-        canDelete: false
-      });
       return res.status(400).json({ 
         message: "Bu mesaj 1 günden eski olduğu için silinemez",
         canDelete: false,
@@ -353,14 +302,11 @@ export const deleteMessage = async (req, res) => {
       });
     }
 
-    console.log('✅ Mesaj siliniyor:', messageId);
     await Message.findByIdAndDelete(messageId);
 
     // Eski message model yapısında chat referansı yok, 
     // bu yüzden chat güncelleme yapmıyoruz
-    console.log('ℹ️ Eski message model kullanıldığı için chat güncellemesi atlanıyor');
 
-    console.log('✅ Mesaj başarıyla silindi:', messageId);
     res.status(200).json({ 
       success: true,
       message: "Mesaj silindi",

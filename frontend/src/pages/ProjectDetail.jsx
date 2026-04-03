@@ -1,56 +1,70 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+  // Üye silme fonksiyonu
+  const handleRemoveMember = async (userId) => {
+    try {
+      await axiosInstance.delete(`/projects/${project._id}/members/${userId}`);
+      // Üye silindikten sonra projeyi tekrar fetch et
+      fetchProject();
+      setSuccessSnackbar({ open: true, message: "Üye başarıyla çıkarıldı!" });
+    } catch (err) {
+      setError(err.response?.data?.message || "Üye silinirken bir hata oluştu.");
+    }
+  };
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  CircularProgress, 
+import {
+  Box,
+  Typography,
+  Button,
+  CircularProgress,
   Alert,
-  Card,
-  CardContent,
   Snackbar,
-  Container
+  TextField,
+  MenuItem,
+  Select,
+  Stack,
+  Divider,
+  Container,
+  Paper,
+  IconButton,
+  Tooltip
 } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AddIcon from '@mui/icons-material/Add';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+
 import axiosInstance from "../lib/axios";
 import useAuthStore from "../store/useAuthStore";
-import ProjectHeader from "../components/project/ProjectHeader";
 import TeamMembersList from "../components/project/TeamMembersList";
 import ProjectDialogs from "../components/project/ProjectDialogs";
+import TeamStatusChip from "../components/project/TeamStatusChip";
 
 function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  const [progress, setProgress] = useState(0);           
+  
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [successSnackbar, setSuccessSnackbar] = useState({ open: false, message: "" });
+
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({
     title: "",
-    description: ""
+    description: "",
+    status: "planned"
   });
-  const [editStatusData, setEditStatusData] = useState("");
-  const [swipedMember, setSwipedMember] = useState(null);
 
-  const animationRef = useRef();
-
-  // Backend'den proje detayını getir
   const fetchProject = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(`/projects/${id}`);
-      
-      setProject(response.data); // Backend'den direkt project objesi geliyor
-      setEditFormData({
-        title: response.data.title || "",
-        description: response.data.description || ""
-      });
-      setEditStatusData(response.data.status || "planned");
+      setProject(response.data);
     } catch (err) {
       console.error("Proje detayı yüklenemedi:", err);
       setError("Proje detayı yüklenemedi. Lütfen tekrar deneyin.");
@@ -59,107 +73,21 @@ function ProjectDetail() {
     }
   }, [id]);
 
-  // Üye silme fonksiyonu
-  // Swipe işlemini başlat
-  const handleSwipeStart = (e, memberId) => {
-    // Eğer memberId null ise swipe'ı kapat
-    if (memberId === null) {
-      setSwipedMember(null);
-      return;
-    }
-    
-    if (e.type === 'touchstart') {
-      const startX = e.touches[0].clientX;
-      
-      const handleTouchMove = (e) => {
-        const currentX = e.touches[0].clientX;
-        const deltaX = startX - currentX;
-        
-        if (deltaX > 30) {
-          setSwipedMember(memberId);
-        } else if (deltaX < -30) {
-          setSwipedMember(null);
-        }
-      };
-      
-      const handleTouchEnd = () => {
-        document.removeEventListener('touchmove', handleTouchMove);
-        document.removeEventListener('touchend', handleTouchEnd);
-      };
-      
-      document.addEventListener('touchmove', handleTouchMove);
-      document.addEventListener('touchend', handleTouchEnd);
-    } else if (e.type === 'mousedown') {
-      const startX = e.clientX;
-      
-      const handleMouseMove = (e) => {
-        const currentX = e.clientX;
-        const deltaX = startX - currentX;
-        
-        if (deltaX > 30) {
-          setSwipedMember(memberId);
-        } else if (deltaX < -30) {
-          setSwipedMember(null);
-        }
-      };
-      
-      const handleMouseUp = () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-      
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-  };
-
-  const handleRemoveMember = async (memberId) => {
-    try {
-      console.log("🚀 Frontend: Üye silme işlemi başlıyor", { memberId, projectId: id });
-      
-      // Önce UI'dan hemen kaldır
-      setProject(prev => ({
-        ...prev,
-        members: prev.members.filter(member => {
-          const memberUserId = member.user?._id || member._id;
-          return memberUserId !== memberId;
-        })
-      }));
-      
-      console.log("📤 API çağrısı yapılıyor:", `/projects/${id}/members/${memberId}`);
-      const response = await axiosInstance.delete(`/projects/${id}/members/${memberId}`);
-      console.log("✅ API response:", response.data);
-      
-      setSuccessSnackbar({ open: true, message: "Üye başarıyla projeden silindi!" });
-      setSwipedMember(null); // Swipe durumunu sıfırla
-    } catch (err) {
-      console.error("❌ Üye silinemedi:", err);
-      console.error("❌ Error response:", err.response?.data);
-      
-      // Hata durumunda projeyi yeniden yükle
-      fetchProject();
-      
-      setError(err.response?.data?.message || "Üye silinemedi. Lütfen tekrar deneyin.");
-    }
-  };
-
-  // Proje iptal etme fonksiyonu
   const handleCancelProject = async () => {
     try {
-      await axiosInstance.put(`/projects/${id}`, { 
-        ...project, 
-        status: "cancelled" 
+      await axiosInstance.put(`/projects/${id}`, {
+        ...project,
+        status: "cancelled"
       });
       setProject(prev => ({ ...prev, status: "cancelled" }));
-      setCancelDialogOpen(false);
-      setSuccessSnackbar({ open: true, message: "Proje başarıyla iptal edildi!" });
+        setCancelDialogOpen(false);
+        setSuccessSnackbar({ open: true, message: "Proje başarıyla iptal edildi!" });
     } catch (err) {
       console.error("Proje iptal edilemedi:", err);
       setError("Proje iptal edilemedi. Lütfen tekrar deneyin.");
     }
   };
 
-  // Proje silme fonksiyonu
   const handleDeleteProject = async () => {
     try {
       await axiosInstance.delete(`/projects/${project._id}`);
@@ -172,202 +100,272 @@ function ProjectDetail() {
     }
   };
 
-  // Proje güncelleme fonksiyonu
-  const handleProjectSave = async () => {
-    try {
-      // Hem proje bilgilerini hem de durumu güncelle
-      await axiosInstance.put(`/projects/${id}`, {
-        ...editFormData,
-        status: editStatusData
-      });
-      setProject(prev => ({ 
-        ...prev, 
-        ...editFormData,
-        status: editStatusData
-      }));
-      setIsEditing(false);
-      setSuccessSnackbar({ open: true, message: "Proje başarıyla güncellendi!" });
-    } catch (err) {
-      console.error("Proje güncellenemedi:", err);
-      setError("Proje güncellenemedi. Lütfen tekrar deneyin.");
-    }
-  };
-
   useEffect(() => {
     fetchProject();
   }, [fetchProject]);
 
-  useEffect(() => {
-    if (!project) return;
+  const handleEditClick = () => {
+    setEditFormData({
+      title: project.title,
+      description: project.description || "",
+      status: project.status || "planned"
+    });
+    setIsEditing(true);
+  };
 
-    let targetProgress = 0;
-    if (project.status === "completed") {
-      targetProgress = 100;
-    } else if (project.status === "ongoing") {
-      targetProgress = 60;
-    } else if (project.status === "cancelled") {
-      targetProgress = 0;
-    } else {
-      targetProgress = 15;
+  const handleEditSave = async () => {
+    try {
+      if (!editFormData.title.trim() || !editFormData.description.trim()) return;
+      await axiosInstance.put(`/projects/${project._id}`, {
+        ...project,
+        title: editFormData.title,
+        description: editFormData.description,
+        status: editFormData.status
+      });
+      setProject(prev => ({ ...prev, title: editFormData.title, description: editFormData.description, status: editFormData.status }));
+      setIsEditing(false);
+      setSuccessSnackbar({ open: true, message: "Proje başarıyla güncellendi!" });
+    } catch {
+      setError("Proje güncellenemedi. Lütfen tekrar deneyin.");
     }
+  };
 
-    let current = 0;
-    const animationDuration = 2000; // 2 saniye
-    const incrementPerFrame = targetProgress / (animationDuration / 16); // 60 FPS için sabit artış
-
-    const step = () => {
-      current = Math.min(current + incrementPerFrame, targetProgress);
-      setProgress(current);
-
-      if (current < targetProgress) {
-        animationRef.current = requestAnimationFrame(step);
-      } else {
-        // Animasyon tamamlandıktan sonra otomatik durum güncelleme
-        let newStatus = project.status;
-        if (targetProgress === 0) {
-          newStatus = "planned"; // Yeni başladı
-        } else if (targetProgress === 100) {
-          newStatus = "completed"; // Tamamlandı
-        } else if (targetProgress > 0 && targetProgress < 100) {
-          newStatus = "ongoing"; // Devam ediyor
-        }
-        
-        // Eğer durum değişmişse güncelle
-        if (newStatus !== project.status && project.status !== "cancelled") {
-          setProject(prev => ({ ...prev, status: newStatus }));
-        }
-      }
-    };
-
-    animationRef.current = requestAnimationFrame(step);
-
-    return () => cancelAnimationFrame(animationRef.current);
-  }, [project]);
+  const handleAddMember = async () => {
+    try {
+      const response = await axiosInstance.post(`/projects/${id}/join`);
+      setProject(response.data.project);
+      setSuccessSnackbar({ open: true, message: "Projeye başarıyla katıldınız!" });
+    } catch (err) {
+      setError(err.response?.data?.message || "Üye eklenemedi. Lütfen tekrar deneyin.");
+    }
+  };
 
   if (loading) {
     return (
-      <Box sx={{ 
-        padding: "40px", 
-        minHeight: "100vh", 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center" 
-      }}>
-        <CircularProgress />
+      <Box sx={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", bgcolor: "F8FAFC" }}>
+        <CircularProgress sx={{ color: "#0F172A" }} />
       </Box>
     );
   }
 
-  if (error) {
+  if (error || !project) {
     return (
-      <Box sx={{ padding: "40px", minHeight: "100vh" }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
+      <Container maxWidth="md" sx={{ pt: 10, minHeight: "100vh" }}>
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          {error || "Proje bulunamadı!"}
         </Alert>
-        <Button variant="contained" onClick={() => navigate(-1)}>
-          Geri Dön
+        <Button variant="text" onClick={() => navigate(-1)} sx={{ color: "#0F172A", fontWeight: 600 }}>
+          <ArrowBackIcon sx={{ mr: 1, fontSize: 20 }} /> Geri Dön
         </Button>
-      </Box>
-    );
-  }
-
-  if (!project) {
-    return (
-      <Box sx={{ padding: "40px", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <Box sx={{ textAlign: "center" }}>
-          <Typography variant="h5">Proje bulunamadı!</Typography>
-          <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate(-1)}>
-            Geri Dön
-          </Button>
-        </Box>
-      </Box>
+      </Container>
     );
   }
 
   return (
-    <Box sx={{ 
-      padding: { xs: "20px", md: "40px" }, 
-      minHeight: "100vh", 
-      backgroundColor: "#fafbfc",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center"
-    }}>
-      {/* Geri Dön Butonu */}
-      <Box sx={{ width: "100%", maxWidth: "1200px", mb: 3 }}>
-        <Button 
-          variant="contained" 
-          startIcon={<ArrowBackIcon />}
+    <Box sx={{ minHeight: "100vh", backgroundColor: "#F8FAFC", color: "#0F172A", pb: 10 }}>
+      <Container maxWidth="lg" sx={{ pt: { xs: 4, md: 6 } }}>
+        
+        {/* Üst Navigasyon */}
+        <Button
+          disableRipple
+          variant="text"
           onClick={() => navigate(-1)}
-          sx={{ 
-            background: "#4a0d16",
-            color: "#fff",
-            fontWeight: "600",
-            borderRadius: "12px",
-            px: 3,
-            py: 1.5,
-            "&:hover": {
-              background: "#5c1119",
-              transform: "translateY(-2px)",
-              boxShadow: "0 6px 20px rgba(74, 13, 22, 0.3)"
-            },
-            transition: "all 0.3s ease"
+          sx={{
+            color: "#64748B",
+            fontWeight: 600,
+            mb: 4,
+            px: 0,
+            "&:hover": { color: "#0F172A", backgroundColor: "transparent" }
           }}
         >
-          Geri Dön
+          <ArrowBackIcon sx={{ mr: 1, fontSize: 20 }} /> Projelere Dön
         </Button>
-      </Box>
 
-      {/* Ana İçerik - Sol ve Sağ Layout */}
-      <Box sx={{ 
-        display: "flex", 
-        gap: 4, 
-        flexDirection: { xs: "column", lg: "row" },
-        maxWidth: "1200px",
-        margin: "0 auto",
-        width: "100%"
-      }}>
-        
-        {/* Sol Taraf - Proje Durumu ve Bilgileri */}
-        <Box sx={{ flex: 1, width: "100%" }}>
-          <ProjectHeader
-            project={project}
-            isEditing={isEditing}
-            editFormData={editFormData}
-            editStatusData={editStatusData}
-            currentUser={user}
-            onEditToggle={() => setIsEditing(!isEditing)}
-            onFormDataChange={setEditFormData}
-            onStatusChange={setEditStatusData}
-            onSave={handleProjectSave}
-            onCancel={() => {
-              setIsEditing(false);
-              setEditFormData({
-                title: project.title,
-                description: project.description
-              });
-              setEditStatusData(project.status);
-            }}
-            progress={progress}
-          />
-        </Box>
+        {/* İKİ KUTUCUKLU TASARIM (%50 - %50) */}
+        <Stack 
+          direction={{ xs: 'column', md: 'row' }} 
+          spacing={4} 
+          alignItems="stretch"
+          sx={{ width: '100%' }}
+        >
+          
+          {/* SOL KUTUCUK: Proje Bilgileri ve Yönetim */}
+          <Box sx={{ flex: 1, width: { xs: '100%', md: '50%' } }}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: { xs: 3, md: 4 }, 
+                height: "100%", 
+                borderRadius: 4, 
+                border: "1px solid #E2E8F0",
+                bgcolor: "#FFFFFF"
+              }}
+            >
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+                <Typography variant="overline" sx={{ color: "#94A3B8", fontWeight: 700, display: "block" }}>
+                  PROJE DETAYLARI
+                </Typography>
+                
+                {/* SAĞ ÜST KÖŞE İKONLARI */}
+                {!isEditing && user && project.owner && user._id === project.owner._id && (
+                  <Stack direction="row" spacing={0.5}>
+                    <Tooltip title="Projeyi Düzenle" placement="top">
+                      <IconButton 
+                        onClick={handleEditClick} 
+                        size="small"
+                        sx={{ color: "#64748B", "&:hover": { color: "#0F172A", bgcolor: "#F1F5F9" } }}
+                      >
+                        <EditOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Projeyi Sil" placement="top">
+                      <IconButton 
+                        onClick={() => setDeleteDialogOpen(true)} 
+                        size="small"
+                        sx={{ color: "#EF4444", "&:hover": { color: "#DC2626", bgcolor: "#FEF2F2" } }}
+                      >
+                        <DeleteOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                )}
+              </Stack>
 
-        {/* Sağ Taraf - Takım Üyeleri */}
-        <Box sx={{ flex: 1, width: "100%" }}>
-          <TeamMembersList
-            project={project}
+              {isEditing ? (
+                // Düzenleme Modu
+                <Stack spacing={3}>
+                  <TextField
+                    fullWidth
+                    label="Proje Başlığı"
+                    variant="outlined"
+                    value={editFormData.title}
+                    onChange={e => setEditFormData(f => ({ ...f, title: e.target.value }))}
+                    sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#0F172A" } }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Proje Açıklaması"
+                    variant="outlined"
+                    multiline
+                    minRows={3}
+                    value={editFormData.description}
+                    onChange={e => setEditFormData(f => ({ ...f, description: e.target.value }))}
+                    sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#0F172A" }, mb: 1 }}
+                  />
+                  <Select
+                    fullWidth
+                    variant="outlined"
+                    value={editFormData.status}
+                    onChange={e => setEditFormData(f => ({ ...f, status: e.target.value }))}
+                    sx={{ "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#0F172A" } }}
+                  >
+                    <MenuItem value="planned">Planlanıyor</MenuItem>
+                    <MenuItem value="ongoing">Devam Ediyor</MenuItem>
+                    <MenuItem value="on_hold">Beklemede</MenuItem>
+                    <MenuItem value="completed">Bitti</MenuItem>
+                    <MenuItem value="cancelled">İptal Edildi</MenuItem>
+                  </Select>
+                  <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
+                    <Button 
+                      fullWidth
+                      variant="outlined"
+                      onClick={() => setIsEditing(false)} 
+                      sx={{ color: "#64748B", borderColor: "#CBD5E1", fontWeight: 600, "&:hover": { bgcolor: "#F1F5F9" } }}
+                    >
+                      <CloseIcon sx={{ mr: 0.5, fontSize: 18 }} /> İptal
+                    </Button>
+                    <Button 
+                      fullWidth
+                      variant="contained" 
+                      onClick={handleEditSave} 
+                      disableElevation
+                      sx={{ bgcolor: "#0F172A", color: "#fff", fontWeight: 600, "&:hover": { bgcolor: "#334155" } }}
+                    >
+                      <CheckIcon sx={{ mr: 0.5, fontSize: 18 }} /> Kaydet
+                    </Button>
+                  </Stack>
+                </Stack>
+              ) : (
+                // Görüntüleme Modu
+                <Stack spacing={4}>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 800, mb: 2, letterSpacing: "-0.02em", wordBreak: "break-word" }}>
+                      {project.title}
+                    </Typography>
+                    {project.description && (
+                      <Typography variant="body1" sx={{ mb: 2, color: "#444", fontWeight: 400 }}>
+                        {project.description}
+                      </Typography>
+                    )}
+                    <TeamStatusChip status={project.status} />
+                  </Box>
+                </Stack>
+              )}
+            </Paper>
+          </Box>
 
-            swipedMember={swipedMember}
-            onSwipeStart={handleSwipeStart}
-            onRemoveMember={handleRemoveMember}
-            currentUser={user}
-            onCancelProject={() => setCancelDialogOpen(true)}
-            onDeleteProject={() => setDeleteDialogOpen(true)}
-          />
-        </Box>
-      </Box>
+          {/* SAĞ KUTUCUK: Takım Üyeleri */}
+          <Box sx={{ flex: 1, width: { xs: '100%', md: '50%' } }}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: { xs: 3, md: 4 }, 
+                height: "100%", 
+                borderRadius: 4, 
+                border: "1px solid #E2E8F0",
+                bgcolor: "#FFFFFF"
+              }}
+            >
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+                <Box>
+                  <Typography variant="overline" sx={{ color: "#94A3B8", fontWeight: 700, display: "block" }}>
+                    TAKIM YÖNETİMİ
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mt: 0.5 }}>
+                    Üyeler
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  onClick={handleAddMember}
+                  disableElevation
+                  sx={{
+                    bgcolor: "#0F172A",
+                    color: "#FFFFFF",
+                    fontWeight: 600,
+                    borderRadius: 2,
+                    px: 3,
+                    "&:hover": { bgcolor: "#334155" }
+                  }}
+                >
+                  <AddIcon sx={{ mr: 0.5, fontSize: 18 }} /> Katıl
+                </Button>
+              </Stack>
 
-      {/* Dialogs */}
+              <Divider sx={{ mb: 3, borderColor: "#F1F5F9" }} />
+
+              <Box sx={{ 
+                width: "100%",
+                "& .MuiPaper-root, & .MuiCard-root, & > div": {
+                  boxShadow: "none !important",
+                  border: "none !important",
+                  backgroundColor: "transparent !important",
+                  paddingLeft: "0 !important",
+                  paddingRight: "0 !important",
+                }
+              }}>
+                <TeamMembersList
+                  project={project}
+                  currentUser={user}
+                  onRemoveMember={handleRemoveMember}
+                />
+              </Box>
+            </Paper>
+          </Box>
+
+        </Stack>
+      </Container>
+
       <ProjectDialogs
         cancelDialogOpen={cancelDialogOpen}
         deleteDialogOpen={deleteDialogOpen}
@@ -378,14 +376,17 @@ function ProjectDetail() {
         project={project}
       />
 
-      {/* Success Snackbar */}
       <Snackbar
         open={successSnackbar.open}
-        autoHideDuration={3000}
+        autoHideDuration={4000}
         onClose={() => setSuccessSnackbar({ open: false, message: '' })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setSuccessSnackbar({ open: false, message: '' })} severity="success">
+        <Alert 
+          onClose={() => setSuccessSnackbar({ open: false, message: '' })} 
+          severity="success" 
+          sx={{ width: '100%', borderRadius: 2 }}
+        >
           {successSnackbar.message}
         </Alert>
       </Snackbar>

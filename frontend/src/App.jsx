@@ -96,7 +96,6 @@ function App() {
     if (!hasCleared) {
       localStorage.clear();
       localStorage.setItem("dev_cleared", "true");
-      console.log("Development: localStorage cleared");
     }
     
     initialize();

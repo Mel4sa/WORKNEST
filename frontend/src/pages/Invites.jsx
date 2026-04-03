@@ -24,6 +24,7 @@ import {
 } from "@mui/icons-material";
 import axiosInstance from "../lib/axios";
 import useAuthStore from "../store/useAuthStore";
+import ProfileSnackbar from "../components/profile/ProfileSnackbar";
 
 export default function InvitesPage() {
   const navigate = useNavigate();
@@ -453,13 +454,7 @@ export default function InvitesPage() {
         </Stack>
       )}
       
-      <Snackbar 
-        open={messageOpen} 
-        autoHideDuration={3000} 
-        onClose={() => setMessageOpen(false)}
-      >
-        <Alert severity={messageSeverity}>{message}</Alert>
-      </Snackbar>
+      <ProfileSnackbar open={messageOpen} message={message} severity={messageSeverity} onClose={() => setMessageOpen(false)} />
     </Container>
   );
 }

@@ -7,7 +7,6 @@ import {
   Stack,
   Divider,
   CircularProgress,
-  Alert,
   Paper,
   IconButton,
   Collapse,
@@ -17,6 +16,7 @@ import {
   MenuItem,
   Tooltip
 } from '@mui/material';
+import ProfileSnackbar from "./profile/ProfileSnackbar";
 import {
   Send,
   Close,
@@ -40,6 +40,7 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false, on
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [isMinimized, setIsMinimized] = useState(initialMinimized);
+  const [showError, setShowError] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
@@ -53,6 +54,7 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false, on
       setPartner(response.data);
     } catch {
       setError('Kullanıcı bulunamadı');
+      setShowError(true);
     }
   }, [partnerId]);
 
@@ -260,15 +262,15 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false, on
 
   if (!partnerId) {
     return (
-      <Box sx={{ 
-        width: 450,
-        height: 'auto',
-        zIndex: 1000 
-      }}>
-        <Alert severity="info">
-          Bir kullanıcı seçin veya konuşma listesini görüntüleyin
-        </Alert>
-      </Box>
+      <>
+        <ProfileSnackbar open={true} message="Bir kullanıcı seçin veya konuşma listesini görüntüleyin" severity="info" onClose={() => {}} />
+        <Box sx={{ 
+          width: 450,
+          height: 'auto',
+          zIndex: 1000 
+        }}>
+        </Box>
+      </>
     );
   }
 
@@ -287,15 +289,15 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false, on
   // Critical error durumunda (partner bulunamadı vs.) chat'i kapat
   if (error && (!partner || error.includes('bulunamadı'))) {
     return (
-      <Box sx={{ 
-        width: 'auto',
-        height: 'auto',
-        zIndex: 1000 
-      }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      </Box>
+      <>
+        <ProfileSnackbar open={showError} message={error} severity="error" onClose={() => setShowError(false)} />
+        <Box sx={{ 
+          width: 'auto',
+          height: 'auto',
+          zIndex: 1000 
+        }}>
+        </Box>
+      </>
     );
   }
 
@@ -396,21 +398,7 @@ function FloatingChat({ partnerId, onClose, onBack, initialMinimized = false, on
               backgroundColor: '#f8f9fa' 
             }}>
               {/* Hata Mesajı */}
-              {error && (
-                <Alert 
-                  severity="error" 
-                  sx={{ 
-                    mb: 2, 
-                    fontSize: '0.8rem',
-                    '& .MuiAlert-message': {
-                      fontSize: '0.8rem'
-                    }
-                  }}
-                  onClose={() => setError('')}
-                >
-                  {error}
-                </Alert>
-              )}
+              <ProfileSnackbar open={!!error} message={error} severity="error" onClose={() => setError('')} />
               
               {messages.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 4 }}>

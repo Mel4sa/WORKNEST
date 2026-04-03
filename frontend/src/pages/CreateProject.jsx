@@ -8,9 +8,9 @@ import {
   Button,
   Stack,
   Chip,
-  CircularProgress,
-  Alert
+  CircularProgress
 } from "@mui/material";
+import ProfileSnackbar from "../components/profile/ProfileSnackbar";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axiosInstance from "../lib/axios";
 
@@ -18,6 +18,7 @@ const CreateProject = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showError, setShowError] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -51,10 +52,12 @@ const CreateProject = () => {
     e.preventDefault();
     if (!formData.title.trim() || !formData.description.trim()) {
       setError("Proje başlığı ve açıklaması gereklidir.");
+      setShowError(true);
       return;
     }
     if (!formData.tags || formData.tags.length === 0) {
       setError("En az bir teknoloji eklemelisiniz.");
+      setShowError(true);
       return;
     }
 
@@ -66,10 +69,11 @@ const CreateProject = () => {
       navigate("/projects");
     } catch (err) {
       setError(err.response?.data?.message || "Proje oluşturulurken bir hata oluştu.");
-      
+      setShowError(true);
       // Validation hatalarını göster
       if (err.response?.data?.errors) {
         setError(err.response.data.errors.join(', '));
+        setShowError(true);
       }
     } finally {
       setLoading(false);
@@ -122,7 +126,7 @@ const CreateProject = () => {
           <Box sx={{ width: 120 }} /> {/* Sağ boşluk için */}
         </Box>
 
-        {error && <Alert severity="error" sx={{ mb: 4, borderRadius: 2 }}>{error}</Alert>}
+        <ProfileSnackbar open={showError} message={error} severity="error" onClose={() => setShowError(false)} />
 
         {/* Form */}
         <Box component="form" onSubmit={handleSubmit}>

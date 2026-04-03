@@ -172,6 +172,7 @@ function Navbar() {
     } catch (error) {
       console.error("Kullanıcı arama hatası:", error);
       setSearchResults([]);
+      setSearchOpen(false);
     } finally {
       setSearchLoading(false);
     }
@@ -190,13 +191,15 @@ function Navbar() {
 
   // Kullanıcı seçimi
   const handleUserSelect = (selectedUser) => {
+
     setSearchQuery("");
     setSearchResults([]);
     setSearchOpen(false);
     navigate(`/profile/${selectedUser._id}`);
   };
 
-  const menuItems = [
+  // Navigation items
+  const navItems = [
     { label: "Ana Sayfa", path: "/home" },
     { label: "AI Analyzer", path: "/ai-analyzer" },
     { label: "Projelerim", path: "/projects" },
@@ -285,7 +288,7 @@ function Navbar() {
           mr: { md: 0.5, lg: 1 }
         }}>
           {/* Menü butonları - Profilim hariç */}
-          {menuItems.filter(item => item.label !== "Profilim").map((item) => (
+          {navItems.filter(item => item.label !== "Profilim").map((item) => (
             <Button
               key={item.label}
               component={Link}
@@ -648,7 +651,7 @@ function Navbar() {
             </Box>
 
             <List>
-              {menuItems.map((item) => (
+              {navItems.map((item) => (
                 <ListItem key={item.label} disablePadding>
                   <ListItemButton
                     component={Link}

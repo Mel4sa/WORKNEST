@@ -71,9 +71,6 @@ function UserProfile() {
         message: inviteMessage || "Projeye katılmaya davet ediliyorsunuz!"
       };
       
-      console.log(" Gönderilen davet verisi:", inviteData);
-      console.log(" inviteMessage state:", inviteMessage);
-      console.log(" inviteMessage length:", inviteMessage?.length);
       
       const response = await axios.post("/invites/send", inviteData);
       console.log(" Sunucu yanıtı:", response.data);

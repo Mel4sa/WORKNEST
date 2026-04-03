@@ -23,8 +23,10 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  Tooltip,
 } from "@mui/material";
 import useAuthStore from "../store/useAuthStore";
+import ProfileSnackbar from "../components/profile/ProfileSnackbar";
 import axios from "../lib/axios";
 import AccountSettingsDialog from "../components/profile/AccountSettingsDialog";
 import SkillsSelect from "../components/profile/SkillsSelect";
@@ -294,29 +296,38 @@ export default function ProfilePage() {
               </Box>
             </Box>
             
-            {/* Delete Button - only show if user has a profile image */}
+            {/* Profil fotoğrafı kaldırma ikonu (dairenin hemen altında, ortalanmış ve Tooltip ile) */}
             {preview && (
-              <IconButton
-                onClick={handleDeleteProfilePhoto}
-                sx={{
-                  position: "absolute",
-                  top: -5,
-                  right: -5,
-                  backgroundColor: "#ef4444",
-                  color: "#fff",
-                  width: 35,
-                  height: 35,
-                  zIndex: 10,
-                  "&:hover": {
-                    backgroundColor: "#dc2626",
-                    transform: "scale(1.1)",
-                  },
-                  transition: "all 0.3s ease",
-                  boxShadow: "0 2px 8px rgba(239, 68, 68, 0.3)",
-                }}
-              >
-                <Delete sx={{ fontSize: 18 }} />
-              </IconButton>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                <Tooltip title="Profil fotoğrafını kaldır" arrow>
+                  <IconButton
+                    onClick={handleDeleteProfilePhoto}
+                    sx={{
+                      backgroundColor: '#fff',
+                      color: '#ef4444',
+                      width: 44,
+                      height: 44,
+                      border: '2px solid #ef4444',
+                      boxShadow: '0 2px 12px rgba(239, 68, 68, 0.18)',
+                      fontSize: 28,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        backgroundColor: '#ffeaea',
+                        color: '#dc2626',
+                        borderColor: '#dc2626',
+                        transform: 'scale(1.1)',
+                      },
+                    }}
+                    size="large"
+                    aria-label="Profil fotoğrafını kaldır"
+                  >
+                    <Delete fontSize="inherit" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             )}
           </Box>
 
@@ -339,17 +350,18 @@ export default function ProfilePage() {
             {user?.fullname || "Kullanıcı"}
           </Typography>
 
-          <Typography
-            variant="h6"
-            sx={{ 
-              color: "#ffd166", 
-              mb: 3,
-              opacity: 0.9,
-              fontSize: { md: "1rem", lg: "1.1rem" }
-            }}
-          >
-            {role || "Pozisyon belirtilmemiş"}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
+            <Typography
+              variant="h6"
+              sx={{ 
+                color: "#ffd166", 
+                opacity: 0.9,
+                fontSize: { md: "1rem", lg: "1.1rem" }
+              }}
+            >
+              {role || "Pozisyon belirtilmemiş"}
+            </Typography>
+          </Box>
 
           {/* Sosyal Linkler */}
           <Stack direction="row" spacing={1.5} sx={{ mb: 4 }}>
@@ -450,29 +462,30 @@ export default function ProfilePage() {
                 {!preview && <Person sx={{ fontSize: 60, color: "#fff" }} />}
               </Avatar>
               
-              {/* Delete Button for mobile - only show if user has a profile image */}
+              {/* Profil fotoğrafını kaldırma butonu (mobil) */}
               {preview && (
-                <IconButton
+                <Button
                   onClick={handleDeleteProfilePhoto}
+                  variant="outlined"
+                  color="error"
                   sx={{
-                    position: "absolute",
-                    top: -5,
-                    right: -5,
-                    backgroundColor: "#ef4444",
-                    color: "#fff",
-                    width: 30,
-                    height: 30,
-                    zIndex: 10,
-                    "&:hover": {
-                      backgroundColor: "#dc2626",
-                      transform: "scale(1.1)",
+                    mt: 1,
+                    width: '100%',
+                    borderRadius: 2,
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    borderColor: '#ef4444',
+                    color: '#ef4444',
+                    '&:hover': {
+                      backgroundColor: '#ffeaea',
+                      borderColor: '#dc2626',
+                      color: '#dc2626',
                     },
-                    transition: "all 0.3s ease",
-                    boxShadow: "0 2px 8px rgba(239, 68, 68, 0.3)",
                   }}
+                  startIcon={<Delete />}
                 >
-                  <Delete sx={{ fontSize: 16 }} />
-                </IconButton>
+                  Profil Fotoğrafını Kaldır
+                </Button>
               )}
             </Box>
             <Typography
@@ -533,17 +546,19 @@ export default function ProfilePage() {
             </Box>
 
             {/* Pozisyon */}
-            <TextField
-              label="Title"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              sx={{ 
-                mx: { xs: 1, sm: 0 }, // Mobile'da yatay margin
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                }
-              }}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mx: { xs: 1, sm: 0 } }}>
+              <TextField
+                label="Title"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                sx={{
+                  flex: 1,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                  }
+                }}
+              />
+            </Box>
 
             {/* Biyografi */}
             <TextField 
@@ -679,28 +694,7 @@ export default function ProfilePage() {
         </Box>
       </Box>
 
-      {/* Snackbar */}
-      <Snackbar
-        open={messageOpen}
-        autoHideDuration={4000}
-        onClose={() => setMessageOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        sx={{ 
-          zIndex: 9999,
-          top: "80px !important" // Navbar altına gelmesin
-        }}
-      >
-        <Alert 
-          severity={messageType}
-          sx={{
-            borderRadius: "12px",
-            fontWeight: 500,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
-          }}
-        >
-          {messageText}
-        </Alert>
-      </Snackbar>
+      <ProfileSnackbar open={messageOpen} message={messageText} severity={messageType} onClose={() => setMessageOpen(false)} />
 
       {/* Account Settings Dialog */}
       <AccountSettingsDialog 

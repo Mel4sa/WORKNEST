@@ -51,7 +51,6 @@ export default function ResetPassword() {
     }
 
     try {
-      console.log("Şifre sıfırlama token:", token);
       const res = await axiosInstance.post(
         `/auth/reset-password/${token}`,
         { password }
@@ -78,7 +77,6 @@ export default function ResetPassword() {
     }
 
     try {
-      console.log("Resend request başlatılıyor:", email.trim());
       
       // Backend'den yeni şifre sıfırlama linki al
       const res = await axiosInstance.post(
@@ -86,7 +84,6 @@ export default function ResetPassword() {
         { email: email.trim() }
       );
       
-      console.log("Backend response:", res.data);
       
       const resetLink = res.data.resetLink;
       const fullname = res.data.fullname || "Kullanıcı";
@@ -110,10 +107,6 @@ export default function ResetPassword() {
       setResendMessage("");
       setError("");
     } catch (err) {
-      console.error("Resend reset link hatası:", err);
-      console.error("Error response:", err.response);
-      console.error("Error request:", err.request);
-      console.error("Error config:", err.config);
       
       if (err.response) {
         if (err.response.status === 404) {

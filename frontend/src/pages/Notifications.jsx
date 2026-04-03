@@ -12,10 +12,10 @@ import {
   Stack,
   Divider,
   CircularProgress,
-  Alert,
   Badge,
   Tooltip
 } from '@mui/material';
+import ProfileSnackbar from "../components/profile/ProfileSnackbar";
 import {
   Notifications as NotificationIcon,
   MarkAsUnread,
@@ -233,11 +233,7 @@ function Bildirimler() {
           </Box>
         </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+        <ProfileSnackbar open={!!error} message={error} severity="error" onClose={() => setError("")} />
 
         {/* Bildirimler Listesi */}
         <Stack spacing={2}>
