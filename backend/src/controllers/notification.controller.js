@@ -11,8 +11,9 @@ export const createNotification = async ({
   relatedInvite = null
 }) => {
   try {
-  // ...
-    
+    // Bildirim logu: kime, hangi tipte, hangi projeye, hangi kullanıcıdan
+    console.log(`🔔 Bildirim oluşturuluyor: userId=${userId}, type=${type}, title=${title}, message=${message}, relatedProject=${relatedProject}, relatedUser=${relatedUser}, relatedInvite=${relatedInvite}`);
+
     const notification = await Notification.create({
       user: userId,
       type,
@@ -22,11 +23,11 @@ export const createNotification = async ({
       relatedUser,
       relatedInvite
     });
-    
-  // ...
+
+    console.log(`✅ Bildirim oluşturuldu! notificationId=${notification._id}, userId=${notification.user}, type=${notification.type}`);
     return notification;
   } catch (error) {
-  // ...
+    console.error('❌ Bildirim oluşturulamadı:', error);
     throw error;
   }
 };
