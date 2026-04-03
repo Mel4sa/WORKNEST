@@ -1,5 +1,5 @@
 // import GlobalChatButton from "./GlobalChatButton";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -37,6 +37,7 @@ import { ChatBubble } from "@mui/icons-material";
 
 function Navbar() {
   const navigate = useNavigate();
+  const notificationMenuPaperRef = useRef(null);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -78,11 +79,11 @@ function Navbar() {
         const notifCount = notificationResponse.data.unreadCount || 0;
         setTotalUnreadCount(notifCount);
       } catch (notifError) {
-        console.error('❌ Notification unread count hatası:', notifError);
+        console.error('Notification unread count hatası:', notifError);
         setTotalUnreadCount(0);
       }
     } catch (error) {
-      console.error("❌ Genel unread count hatası:", error);
+      console.error("Genel unread count hatası:", error);
       setTotalUnreadCount(0);
     }
   };
@@ -91,9 +92,7 @@ function Navbar() {
 
   const handleNotificationClick = (event) => {
     setNotificationAnchor(event.currentTarget);
-    if (notifications.length === 0) {
-      fetchNotifications();
-    }
+    fetchNotifications(); // Her tıklamada güncel bildirimleri getir
   };
 
   const handleNotificationClose = () => {
@@ -716,6 +715,7 @@ function Navbar() {
           open={notificationOpen}
           onClose={handleNotificationClose}
           PaperProps={{
+            ref: notificationMenuPaperRef,
             sx: {
               width: 400,
               maxHeight: 500,
@@ -726,12 +726,18 @@ function Navbar() {
           }}
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          onEntered={() => {
+            // Scroll to top when menu opens
+            if (notificationMenuPaperRef.current) {
+              notificationMenuPaperRef.current.scrollTo({ top: 0 });
+            }
+          }}
         >
           {/* Başlık */}
           <Box sx={{ p: 2, borderBottom: "1px solid #e0e0e0" }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Typography variant="h6" sx={{ fontWeight: "600", color: "#333" }}>
-                Bildirimler & Mesajlar
+                Bildirimler
               </Typography>
               {totalUnreadCount > 0 && (
                 <Button

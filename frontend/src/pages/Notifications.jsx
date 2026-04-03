@@ -75,43 +75,46 @@ function Bildirimler() {
     }
   };
 
-  const handleMarkAsRead = async (notificationId) => {
-    try {
-      await axiosInstance.patch(`/notifications/${notificationId}/read`);
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif._id === notificationId ? { ...notif, isRead: true } : notif
-        )
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err) {
+  const handleMarkAsRead = (notificationId) => {
+    // Önce arayüzde hızlıca güncelle
+    setNotifications(prev =>
+      prev.map(notif =>
+        notif._id === notificationId ? { ...notif, isRead: true } : notif
+      )
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    // Sonra API çağrısı
+    axiosInstance.patch(`/notifications/${notificationId}/read`).catch(err => {
       console.error('Bildirim okundu olarak işaretlenemedi:', err);
-    }
+    });
   };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await axiosInstance.patch('/notifications/mark-all-read');
-      setNotifications(prev =>
-        prev.map(notif => ({ ...notif, isRead: true }))
-      );
-      setUnreadCount(0);
-    } catch (err) {
-      console.error('Tüm bildirimler okundu olarak işaretlenemedi:', err);
-    }
+  const handleMarkAllAsRead = () => {
+    setNotifications(prev =>
+      prev.map(notif => ({ ...notif, isRead: true }))
+    );
+    setUnreadCount(0);
+    axiosInstance.patch('/notifications/mark-all-read')
+      .then(() => {
+        // Sunucu işlemi tamamladıktan sonra tekrar fetch et
+        fetchNotifications();
+      })
+      .catch(err => {
+        console.error('Tüm bildirimler okundu olarak işaretlenemedi:', err);
+      });
   };
 
-  const handleDeleteNotification = async (notificationId) => {
-    try {
-      await axiosInstance.delete(`/notifications/${notificationId}`);
-      const deletedNotification = notifications.find(n => n._id === notificationId);
-      setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
-      if (!deletedNotification.isRead) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
-    } catch (err) {
+  const handleDeleteNotification = (notificationId) => {
+    // Önce arayüzde hızlıca güncelle
+    const deletedNotification = notifications.find(n => n._id === notificationId);
+    setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
+    if (deletedNotification && !deletedNotification.isRead) {
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    }
+    // Sonra API çağrısı
+    axiosInstance.delete(`/notifications/${notificationId}`).catch(err => {
       console.error('Bildirim silinemedi:', err);
-    }
+    });
   };
 
   const getNotificationIcon = (type) => {
@@ -209,9 +212,6 @@ function Bildirimler() {
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-            <Typography variant="body1" sx={{ color: '#64748b' }}>
-              Tüm bildirimlerinizi buradan takip edebilirsiniz
-            </Typography>
             
             {unreadCount > 0 && (
               <Button
@@ -255,12 +255,11 @@ function Bildirimler() {
                 key={notification._id}
                 sx={{
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
                   backgroundColor: notification.isRead ? '#fff' : getNotificationColor(notification.type),
                   border: notification.isRead ? '1px solid #e2e8f0' : '2px solid rgba(74, 13, 22, 0.2)',
+                  boxShadow: 'none',
                   '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
+                    border: '2px solid #800020', // Bordo
                   }
                 }}
                 onClick={() => {

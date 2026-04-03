@@ -177,13 +177,9 @@ export default function ProfilePage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data.user);
-      setMessageText("Profil başarıyla kaydedildi!");
-      setMessageType("success");
+      handleMessage("Profil başarıyla kaydedildi!", "success");
     } catch {
-      setMessageText("Profil kaydedilirken hata oluştu!");
-      setMessageType("error");
-    } finally {
-      setMessageOpen(true);
+      handleMessage("Profil kaydedilirken hata oluştu!", "error");
     }
   };
 
@@ -561,19 +557,36 @@ export default function ProfilePage() {
             </Box>
 
             {/* Biyografi */}
-            <TextField 
-              label="Biyografi"
-              multiline 
-              minRows={2} // Satır sayısı küçültüldü
-              value={bio} 
-              onChange={(e) => setBio(e.target.value)}
-              sx={{ 
-                mx: { xs: 1, sm: 0 },
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                }
-              }}
-            />
+
+            <Box sx={{ position: 'relative', mx: { xs: 1, sm: 0 } }}>
+              <TextField 
+                label="Biyografi"
+                multiline 
+                minRows={2}
+                value={bio}
+                inputProps={{ maxLength: 500 }}
+                onChange={(e) => setBio(e.target.value)}
+                sx={{ 
+                  width: '100%',
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                  }
+                }}
+              />
+              <Box sx={{
+                position: 'absolute',
+                right: 12,
+                bottom: 8,
+                fontSize: '0.8rem',
+                color: '#888',
+                pointerEvents: 'none',
+                background: 'rgba(255,255,255,0.8)',
+                px: 0.5,
+                borderRadius: 1
+              }}>
+                {`${bio.length}/500`}
+              </Box>
+            </Box>
 
             {/* Üniversite & Bölüm */}
             <Box sx={{ mx: { xs: 1, sm: 0 } }}> {/* Mobile'da yatay margin */}
