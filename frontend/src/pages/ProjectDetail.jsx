@@ -48,7 +48,6 @@ function ProjectDetail() {
     tags: []
   });
 
-  // Üye silme fonksiyonu
   const handleRemoveMember = async (userId) => {
     try {
       await axiosInstance.delete(`/projects/${project._id}/members/${userId}`);
@@ -103,8 +102,6 @@ function ProjectDetail() {
     fetchProject();
   }, [fetchProject]);
 
-
-  // Baş harfleri büyük yap
   function capitalizeWords(str) {
     return str.replace(/\b\w/g, char => char.toUpperCase());
   }
@@ -128,7 +125,6 @@ function ProjectDetail() {
       setError("En az bir teknoloji eklemelisiniz.");
       return;
     }
-    // Baş harfleri büyük yap
     const capitalizedTitle = capitalizeWords(editFormData.title);
     try {
       await axiosInstance.put(`/projects/${project._id}`, {
@@ -181,7 +177,6 @@ function ProjectDetail() {
     <Box sx={{ minHeight: "100vh", backgroundColor: "#F8FAFC", color: "#0F172A", pb: 10 }}>
       <Container maxWidth="lg" sx={{ pt: { xs: 4, md: 6 } }}>
         
-        {/* Üst Navigasyon */}
         <Button
           disableRipple
           variant="text"
@@ -197,7 +192,6 @@ function ProjectDetail() {
           <ArrowBackIcon sx={{ mr: 1, fontSize: 20 }} /> Projelere Dön
         </Button>
 
-        {/* İKİ KUTUCUKLU TASARIM (%50 - %50) */}
         <Stack 
           direction={{ xs: 'column', md: 'row' }} 
           spacing={4} 
@@ -205,7 +199,6 @@ function ProjectDetail() {
           sx={{ width: '100%' }}
         >
           
-          {/* SOL KUTUCUK: Proje Bilgileri ve Yönetim */}
           <Box sx={{ flex: 1, width: { xs: '100%', md: '50%' } }}>
             <Paper 
               elevation={0} 
@@ -214,7 +207,9 @@ function ProjectDetail() {
                 height: "100%", 
                 borderRadius: 4, 
                 border: "1px solid #E2E8F0",
-                bgcolor: "#FFFFFF"
+                bgcolor: "#FFFFFF",
+                display: "flex",
+                flexDirection: "column"
               }}
             >
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
@@ -222,7 +217,6 @@ function ProjectDetail() {
                   PROJE DETAYLARI
                 </Typography>
                 
-                {/* SAĞ ÜST KÖŞE İKONLARI */}
                 {!isEditing && user && project.owner && user._id === project.owner._id && (
                   <Stack direction="row" spacing={0.5}>
                     <Tooltip title="Projeyi Düzenle" placement="top">
@@ -248,8 +242,7 @@ function ProjectDetail() {
               </Stack>
 
               {isEditing ? (
-                // Düzenleme Modu
-                <Stack spacing={3}>
+                <Stack spacing={3} sx={{ flex: 1 }}>
                   <TextField
                     fullWidth
                     label="Proje Başlığı"
@@ -282,7 +275,6 @@ function ProjectDetail() {
                     <MenuItem value="cancelled">İptal Edildi</MenuItem>
                   </Select>
 
-                  {/* Proje Teknolojileri Düzenleme Alanı */}
                   <MuiAutocomplete
                     multiple
                     freeSolo
@@ -304,7 +296,7 @@ function ProjectDetail() {
                       />
                     )}
                   />
-                  <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
+                  <Stack direction="row" spacing={2} sx={{ pt: 2, mt: 'auto' }}>
                     <Button 
                       fullWidth
                       variant="outlined"
@@ -325,19 +317,22 @@ function ProjectDetail() {
                   </Stack>
                 </Stack>
               ) : (
-                // Görüntüleme Modu
-                <Stack spacing={4}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                   <Box>
                     <Typography variant="h3" sx={{ fontWeight: 800, mb: 2, letterSpacing: "-0.02em", wordBreak: "break-word" }}>
                       {project.title}
                     </Typography>
                     {project.description && (
-                      <Typography variant="body1" sx={{ mb: 2, color: "#444", fontWeight: 400 }}>
-                        <span style={{fontWeight:600, color:'#64748B'}}>Açıklama: </span>
-                        {project.description}
-                      </Typography>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#64748B', mb: 0.5 }}>
+                          Açıklama
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: "#444", fontWeight: 400 }}>
+                          {project.description}
+                        </Typography>
+                      </Box>
                     )}
-                    {/* Proje Teknolojileri */}
+
                     {project.tags && project.tags.length > 0 && (
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle2" sx={{ color: '#64748B', fontWeight: 600, mb: 0.5 }}>
@@ -363,33 +358,38 @@ function ProjectDetail() {
                         </Stack>
                       </Box>
                     )}
+                  </Box>
 
-                  {/* DURUM ÇUBUĞU - En altta ve Tam Genişlikte */}
+                  {/* TAM GENİŞLİK VE ORTALAMA İÇİN DEĞİŞTİRİLEN KISIM BURASI */}
                   <Box sx={{ 
-                    mx: { xs: -3, md: -4 }, 
-                    mb: { xs: -3, md: -4 },
-                    mt: 'auto'
+                    mt: 'auto', 
+                    pt: 4, 
+                    width: '100%', 
+                    display: 'flex',
+                    // TeamStatusChip içindeki her şeyi (yazı, arkaplan) ezerek %100 genişliğe zorlar
+                    '& > *': {
+                      width: '100% !important',
+                      justifyContent: 'center !important',
+                      height: 'auto !important',
+                      minHeight: '48px !important',
+                      fontSize: '1.1rem !important',
+                      fontWeight: '700 !important',
+                      borderRadius: '12px !important',
+                    },
+                    // Eğer Chip bileşeniyse içindeki metni de ortalamak için:
+                    '& .MuiChip-label': {
+                      width: '100%',
+                      textAlign: 'center'
+                    }
                   }}>
-                    <TeamStatusChip 
-                      status={project.status} 
-                      sx={{ 
-                        width: '100%', 
-                        py: 2.5, 
-                        fontSize: '1.1rem', 
-                        justifyContent: 'center', 
-                        display: 'flex',
-                        borderRadius: 0,
-                        boxShadow: 'none'
-                      }} 
-                    />
+                    <TeamStatusChip status={project.status} />
                   </Box>
-                  </Box>
-                </Stack>
+
+                </Box>
               )}
             </Paper>
           </Box>
 
-          {/* SAĞ KUTUCUK: Takım Üyeleri */}
           <Box sx={{ flex: 1, width: { xs: '100%', md: '50%' } }}>
             <Paper 
               elevation={0} 
@@ -478,7 +478,7 @@ function ProjectDetail() {
           {successSnackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+  </Box>
   );
 }
 

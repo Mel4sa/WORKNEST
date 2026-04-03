@@ -12,9 +12,12 @@ import {
   Alert,
   Chip,
   Avatar,
-  Fab
+  Fab,
+  Divider
 } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import axiosInstance from "../lib/axios";
 
 function Projects() {
@@ -50,292 +53,221 @@ function Projects() {
 
   if (loading) {
     return (
-      <Box sx={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
-        minHeight: "100vh" 
-      }}>
-        <CircularProgress />
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+        <CircularProgress sx={{ color: "#6b0f1a" }} />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ 
-      minHeight: "100vh",
-      background: "#fafbfc",
-      pt: 2,
-      pb: 8
-    }}>
+    <Box sx={{ minHeight: "100vh", background: "#f4f6f8", pt: 4, pb: 10 }}>
       {/* Hero Section */}
-      <Box sx={{ 
-        textAlign: "center", 
-        mb: 3,
-        px: 3,
-        py: 3
-      }}>
+      <Box sx={{ textAlign: "center", mb: 5, px: 3 }}>
          <Typography 
           variant="h5" 
           sx={{ 
-            color: "#666",
-            lineHeight: 1.6,
-            fontSize: { xs: "1.2rem", md: "1.4rem" },
-            fontWeight: "300",
-            textAlign: "center",
+            color: "#637381",
+            fontSize: { xs: "1.1rem", md: "1.3rem" },
+            fontWeight: 500,
             maxWidth: "600px",
             mx: "auto",
-            letterSpacing: "0.3px"
           }}
         >
           Takım çalışması ve inovasyon burada başlıyor
         </Typography>
-       
-        {/* Decorative Line */}
         <Box sx={{
-          width: "120px",
+          width: "80px",
           height: "4px",
-          background: "linear-gradient(90deg, #6b0f1a, #8c1c2b)",
+          background: "linear-gradient(90deg, #6b0f1a, #a82936)",
           mx: "auto",
           mt: 2,
-          mb: 2,
-          borderRadius: "2px"
+          borderRadius: "4px"
         }} />
-    
-        
-       
       </Box>
 
       {/* Hata mesajı */}
       {error && (
-        <Box sx={{ px: 3, mb: 3, maxWidth: 1200, mx: "auto" }}>
-          <Alert 
-            severity="error" 
-            sx={{ 
-              borderRadius: "16px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-            }}
-          >
+        <Box sx={{ px: 3, mb: 4, maxWidth: 1200, mx: "auto" }}>
+          <Alert severity="error" sx={{ borderRadius: "12px" }}>
             {error}
           </Alert>
         </Box>
       )}
 
       {/* Main Content Container */}
-      <Box sx={{ px: 3, maxWidth: 1200, mx: "auto" }}>
-        {/* Projeler List */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          {projects.map((project) => (
-            <Box
-              key={project._id}
-              onClick={() => handleDetailClick(project._id)}
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", md: "row" },
-                alignItems: { xs: "flex-start", md: "center" },
-                p: { xs: 2, md: 3 },
-                background: "#ffffff",
-                borderRadius: "16px",
-                border: "1px solid #e5e7eb",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                gap: { xs: 2, md: 0 },
-                "&:hover": {
-                  transform: { xs: "translateY(-4px)", md: "translateX(8px)" },
-                  boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
-                  borderColor: "#6b0f1a"
-                }
-              }}
-            >
-              {/* Proje Avatar/Icon */}
-              <Box
-                sx={{
-                  width: { xs: 50, md: 60 },
-                  height: { xs: 50, md: 60 },
-                  borderRadius: "12px",
-                  background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  mr: { xs: 0, md: 3 },
-                  mb: { xs: 0, md: 0 },
-                  flexShrink: 0,
-                  alignSelf: { xs: "center", md: "flex-start" }
-                }}
-              >
-                <Typography 
-                  variant="h4" 
-                  sx={{ 
-                    color: "#fff", 
-                    fontWeight: "bold",
-                    fontSize: { xs: "1.5rem", md: "2rem" }
+      <Box sx={{ px: { xs: 2, sm: 3 }, maxWidth: 1200, mx: "auto" }}>
+        <Grid container spacing={3}>
+          {projects.map((project) => {
+            // Üye sayısı hesaplama
+            const regularMembers = project.members?.filter(member => {
+              const memberUserId = member.user?._id || member._id;
+              return memberUserId !== project.owner?._id;
+            }).length || 0;
+            const totalMembers = regularMembers + 1;
+
+            return (
+              <Grid item xs={12} sm={6} md={4} key={project._id}>
+                <Card
+                  onClick={() => handleDetailClick(project._id)}
+                  elevation={0}
+                  sx={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    borderRadius: "20px",
+                    border: "1px solid rgba(145, 158, 171, 0.2)",
+                    bgcolor: "#fff",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    '&:hover': {
+                      boxShadow: "0 12px 24px -4px rgba(107, 15, 26, 0.12)",
+                      borderColor: "rgba(107, 15, 26, 0.3)",
+                      transform: "translateY(-4px)"
+                    }
                   }}
                 >
-                  {project.title?.[0]?.toUpperCase()}
-                </Typography>
-              </Box>
+                  <CardContent sx={{ flexGrow: 1, p: 3, pb: 2 }}>
+                    {/* Kart Üst Kısım: İkon ve Durum */}
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "12px",
+                          background: "rgba(107, 15, 26, 0.08)",
+                          color: "#6b0f1a",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: 800,
+                          fontSize: "1.4rem"
+                        }}
+                      >
+                        {project.title?.[0]?.toUpperCase()}
+                      </Box>
+                      
+                      <Chip
+                        label={
+                          project.status === "completed" ? "Tamamlandı" :
+                          project.status === "ongoing" ? "Devam Ediyor" :
+                          project.status === "planned" ? "Planlanıyor" :
+                          project.status === "cancelled" ? "İptal Edildi" :
+                          project.status === "on_hold" ? "Beklemede" : "Beklemede"
+                        }
+                        size="small"
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: "0.75rem",
+                          borderRadius: "8px",
+                          px: 1,
+                          // Duruma göre renkler
+                          ...(project.status === "completed" && { bgcolor: "rgba(76, 175, 80, 0.1)", color: "#2e7d32" }),
+                          ...(project.status === "ongoing" && { bgcolor: "rgba(255, 152, 0, 0.1)", color: "#ed6c02" }),
+                          ...(project.status === "planned" && { bgcolor: "rgba(33, 150, 243, 0.1)", color: "#1565c0" }),
+                          ...(project.status === "cancelled" && { bgcolor: "rgba(244, 67, 54, 0.1)", color: "#c62828" }),
+                          ...((project.status === "on_hold" || !project.status) && { bgcolor: "rgba(158, 158, 158, 0.1)", color: "#616161" }),
+                        }}
+                      />
+                    </Box>
 
-              {/* Mobile ve Desktop Layout Container */}
-              <Box sx={{ 
-                display: "flex", 
-                flexDirection: { xs: "column", md: "row" },
-                alignItems: { xs: "stretch", md: "center" },
-                flex: 1,
-                width: "100%",
-                gap: { xs: 2, md: 0 }
-              }}>
-                {/* Proje Bilgileri */}
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      fontWeight: "700", 
-                      color: "#1f2937",
-                      fontSize: { xs: "1.1rem", md: "1.3rem" }
-                    }}
-                  >
-                    {project.title}
-                  </Typography>
-                  
-                  {/* Status Badge */}
-                  <Chip
-                    label={
-                      project.status === "completed" ? "Tamamlandı" :
-                      project.status === "ongoing" ? "Devam Ediyor" :
-                      project.status === "planned" ? "Planlanıyor" :
-                      project.status === "cancelled" ? "İptal Edildi" :
-                      project.status === "on_hold" ? "Beklemede" :
-                      "Beklemede"
-                    }
-                    size="small"
-                    sx={{
-                      background: 
-                        project.status === "completed" ? "linear-gradient(45deg, #4caf50, #66bb6a)" :
-                        project.status === "ongoing" ? "linear-gradient(45deg, #ff9800, #ffb74d)" :
-                        project.status === "planned" ? "linear-gradient(45deg, #2196f3, #42a5f5)" :
-                        project.status === "cancelled" ? "linear-gradient(45deg, #f44336, #ef5350)" :
-                        project.status === "on_hold" ? "linear-gradient(45deg, #9e9e9e, #bdbdbd)" :
-                        "linear-gradient(45deg, #9e9e9e, #bdbdbd)",
-                      color: "#fff",
-                      fontWeight: "600",
-                      fontSize: "0.7rem"
-                    }}
-                  />
-                </Box>
-
-                <Box sx={{ 
-                  display: "flex", 
-                  flexDirection: { xs: "column", md: "row" },
-                  alignItems: { xs: "flex-start", md: "center" }, 
-                  gap: { xs: 1, md: 3 }
-                }}>
-                  {/* Proje Lideri */}
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Avatar 
-                      src={project.owner?.profileImage}
+                    {/* Proje Başlığı */}
+                    <Typography 
+                      variant="h6" 
                       sx={{ 
-                        width: { xs: 28, md: 32 }, 
-                        height: { xs: 28, md: 32 },
-                        border: "2px solid #6b0f1a",
-                        cursor: "pointer",
-                        "&:hover": {
-                          transform: "scale(1.1)",
-                          boxShadow: "0 4px 12px rgba(107, 15, 26, 0.3)"
-                        },
-                        transition: "all 0.2s ease"
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/profile/${project.owner?._id}`);
+                        fontWeight: 700, 
+                        color: "#212b36", 
+                        mb: 2,
+                        lineHeight: 1.3,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
                       }}
                     >
-                      {project.owner?.fullname?.[0]}
-                    </Avatar>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: "#6b7280", 
-                        fontWeight: "500",
-                        fontSize: { xs: "0.8rem", md: "0.875rem" },
-                        cursor: "pointer",
-                        "&:hover": {
-                          color: "#6b0f1a",
-                          textDecoration: "underline"
+                      {project.title}
+                    </Typography>
+
+                    {/* Proje Sahibi ve Üye Sayısı */}
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: "auto" }}>
+                      <Box 
+                        sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/profile/${project.owner?._id}`);
+                        }}
+                      >
+                        <Avatar 
+                          src={project.owner?.profileImage}
+                          sx={{ width: 34, height: 34, border: "2px solid #fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
+                        >
+                          {project.owner?.fullname?.[0]}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#212b36", lineHeight: 1.2, '&:hover': { color: "#6b0f1a" } }}>
+                            {project.owner?.fullname}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: "#919eab", fontWeight: 500 }}>
+                            Proje Sahibi
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#637381' }}>
+                        <GroupOutlinedIcon fontSize="small" />
+                        <Typography variant="body2" fontWeight={600}>
+                          {totalMembers}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+
+                  {/* İncele Butonu */}
+                  <CardActions sx={{ p: 2 }}>
+                    <Button
+                      fullWidth
+                      variant="text"
+                      endIcon={<ArrowForwardIcon />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDetailClick(project._id);
+                      }}
+                      sx={{
+                        color: "#6b0f1a",
+                        fontWeight: 700,
+                        textTransform: "none",
+                        fontSize: "0.95rem",
+                        justifyContent: "space-between",
+                        px: 2,
+                        py: 1,
+                        borderRadius: "10px",
+                        '&:hover': {
+                          bgcolor: "rgba(107, 15, 26, 0.08)"
                         }
                       }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/profile/${project.owner?._id}`);
-                      }}
                     >
-                      {project.owner?.fullname}
-                    </Typography>
-                  </Box>
+                      Projeyi İncele
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
 
-                  {/* Üye Sayısı */}
-                  <Typography variant="body2" sx={{ 
-                    color: "#6b7280",
-                    fontSize: { xs: "0.8rem", md: "0.875rem" }
-                  }}>
-                    {(() => {
-                      const regularMembers = project.members?.filter(member => {
-                        const memberUserId = member.user?._id || member._id;
-                        return memberUserId !== project.owner?._id;
-                      }).length || 0;
-                      const totalMembers = regularMembers + 1; // +1 proje lideri için
-                      return `${totalMembers} üye`;
-                    })()}
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Sağ taraf - İncele Butonu */}
-              <Button
-                variant="contained"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDetailClick(project._id);
-                }}
-                sx={{
-                  textTransform: "none",
-                  fontWeight: "600",
-                  borderRadius: "12px",
-                  px: { xs: 2, md: 3 },
-                  py: { xs: 1, md: 1.5 },
-                  background: "#6b0f1a",
-                  color: "#fff",
-                  fontSize: { xs: "0.8rem", md: "1rem" },
-                  minWidth: { xs: "80px", md: "auto" },
-                  "&:hover": {
-                    background: "#8c1c2b",
-                    transform: "scale(1.05)"
-                  },
-                  transition: "all 0.3s ease",
-                  flexShrink: 0,
-                  alignSelf: { xs: "center", md: "flex-start" }
-                }}
-              >
-                İncele
-              </Button>
-              </Box>
-            </Box>
-          ))}
-        </Box>
-
-        {/* Boş durum */}
+        {/* Boş durum (Hiç proje yoksa) */}
         {projects.length === 0 && !loading && !error && (
           <Box sx={{ 
             textAlign: "center", 
-            mt: 8,
-            background: "#6b0f1a",
-            borderRadius: "20px",
-            p: 6,
-            boxShadow: "0 8px 32px rgba(107, 15, 26, 0.15)",
-            border: "none",
+            mt: 6,
+            background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
+            borderRadius: "24px",
+            p: { xs: 4, md: 8 },
+            boxShadow: "0 12px 32px rgba(107, 15, 26, 0.2)",
             color: "#fff"
           }}>
-            <Typography variant="h4" sx={{ color: "#fff", mb: 2, fontWeight: "700" }}>
+            <Typography variant="h4" sx={{ mb: 2, fontWeight: 800 }}>
               Henüz proje bulunmuyor
             </Typography>
             <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.8)", mb: 4, fontSize: "1.1rem" }}>
@@ -345,22 +277,20 @@ function Projects() {
               variant="contained"
               onClick={handleCreateProject}
               sx={{
-                borderRadius: "15px",
+                borderRadius: "12px",
                 px: 4,
                 py: 1.5,
-                background: "rgba(255,255,255,0.2)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.3)",
-                fontWeight: "700",
+                bgcolor: "#fff",
+                color: "#6b0f1a",
+                fontWeight: 700,
                 textTransform: "none",
                 fontSize: "1.1rem",
-                color: "#fff",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.2)",
                 "&:hover": {
-                  background: "rgba(255,255,255,0.3)",
+                  bgcolor: "#f4f6f8",
                   transform: "translateY(-2px)",
-                  boxShadow: "0 8px 25px rgba(0,0,0,0.3)",
-                }
+                  boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+                },
+                transition: "all 0.2s"
               }}
             >
               İlk Projeyi Oluştur
@@ -374,18 +304,17 @@ function Projects() {
         onClick={handleCreateProject}
         sx={{
           position: "fixed",
-          bottom: 32,
-          right: 32,
-          width: 70,
-          height: 70,
-          background: "#6b0f1a",
+          bottom: { xs: 24, md: 40 },
+          right: { xs: 24, md: 40 },
+          width: 64,
+          height: 64,
+          background: "linear-gradient(135deg, #6b0f1a, #8c1c2b)",
           color: "#fff",
-          boxShadow: "0 8px 25px rgba(107, 15, 26, 0.4)",
-          border: "3px solid rgba(255,255,255,0.2)",
+          boxShadow: "0 8px 20px rgba(107, 15, 26, 0.4)",
           "&:hover": {
-            background: "#8c1c2b",
-            transform: "scale(1.1) rotate(90deg)",
-            boxShadow: "0 12px 35px rgba(107, 15, 26, 0.6)",
+            background: "linear-gradient(135deg, #8c1c2b, #a82936)",
+            transform: "scale(1.08)",
+            boxShadow: "0 12px 28px rgba(107, 15, 26, 0.5)",
           },
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           zIndex: 1000
