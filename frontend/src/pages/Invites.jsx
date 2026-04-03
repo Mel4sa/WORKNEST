@@ -63,7 +63,8 @@ export default function InvitesPage() {
         });
       });
       
-      setReceivedInvites(receivedRes.data);
+  // Sadece bekleyen davetleri göster
+  setReceivedInvites(receivedRes.data.filter(invite => invite.status === 'pending'));
       setSentInvites(sentRes.data);
     } catch (error) {
       console.error("Davetler yüklenemedi:", error);
@@ -82,14 +83,10 @@ export default function InvitesPage() {
 
   const handleAccept = async (inviteId) => {
     try {
-      console.log("✅ Davet kabul ediliyor:", inviteId);
-      console.log("🔑 Token:", token ? "var" : "yok");
-      console.log("🌐 URL:", `http://localhost:3000/api/invites/respond/${inviteId}`);
-      
+      // Optimistic UI: daveti hemen kaldır
+      setReceivedInvites(prev => prev.filter(invite => invite._id !== inviteId));
       const requestData = { action: "accepted" };
-      console.log("📤 Gönderilen veri:", requestData);
-      
-      const response = await axiosInstance.patch(`/invites/respond/${inviteId}`, 
+      await axiosInstance.patch(`/invites/respond/${inviteId}`, 
         requestData,
         { 
           headers: { 
@@ -98,38 +95,35 @@ export default function InvitesPage() {
           }
         }
       );
-      
-      console.log("✅ Kabul edildi:", response.data);
       setMessage("Davet başarıyla kabul edildi!");
       setMessageSeverity("success");
       setMessageOpen(true);
-      fetchInvites(); // Listeyi yenile
+      fetchInvites(); // Listeyi yenile (gerekirse)
     } catch (error) {
-      console.error("Davet kabul edilemedi:", error);
       setMessage("Davet kabul edilirken hata oluştu");
       setMessageSeverity("error");
       setMessageOpen(true);
+      fetchInvites(); // Hata olursa tekrar yükle
     }
   };
 
   const handleDecline = async (inviteId) => {
     try {
-      console.log("❌ Davet reddediliyor:", inviteId);
-      const response = await axiosInstance.patch(`/invites/respond/${inviteId}`, 
+      // Optimistic UI: daveti hemen kaldır
+      setReceivedInvites(prev => prev.filter(invite => invite._id !== inviteId));
+      await axiosInstance.patch(`/invites/respond/${inviteId}`, 
         { action: "declined" },
         { headers: { Authorization: `Bearer ${token}` }}
       );
-      
-      console.log("❌ Reddedildi:", response.data);
       setMessage("Davet başarıyla reddedildi!");
       setMessageSeverity("error");
       setMessageOpen(true);
       fetchInvites(); 
     } catch (error) {
-      console.error("Davet reddedilemedi:", error);
       setMessage("Davet reddedilirken hata oluştu");
       setMessageSeverity("error");
       setMessageOpen(true);
+      fetchInvites();
     }
   };
 

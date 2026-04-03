@@ -21,8 +21,29 @@ export const sendInvite = async (req, res) => {
     console.log("� Proje durumu:", project ? project.status : "Yok");
     console.log("�👤 Alıcı bulundu:", receiver ? receiver.fullname : "Bulunamadı");
     
+
     if (!project || !receiver) {
       return res.status(404).json({ message: "Proje veya kullanıcı bulunamadı" });
+    }
+
+
+    // Kullanıcı zaten proje üyesiyse davet gönderme
+    const isAlreadyMember = project.members.some(m => {
+      if (m.user) return m.user.toString() === receiverId.toString();
+      return m.toString() === receiverId.toString();
+    });
+    if (isAlreadyMember) {
+      return res.status(400).json({ message: "Bu kullanıcı zaten proje üyesi!" });
+    }
+
+    // Aynı projede bekleyen bir davet var mı kontrol et
+    const existingInvite = await Invitation.findOne({
+      project: projectId,
+      receiver: receiverId,
+      status: 'pending'
+    });
+    if (existingInvite) {
+      return res.status(400).json({ message: "Bu kullanıcıya zaten bekleyen bir davet var!" });
     }
 
     if (project.status === "cancelled") {
@@ -139,9 +160,9 @@ export const respondInvite = async (req, res) => {
     if (!["accepted", "declined"].includes(action))
       return res.status(400).json({ message: "Geçersiz işlem" });
 
+
     const oldStatus = invite.status;
-    invite.status = action;
-    await invite.save();
+    // If accepted, add user to project, then delete invite. If declined, just delete invite.
 
     if (action === "accepted") {
       try {
@@ -216,6 +237,8 @@ export const respondInvite = async (req, res) => {
       }
     }
 
+
+    // Send notification before deleting invite
     const notificationType = action === "accepted" ? 'invite_accepted' : 'invite_declined';
     const notificationTitle = action === "accepted" ? 'Davet Kabul Edildi' : 'Davet Reddedildi';
     const notificationMessage = action === "accepted" 
@@ -232,12 +255,13 @@ export const respondInvite = async (req, res) => {
       relatedInvite: invite._id
     });
 
-    console.log(`✅ Davet durumu güncellendi: ${oldStatus} → ${action}`);
+    // Delete the invitation from DB
+    await Invitation.findByIdAndDelete(invite._id);
+    console.log(`✅ Davet silindi: ${invite._id}`);
     res.json({ 
       message: action === "accepted" 
         ? "Davet kabul edildi ve proje üyesi oldunuz!" 
-        : "Davet reddedildi",
-      invite 
+        : "Davet reddedildi ve davet kaydı silindi"
     });
   } catch (error) {
     console.error(error);

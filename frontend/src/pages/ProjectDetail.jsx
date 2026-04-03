@@ -1,15 +1,5 @@
-  // Üye silme fonksiyonu
-  const handleRemoveMember = async (userId) => {
-    try {
-      await axiosInstance.delete(`/projects/${project._id}/members/${userId}`);
-      // Üye silindikten sonra projeyi tekrar fetch et
-      fetchProject();
-      setSuccessSnackbar({ open: true, message: "Üye başarıyla çıkarıldı!" });
-    } catch (err) {
-      setError(err.response?.data?.message || "Üye silinirken bir hata oluştu.");
-    }
-  };
 import React, { useEffect, useState, useCallback } from "react";
+import { TextField as MuiTextField, Chip, Autocomplete as MuiAutocomplete } from '@mui/material';
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -34,7 +24,6 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-
 import axiosInstance from "../lib/axios";
 import useAuthStore from "../store/useAuthStore";
 import TeamMembersList from "../components/project/TeamMembersList";
@@ -45,20 +34,30 @@ function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [successSnackbar, setSuccessSnackbar] = useState({ open: false, message: "" });
-
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({
     title: "",
     description: "",
-    status: "planned"
+    status: "planned",
+    tags: []
   });
+
+  // Üye silme fonksiyonu
+  const handleRemoveMember = async (userId) => {
+    try {
+      await axiosInstance.delete(`/projects/${project._id}/members/${userId}`);
+      fetchProject();
+      setSuccessSnackbar({ open: true, message: "Üye başarıyla çıkarıldı!" });
+    } catch (err) {
+      setError(err.response?.data?.message || "Üye silinirken bir hata oluştu.");
+    }
+  };
 
   const fetchProject = useCallback(async () => {
     try {
@@ -104,29 +103,46 @@ function ProjectDetail() {
     fetchProject();
   }, [fetchProject]);
 
+
+  // Baş harfleri büyük yap
+  function capitalizeWords(str) {
+    return str.replace(/\b\w/g, char => char.toUpperCase());
+  }
+
   const handleEditClick = () => {
     setEditFormData({
-      title: project.title,
+      title: capitalizeWords(project.title),
       description: project.description || "",
-      status: project.status || "planned"
+      status: project.status || "planned",
+      tags: project.tags || []
     });
     setIsEditing(true);
   };
 
   const handleEditSave = async () => {
+    if (!editFormData.title.trim() || !editFormData.description.trim()) {
+      setError("Başlık ve açıklama boş olamaz.");
+      return;
+    }
+    if (!editFormData.tags || editFormData.tags.length === 0) {
+      setError("En az bir teknoloji eklemelisiniz.");
+      return;
+    }
+    // Baş harfleri büyük yap
+    const capitalizedTitle = capitalizeWords(editFormData.title);
     try {
-      if (!editFormData.title.trim() || !editFormData.description.trim()) return;
       await axiosInstance.put(`/projects/${project._id}`, {
         ...project,
-        title: editFormData.title,
+        title: capitalizedTitle,
         description: editFormData.description,
-        status: editFormData.status
+        status: editFormData.status,
+        tags: editFormData.tags
       });
-      setProject(prev => ({ ...prev, title: editFormData.title, description: editFormData.description, status: editFormData.status }));
+      setProject(prev => ({ ...prev, title: capitalizedTitle, description: editFormData.description, status: editFormData.status, tags: editFormData.tags }));
       setIsEditing(false);
       setSuccessSnackbar({ open: true, message: "Proje başarıyla güncellendi!" });
-    } catch {
-      setError("Proje güncellenemedi. Lütfen tekrar deneyin.");
+    } catch (err) {
+      setError(err?.response?.data?.message || "Proje güncellenemedi. Lütfen tekrar deneyin.");
     }
   };
 
@@ -239,7 +255,7 @@ function ProjectDetail() {
                     label="Proje Başlığı"
                     variant="outlined"
                     value={editFormData.title}
-                    onChange={e => setEditFormData(f => ({ ...f, title: e.target.value }))}
+                    onChange={e => setEditFormData(f => ({ ...f, title: capitalizeWords(e.target.value) }))}
                     sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#0F172A" } }}
                   />
                   <TextField
@@ -265,6 +281,29 @@ function ProjectDetail() {
                     <MenuItem value="completed">Bitti</MenuItem>
                     <MenuItem value="cancelled">İptal Edildi</MenuItem>
                   </Select>
+
+                  {/* Proje Teknolojileri Düzenleme Alanı */}
+                  <MuiAutocomplete
+                    multiple
+                    freeSolo
+                    options={[]}
+                    value={editFormData.tags}
+                    onChange={(e, newValue) => setEditFormData(f => ({ ...f, tags: newValue }))}
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => (
+                        <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                      ))
+                    }
+                    renderInput={(params) => (
+                      <MuiTextField
+                        {...params}
+                        variant="outlined"
+                        label="Proje Teknolojileri"
+                        placeholder="Teknoloji ekle..."
+                        sx={{ mt: 1 }}
+                      />
+                    )}
+                  />
                   <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
                     <Button 
                       fullWidth
@@ -294,10 +333,56 @@ function ProjectDetail() {
                     </Typography>
                     {project.description && (
                       <Typography variant="body1" sx={{ mb: 2, color: "#444", fontWeight: 400 }}>
+                        <span style={{fontWeight:600, color:'#64748B'}}>Açıklama: </span>
                         {project.description}
                       </Typography>
                     )}
-                    <TeamStatusChip status={project.status} />
+                    {/* Proje Teknolojileri */}
+                    {project.tags && project.tags.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" sx={{ color: '#64748B', fontWeight: 600, mb: 0.5 }}>
+                          Proje Teknolojileri
+                        </Typography>
+                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                          {project.tags.map((tech, idx) => (
+                            <Box key={idx} sx={{
+                              px: 1.5, py: 0.5, mr: 1, mb: 1,
+                              bgcolor: '#F1F5F9',
+                              borderRadius: 2,
+                              fontSize: '1rem',
+                              color: '#222',
+                              fontWeight: 400,
+                              border: '1px solid #E2E8F0',
+                              fontFamily: 'inherit',
+                              letterSpacing: 0,
+                              display: 'inline-block'
+                            }}>
+                              {tech}
+                            </Box>
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+
+                  {/* DURUM ÇUBUĞU - En altta ve Tam Genişlikte */}
+                  <Box sx={{ 
+                    mx: { xs: -3, md: -4 }, 
+                    mb: { xs: -3, md: -4 },
+                    mt: 'auto'
+                  }}>
+                    <TeamStatusChip 
+                      status={project.status} 
+                      sx={{ 
+                        width: '100%', 
+                        py: 2.5, 
+                        fontSize: '1.1rem', 
+                        justifyContent: 'center', 
+                        display: 'flex',
+                        borderRadius: 0,
+                        boxShadow: 'none'
+                      }} 
+                    />
+                  </Box>
                   </Box>
                 </Stack>
               )}
