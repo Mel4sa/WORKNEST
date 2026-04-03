@@ -21,7 +21,7 @@ import Login from "./pages/Login";
 import AIAnalyzer from "./pages/AIAnalyzer_fixed";
 import ResetPassword from "./pages/ResetPassword";
 import useAuthStore from "./store/useAuthStore";
-import GlobalChatButton from "./components/GlobalChatButton";
+import ChatPage from "./pages/ChatPage";
 
 function ProtectedRoute() {
   const token = useAuthStore((state) => state.token);
@@ -66,6 +66,7 @@ function AppRoutes() {
             <Route path="/invites" element={<Invites />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/ai-analyzer" element={<AIAnalyzer />} />
+            <Route path="/chat" element={<ChatPage />} />
           </Route>
 
           {/* Public sayfalar */}
@@ -81,8 +82,6 @@ function AppRoutes() {
         </Routes>
       </div>
       
-      {/* Global Chat Button */}
-      <GlobalChatButton />
     </>
   );
 }

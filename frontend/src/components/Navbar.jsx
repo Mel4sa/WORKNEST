@@ -1,3 +1,4 @@
+// import GlobalChatButton from "./GlobalChatButton";
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -32,6 +33,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 import axiosInstance from "../lib/axios";
+import { ChatBubble } from "@mui/icons-material";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -310,27 +312,6 @@ function Navbar() {
               {item.label}
             </Button>
           ))}
-          
-          {/* Profilim butonu */}
-          <Button
-            component={Link}
-            to="/profile"
-            sx={{
-              color: "#000",
-              fontWeight: "bold",
-              textTransform: "none",
-              fontSize: { md: "0.8rem", lg: "0.85rem" },
-              px: { md: 1, lg: 1.5 },
-              backgroundColor: "transparent",
-              "&:hover": {
-                backgroundColor: "rgba(0,0,0,0.05)",
-                transform: "scale(1.05)",
-                transition: "all 0.2s ease-in-out",
-              },
-            }}
-          >
-            Profilim
-          </Button>
         </Box>
 
         {/* Sağ taraf - Arama, Bildirim ve Çıkış */}
@@ -340,11 +321,12 @@ function Navbar() {
           alignItems: "center",
           flexShrink: 0
         }}>
-          {/* Kişi Arama */}
+          {/* Kişi Arama - sola kaydırıldı */}
           <Box sx={{ 
             position: "relative", 
-            minWidth: { md: "200px", lg: "260px" }, 
-            maxWidth: { md: "220px", lg: "300px" }
+            minWidth: { md: "240px", lg: "320px" }, 
+            maxWidth: { md: "300px", lg: "380px" },
+            mr: { md: 2, lg: 3 } // Sola kaydırmak için sağa margin eklendi
           }}>
             <Autocomplete
               freeSolo
@@ -492,6 +474,42 @@ function Navbar() {
             >
               <NotificationsIcon sx={{ fontSize: "1.3rem" }} />
             </Badge>
+          </IconButton>
+
+          {/* Chat İkonu */}
+          <IconButton
+            onClick={() => navigate('/chat')}
+            sx={{
+              color: "#000",
+              p: 1,
+              ml: 1,
+              "&:hover": {
+                backgroundColor: "rgba(0,0,0,0.05)",
+                transform: "scale(1.1)",
+                transition: "all 0.2s ease-in-out",
+              },
+            }}
+          >
+            <ChatBubble sx={{ fontSize: "1.3rem" }} />
+          </IconButton>
+
+          {/* Profilim User İkonu */}
+          <IconButton
+            onClick={() => navigate('/profile')}
+            sx={{
+              color: "#000",
+              p: 1,
+              ml: 1,
+              "&:hover": {
+                backgroundColor: "rgba(0,0,0,0.05)",
+                transform: "scale(1.1)",
+                transition: "all 0.2s ease-in-out",
+              },
+            }}
+          >
+            <Avatar sx={{ width: 32, height: 32, bgcolor: '#6b0f1a', color: '#fff', fontWeight: 700, fontSize: '1rem' }} src={user?.profileImage}>
+              {user?.fullname ? user.fullname[0] : 'U'}
+            </Avatar>
           </IconButton>
 
           {/* Çıkış Butonu */}

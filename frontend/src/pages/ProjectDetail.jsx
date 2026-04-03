@@ -329,13 +329,16 @@ function ProjectDetail() {
                   variant="contained"
                   onClick={handleAddMember}
                   disableElevation
+                  disabled={user && project && project.owner && user._id === project.owner._id}
                   sx={{
                     bgcolor: "#0F172A",
                     color: "#FFFFFF",
                     fontWeight: 600,
                     borderRadius: 2,
                     px: 3,
-                    "&:hover": { bgcolor: "#334155" }
+                    "&:hover": { bgcolor: "#334155" },
+                    opacity: user && project && project.owner && user._id === project.owner._id ? 0.5 : 1,
+                    cursor: user && project && project.owner && user._id === project.owner._id ? "not-allowed" : "pointer"
                   }}
                 >
                   <AddIcon sx={{ mr: 0.5, fontSize: 18 }} /> Katıl

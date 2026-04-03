@@ -31,14 +31,15 @@ function UserProfile() {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   // Current user'ın sahip olduğu projeleri getir (davet için)
+  // Kullanıcının lider veya üye olduğu projeleri getir
   const fetchUserProjects = useCallback(async () => {
     try {
-      const response = await axios.get("/projects/owned-projects");
+      const response = await axios.get(`/projects/my-projects`);
       setProjects(response.data.projects || []);
     } catch (err) {
       console.error("Projeler yüklenemedi:", err);
     }
-  }, []);
+  }, [userId]);
 
   const fetchUserProfile = useCallback(async () => {
     try {
@@ -366,6 +367,48 @@ function UserProfile() {
               </Box>
             </Box>
           ) : null}
+
+          {/* Kullanıcının Projeleri */}
+          {projects && projects.length > 0 && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{
+                fontWeight: "700",
+                color: "#2c3e50",
+                mb: 1.5,
+                textTransform: "uppercase",
+                fontSize: "0.8rem",
+                letterSpacing: "0.5px"
+              }}>
+                Projeler
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {projects.map((project) => (
+                  <Chip
+                    key={project._id}
+                    label={<span style={{ color: '#fff', fontWeight: 600 }}>{project.title}</span>}
+                    clickable
+                    onClick={() => navigate(`/projects/${project._id}`)}
+                    sx={{
+                      bgcolor: '#6b0f1a',
+                      color: '#fff',
+                      fontWeight: 600,
+                      height: '32px',
+                      border: '2px solid #6b0f1a',
+                      fontSize: '1rem',
+                      letterSpacing: '0.5px',
+                      px: 2,
+                      transition: 'background 0.2s',
+                      '&:hover': {
+                        bgcolor: 'rgba(107, 15, 26, 0.7)',
+                        color: '#fff',
+                        boxShadow: '0 2px 8px 0 rgba(107,15,26,0.10)'
+                      }
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          )}
         </Box>
       </Box>
 
