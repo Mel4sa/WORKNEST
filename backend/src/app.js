@@ -45,9 +45,42 @@ app.use("/api/ai", aiRoutes);
 
 app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));
 
+
 connectDB();
 
+// SOCKET.IO
+import { Server } from "socket.io";
+import http from "http";
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true
+  }
+});
+
+// Her yerde erişmek için global olarak ekle
+app.set("io", io);
+
+io.on("connection", (socket) => {
+  console.log("🔌 Yeni bir client bağlandı!", socket.id);
+
+  // Kullanıcı kimliği ile odaya katılma
+  socket.on("join", (userId) => {
+    if (userId) {
+      socket.join(userId.toString());
+      console.log(`👤 Kullanıcı odasına katıldı: ${userId}`);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ Client bağlantısı koptu:", socket.id);
+  });
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`✅ Server ${PORT} portunda çalışıyor`);
+server.listen(PORT, () => {
+    console.log(`✅ Server ${PORT} portunda (socket.io ile) çalışıyor`);
 });

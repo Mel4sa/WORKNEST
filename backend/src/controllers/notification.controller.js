@@ -24,6 +24,17 @@ export const createNotification = async ({
       relatedInvite
     });
 
+    // SOCKET.IO: Bildirim gönder
+    try {
+      const { default: app } = await import("../app.js");
+      const io = app.get("io");
+      if (io) {
+        io.to(userId.toString()).emit("notification:new", { notification });
+      }
+    } catch (e) {
+      console.error("Socket emit hatası:", e);
+    }
+
     console.log(`✅ Bildirim oluşturuldu! notificationId=${notification._id}, userId=${notification.user}, type=${notification.type}`);
     return notification;
   } catch (error) {
@@ -163,6 +174,17 @@ export const deleteNotification = async (req, res) => {
 
     if (!notification) {
       return res.status(404).json({ message: "Bildirim bulunamadı" });
+    }
+
+    // SOCKET.IO: Bildirim silindi event'i gönder
+    try {
+      const { default: app } = await import("../app.js");
+      const io = app.get("io");
+      if (io) {
+        io.to(userId.toString()).emit("notification:deleted", { notificationId });
+      }
+    } catch (e) {
+      console.error("Socket emit hatası:", e);
     }
 
     res.status(200).json({ message: "Bildirim silindi" });
