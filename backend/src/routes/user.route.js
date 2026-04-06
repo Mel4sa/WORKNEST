@@ -9,7 +9,7 @@ import {
   getMe, 
   uploadPhoto, 
   deletePhoto, 
-  updateUsername,
+  updateFullname,
   updateEmail,
   updatePassword,
   deleteAccount,
@@ -61,7 +61,6 @@ router.get("/", getAllUsers);
 router.post("/upload-photo", protectRoute, upload.single("photo"), uploadPhoto);
 router.delete("/delete-photo", protectRoute, deletePhoto);
 
-import { updateFullname } from "../controllers/user.controller.js";
 router.put("/change-fullname", protectRoute, updateFullname);
 router.put("/change-email", protectRoute, updateEmail);
 router.put("/change-password", protectRoute, updatePassword);
