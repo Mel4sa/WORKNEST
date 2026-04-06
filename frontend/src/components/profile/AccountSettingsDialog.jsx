@@ -27,7 +27,7 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
   const navigate = useNavigate();
 
   // State yönetimi
-  const [activeTab, setActiveTab] = useState("username");
+  const [activeTab, setActiveTab] = useState("fullname");
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -46,13 +46,15 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
     }
   };
 
+  const setUser = useAuthStore((state) => state.setUser);
   const handleChangeUsername = async () => {
     try {
-      await axiosInstance.put("/users/change-username", { newUsername });
-      onMessage("Kullanıcı adı başarıyla güncellendi!", "success");
+  const res = await axiosInstance.put("/users/change-fullname", { fullname: newUsername });
+      if (res.data.user) setUser(res.data.user);
+      onMessage("Ad soyad başarıyla güncellendi!", "success");
       handleCloseDialog();
     } catch {
-      onMessage("Kullanıcı adı güncellenirken hata oluştu!", "error");
+      onMessage("Ad soyad güncellenirken hata oluştu!", "error");
     }
   };
 
@@ -124,7 +126,7 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
         boxShadow: "inset 0 2px 4px rgba(0,0,0,0.05)"
       }}>
         {[
-          { key: "username", label: "Kullanıcı Adı" },
+          { key: "fullname", label: "Ad Soyad" },
           { key: "email", label: "E-posta" },
           { key: "password", label: "Şifre" },
           { key: "delete", label: "Sil" },
@@ -153,15 +155,15 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
         ))}
       </Box>
 
-      {activeTab === "username" && (
+  {activeTab === "fullname" && (
         <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
           <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#6b0f1a" }}>
-            Kullanıcı Adını Değiştir
+            Ad Soyad Değiştir
           </Typography>
           <TextField 
             fullWidth 
-            label="Yeni Kullanıcı Adı" 
-            placeholder="Yeni kullanıcı adınızı girin"
+            label="Yeni Ad Soyad" 
+            placeholder="Yeni ad soyadınızı girin"
             sx={{ 
               mb: 3,
               "& .MuiOutlinedInput-root": {
@@ -195,7 +197,7 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
             }} 
             onClick={handleChangeUsername}
           >
-            Kullanıcı Adını Kaydet
+            Ad Soyadı Kaydet
           </Button>
         </Box>
       )}

@@ -40,14 +40,17 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/chats", chatRoutes);
+
+import skillRoutes from "./routes/skill.route.js";
+app.use("/api/skills", skillRoutes);
 app.use("/api/ai", aiRoutes);
 
 
 app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));
 
-connectDB();
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`✅ Server ${PORT} portunda çalışıyor`);
+connectDB().then(() => {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server ${PORT} portunda çalışıyor`);
+  });
 });

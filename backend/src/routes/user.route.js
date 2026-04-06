@@ -61,7 +61,8 @@ router.get("/", getAllUsers);
 router.post("/upload-photo", protectRoute, upload.single("photo"), uploadPhoto);
 router.delete("/delete-photo", protectRoute, deletePhoto);
 
-router.put("/change-username", protectRoute, updateUsername);
+import { updateFullname } from "../controllers/user.controller.js";
+router.put("/change-fullname", protectRoute, updateFullname);
 router.put("/change-email", protectRoute, updateEmail);
 router.put("/change-password", protectRoute, updatePassword);
 router.delete("/delete-account", protectRoute, deleteAccount);

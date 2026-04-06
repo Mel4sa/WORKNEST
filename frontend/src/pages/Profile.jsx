@@ -594,25 +594,23 @@ export default function ProfilePage() {
                 Eğitim Bilgileri
               </Typography>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <Select 
-                  value={university} 
-                  onChange={(e) => setUniversity(e.target.value)} 
-                  displayEmpty 
-                  sx={{ 
+                <Select
+                  value={university}
+                  onChange={(e) => setUniversity(e.target.value)}
+                  displayEmpty
+                  sx={{
                     flex: 1,
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "12px",
                     }
                   }}
+                  MenuProps={{ PaperProps: { style: { maxHeight: 300 } } }}
                 >
-                  <MenuItem value="" disabled>
-                    Üniversite Seçin
-                  </MenuItem>
-                  {universities.map((uni) => (
-                    <MenuItem key={uni} value={uni}>
-                      {uni}
-                    </MenuItem>
-                  ))}
+                  {[<MenuItem value="" disabled key="empty">Üniversite Seçin</MenuItem>,
+                    ...universities.map((uni) => (
+                      <MenuItem key={uni} value={uni}>{uni}</MenuItem>
+                    ))
+                  ]}
                 </Select>
                 <TextField
                   label="Bölüm"

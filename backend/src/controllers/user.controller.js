@@ -144,19 +144,16 @@ export const deletePhoto = async (req, res) => {
 };
 
 
-export const updateUsername = async (req, res) => {
+export const updateFullname = async (req, res) => {
   try {
-    const { newUsername } = req.body;
-    if (!newUsername) return res.status(400).json({ message: "Yeni kullanıcı adı gerekli" });
-
-    const existingUser = await User.findOne({ username: newUsername });
-    if (existingUser && existingUser._id.toString() !== req.user._id.toString()) {
-      return res.status(400).json({ message: "Bu kullanıcı adı zaten kullanılıyor" });
-    }
+    const { fullname } = req.body;
+    console.log("Gelen fullname:", fullname);
+    console.log("Kullanıcı:", req.user);
+    if (!fullname) return res.status(400).json({ message: "Yeni ad soyad gerekli" });
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      { username: newUsername },
+      { fullname },
       { new: true, runValidators: true }
     );
 
@@ -165,11 +162,10 @@ export const updateUsername = async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Kullanıcı adı başarıyla güncellendi",
+      message: "Ad soyad başarıyla güncellendi",
       user: updatedUser,
     });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
