@@ -63,7 +63,8 @@ function Navbar() {
       const response = await axiosInstance.get("/notifications", {
         params: { limit: 10 }
       });
-      setNotifications(response.data.notifications || []);
+      // Sadece okunmamış bildirimleri göster
+      setNotifications((response.data.notifications || []).filter(n => !n.isRead));
       // Unread count'u ayrıca fetch ediyoruz
       fetchUnreadCount();
     } catch (error) {
@@ -867,27 +868,25 @@ function Navbar() {
           )}
 
           {/* Alt kısım */}
-          {notifications.length > 0 && (
-            <>
-              <Divider />
-              <Box sx={{ p: 1, textAlign: "center" }}>
-                <Button
-                  size="small"
-                  component={Link}
-                  to="/notifications"
-                  onClick={handleNotificationClose}
-                  sx={{
-                    color: "#6b0f1a",
-                    "&:hover": {
-                      backgroundColor: "rgba(107, 15, 26, 0.04)"
-                    }
-                  }}
-                >
-                  Tüm Bildirimleri Gör
-                </Button>
-              </Box>
-            </>
-          )}
+          <>
+            <Divider />
+            <Box sx={{ p: 1, textAlign: "center" }}>
+              <Button
+                size="small"
+                component={Link}
+                to="/notifications"
+                onClick={handleNotificationClose}
+                sx={{
+                  color: "#6b0f1a",
+                  "&:hover": {
+                    backgroundColor: "rgba(107, 15, 26, 0.04)"
+                  }
+                }}
+              >
+                Tüm Bildirimleri Gör
+              </Button>
+            </Box>
+          </>
         </Menu>
       </Toolbar>
     </AppBar>
