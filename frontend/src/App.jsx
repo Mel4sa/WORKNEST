@@ -18,7 +18,7 @@ import Invites from "./pages/Invites";
 import Notifications from "./pages/Notifications";
 import SignIn from "./pages/SignIn";
 import Login from "./pages/Login";
-import AIAnalyzer from "./pages/AIAnalyzer_fixed";
+import AIAnalyzer from "./pages/AIAnalyzer";
 import ResetPassword from "./pages/ResetPassword";
 import useAuthStore from "./store/useAuthStore";
 import ChatPage from "./pages/ChatPage";

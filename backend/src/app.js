@@ -48,9 +48,10 @@ app.use("/api/ai", aiRoutes);
 
 app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));
 
-connectDB().then(() => {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server ${PORT} portunda çalışıyor`);
-  });
+
+connectDB();
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`✅ Server ${PORT} portunda çalışıyor`);
 });

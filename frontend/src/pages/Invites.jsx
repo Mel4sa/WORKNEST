@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -24,6 +24,7 @@ import {
 } from "@mui/icons-material";
 import axiosInstance from "../lib/axios";
 import useAuthStore from "../store/useAuthStore";
+import socket from "../lib/socket";
 import ProfileSnackbar from "../components/profile/ProfileSnackbar";
 
 export default function InvitesPage() {
@@ -37,6 +38,8 @@ export default function InvitesPage() {
   const [messageSeverity, setMessageSeverity] = useState("success");
   
   const token = useAuthStore((state) => state.token);
+  const { user } = useAuthStore();
+  const socketRef = useRef(null);
 
   // API çağrıları
   const fetchInvites = useCallback(async () => {
@@ -80,6 +83,32 @@ export default function InvitesPage() {
       fetchInvites();
     }
   }, [token, fetchInvites]);
+
+  // SOCKET.IO: Bağlantı ve event dinleme
+  useEffect(() => {
+    if (!user?._id) return;
+    if (socketRef.current) return; // Tekrar bağlanmasın
+
+    socket.emit("join", user._id);
+    socketRef.current = socket;
+
+    socket.on("invite:new", () => {
+      fetchInvites();
+    });
+    socket.on("invite:updated", () => {
+      fetchInvites();
+    });
+    socket.on("invite:deleted", () => {
+      fetchInvites();
+    });
+
+    return () => {
+      socket.off("invite:new");
+      socket.off("invite:updated");
+      socket.off("invite:deleted");
+      socketRef.current = null;
+    };
+  }, [user?._id, fetchInvites]);
 
   const handleAccept = async (inviteId) => {
     try {

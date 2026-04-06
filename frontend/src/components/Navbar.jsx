@@ -868,25 +868,23 @@ function Navbar() {
           )}
 
           {/* Alt kısım */}
-          <>
-            <Divider />
-            <Box sx={{ p: 1, textAlign: "center" }}>
-              <Button
-                size="small"
-                component={Link}
-                to="/notifications"
-                onClick={handleNotificationClose}
-                sx={{
-                  color: "#6b0f1a",
-                  "&:hover": {
-                    backgroundColor: "rgba(107, 15, 26, 0.04)"
-                  }
-                }}
-              >
-                Tüm Bildirimleri Gör
-              </Button>
-            </Box>
-          </>
+          <Divider />
+          <Box sx={{ p: 1, textAlign: "center" }}>
+            <Button
+              size="small"
+              component={Link}
+              to="/notifications"
+              onClick={handleNotificationClose}
+              sx={{
+                color: "#6b0f1a",
+                "&:hover": {
+                  backgroundColor: "rgba(107, 15, 26, 0.04)"
+                }
+              }}
+            >
+              Tüm Bildirimleri Gör
+            </Button>
+          </Box>
         </Menu>
       </Toolbar>
     </AppBar>

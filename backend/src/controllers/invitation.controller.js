@@ -54,6 +54,7 @@ export const sendInvite = async (req, res) => {
       return res.status(400).json({ message: "Tamamlanmış projelere davet gönderilemez" });
     }
 
+
     const invite = await Invitation.create({
       project: projectId,
       sender: senderId,
@@ -61,6 +62,16 @@ export const sendInvite = async (req, res) => {
       status: "pending", // pending, accepted, declined
       message: message || "Projeye katılmaya davet ediliyorsunuz!"
     });
+
+    // SOCKET.IO: Davet gönderildiğinde alıcıya anlık event gönder
+    try {
+      const io = req.app.get("io");
+      if (io && receiverId) {
+        io.to(receiverId.toString()).emit("invite:new");
+      }
+    } catch (err) {
+      console.error("[SOCKET] Davet gönderiminde socket emit hatası:", err);
+    }
 
     // Alıcıya bildirim gönder
     await createNotification({
@@ -258,6 +269,19 @@ export const respondInvite = async (req, res) => {
     // Delete the invitation from DB
     await Invitation.findByIdAndDelete(invite._id);
     console.log(`✅ Davet silindi: ${invite._id}`);
+
+    // SOCKET.IO: Davet yanıtlandığında hem gönderen hem alıcıya anlık event gönder
+    try {
+      const io = req.app.get("io");
+      if (io) {
+        // Alıcıya (yanıtlayan) ve gönderen kullanıcıya event gönder
+        io.to(invite.receiver.toString()).emit("invite:updated");
+        io.to(invite.sender.toString()).emit("invite:updated");
+      }
+    } catch (err) {
+      console.error("[SOCKET] Davet yanıtında socket emit hatası:", err);
+    }
+
     res.json({ 
       message: action === "accepted" 
         ? "Davet kabul edildi ve proje üyesi oldunuz!" 

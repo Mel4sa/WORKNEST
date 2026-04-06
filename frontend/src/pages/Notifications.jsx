@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { io } from "socket.io-client";
+import useAuthStore from "../store/useAuthStore";
 import {
   Box,
   Container,
@@ -32,6 +34,8 @@ import axiosInstance from '../lib/axios';
 
 
 function Bildirimler() {
+  const { user } = useAuthStore();
+  const socketRef = useRef(null);
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +70,34 @@ function Bildirimler() {
   useEffect(() => {
     fetchNotifications();
   }, []);
+
+  // SOCKET.IO: Bağlantı ve event dinleme
+  useEffect(() => {
+    if (!user?._id) return;
+    if (socketRef.current) return; // Tekrar bağlanmasın
+
+    const socket = io("http://localhost:3000", {
+      withCredentials: true
+    });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      // Kullanıcı kendi odasına join olsun
+      socket.emit("join", user._id);
+    });
+
+    socket.on("notification:new", () => {
+      fetchNotifications();
+    });
+    socket.on("notification:deleted", () => {
+      fetchNotifications();
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [user?._id]);
 
   const handleLoadMore = () => {
     if (hasMore && !loading) {

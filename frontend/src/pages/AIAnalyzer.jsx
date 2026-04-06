@@ -1,426 +1,448 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from '../lib/axios';
+import React, { useState, useEffect } from 'react';
+import axiosInstance from '../lib/axios';
+import { BrainCircuit, Loader2, Users, Target, CheckCircle, Sparkles, Send, Briefcase, FileText, XCircle } from 'lucide-react';
+import ProfileSnackbar from '../components/profile/ProfileSnackbar';
 
 const AIAnalyzer = () => {
+  // Snackbar için state (Bileşenin içine taşındı)
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Kullanıcının girdi yöntemi: 'existing' (mevcut proje) veya 'custom' (yeni proje)
+  const [inputType, setInputType] = useState('existing');
+  const [selectedProject, setSelectedProject] = useState('');
+  const [customProject, setCustomProject] = useState('');
+  
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [result, setResult] = useState(null);
+  
+  // Davet durumlarını projeId+userId bazlı tut
+  const [invitedUsers, setInvitedUsers] = useState({});
+
+  // Gerçek projeler
   const [projects, setProjects] = useState([]);
-  const [mainMode, setMainMode] = useState('chat'); // 'chat' veya 'matching'
-  const [currentProject, setCurrentProject] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [candidateMatches, setCandidateMatches] = useState([]);
-  const [matchLoading, setMatchLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [projectsError, setProjectsError] = useState("");
 
   useEffect(() => {
-    // Projeleri çek ve ilk projeyi otomatik seç
-    axios.get('/projects')
-      .then(res => {
-        setProjects(res.data);
-        // İlk projeyi otomatik seç ve chatı başlat
-        if (res.data && res.data.length > 0) {
-          const firstProject = res.data[0];
-          setCurrentProject(firstProject);
-          setMessages([
-            {
-              type: 'ai',
-              text: `Merhaba! "${firstProject.name || firstProject.title}" projesi hakkında sana yardımcı olmak için buradayım. Projeni analiz etmek, ekip üyeleri önerisi almak veya başka konularda konuşabilirsin. Bana ne hakkında sormak istediğini söyle!`,
-            },
-          ]);
-        }
-      })
-      .catch(() => setProjects([]));
+    const fetchProjects = async () => {
+      try {
+        setLoadingProjects(true);
+        const response = await axiosInstance.get("/projects/my-projects");
+        setProjects(response.data.projects || []);
+      } catch {
+        setProjectsError("Projeler yüklenemedi.");
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    fetchProjects();
   }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const handleAnalyze = async () => {
+    if (inputType === 'existing' && !selectedProject) return;
+    if (inputType === 'custom' && !customProject) return;
+    setIsAnalyzing(true);
+    setResult(null);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSelectProject = (projectId) => {
-    const project = projects.find(p => (p._id || p.id) === projectId);
-    if (project) {
-      setCurrentProject(project);
-      setMessages([
-        {
-          type: 'ai',
-          text: `Merhaba! "${project.name || project.title}" projesi hakkında sana yardımcı olmak için buradayım. Projeni analiz etmek, ekip üyeleri önerisi almak veya başka konularda konuşabilirsin. Bana ne hakkında sormak istediğini söyle!`,
-        },
-      ]);
-      setError(null);
+    // 1. Proje ihtiyaçlarını belirle
+    let extractedSkills = [];
+    if (inputType === 'existing') {
+      const selected = projects.find(p => p._id === selectedProject);
+      // Öncelik requiredSkills, yoksa tags
+      if (selected) {
+        if (selected.requiredSkills && selected.requiredSkills.length > 0) {
+          extractedSkills = selected.requiredSkills;
+        } else if (selected.tags && selected.tags.length > 0) {
+          extractedSkills = selected.tags;
+        }
+      }
+    } else {
+      // Yeni fikir için örnek dizi
+      extractedSkills = ["React", "Node.js", "MongoDB", "TypeScript", "REST API", "UI/UX Tasarım"];
     }
-  };
-
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
-
-    const userMsg = inputMessage;
-    setInputMessage('');
-    setMessages(prev => [...prev, { type: 'user', text: userMsg }]);
-    setLoading(true);
-    setError(null);
 
     try {
-      const projectContext = currentProject?.idea || currentProject?.description || currentProject?.name;
-      const response = await axios.post('/ai/analyze', {
-        projectContext,
-        message: userMsg,
-        projectId: currentProject?._id || currentProject?.id,
+      // 2. Kullanıcıları çek
+      const usersRes = await axiosInstance.get("/users");
+      const users = usersRes.data || [];
+
+      // 3. Eşleşme algoritması
+      // Şu anki kullanıcının id'sini almak için /me endpointini kullan
+      let myId = null;
+      try {
+        const meRes = await axiosInstance.get("/users/me");
+        myId = meRes.data?._id;
+      } catch  {
+        // Kullanıcı id'si alınamazsa myId null kalır
+      }
+
+      const candidates = users
+        .filter(u => u.skills && Array.isArray(u.skills) && u.skills.length > 0 && (!myId || u._id !== myId))
+        .map(u => {
+          const matchedSkills = extractedSkills.filter(skill => u.skills.map(s => s.toLowerCase()).includes(skill.toLowerCase()));
+          const missingSkills = extractedSkills.filter(skill => !u.skills.map(s => s.toLowerCase()).includes(skill.toLowerCase()));
+          const matchScore = extractedSkills.length > 0 ? Math.round((matchedSkills.length / extractedSkills.length) * 100) : 0;
+          return {
+            id: u._id,
+            name: u.fullname || u.username || "Kullanıcı",
+            department: u.department || u.email || "-",
+            matchScore,
+            matchedSkills,
+            missingSkills,
+            avatar: (u.fullname ? u.fullname.split(" ").map(x=>x[0]).join("") : (u.username ? u.username[0] : "U")).toUpperCase(),
+            profileImage: u.profileImage || null
+          };
+        })
+        .filter(c => c.matchScore > 0)
+        .sort((a, b) => b.matchScore - a.matchScore)
+        .slice(0, 5); // En iyi 5 adayı göster
+
+      setResult({
+        extractedSkills,
+        candidates
       });
-
-      const aiResponse = response.data.result || response.data.message || 'Yanıt oluşturulamadı.';
-      setMessages(prev => [...prev, { type: 'ai', text: aiResponse }]);
-    } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Bir hata oluştu. Lütfen tekrar deneyin.';
-      setError(errorMsg);
-      setMessages(prev => [...prev, { type: 'ai', text: `❌ ${errorMsg}` }]);
+    } catch  {
+      setResult({
+        extractedSkills,
+        candidates: []
+      });
     } finally {
-      setLoading(false);
+      setIsAnalyzing(false);
     }
   };
 
-  const handleMatchCandidates = async (projectId) => {
-    setMatchLoading(true);
-    setError(null);
+  const handleInvite = async (userId) => {
+    if (!selectedProject) return;
+    const key = `${selectedProject}_${userId}`;
+    setInvitedUsers(prev => ({ ...prev, [key]: 'loading' }));
     try {
-      const response = await axios.post('/ai/match-candidates', { projectId });
-      setCandidateMatches(response.data.data.candidateMatches || []);
-      setMainMode('matching');
-    } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Eşleştirme başarısız oldu.';
-      setError(errorMsg);
-    } finally {
-      setMatchLoading(false);
+      // Proje ve kullanıcıya özel mesaj hazırla
+      const selected = projects.find(p => p._id === selectedProject);
+      const projectTitle = selected?.title || "bir proje";
+      const message = `Sizi '${projectTitle}' projesini birlikte yapmak için ekibine davet ediyor!`;
+      await axiosInstance.post("/invites/send", {
+        projectId: selectedProject,
+        receiverId: userId,
+        message
+      });
+      setInvitedUsers(prev => ({ ...prev, [key]: true }));
+    } catch (e) {
+      setInvitedUsers(prev => ({ ...prev, [key]: false }));
+      const errorMsg = e?.response?.data?.message;
+      if (errorMsg && errorMsg.includes("zaten bekleyen bir davet")) {
+        setSnackbar({ open: true, message: "Bu kullanıcıya zaten bekleyen bir davet var! Lütfen başka birini seçin veya daveti geri çekin.", severity: "error" });
+      } else {
+        setSnackbar({ open: true, message: "Davet gönderilemedi: " + (errorMsg || "Bir hata oluştu"), severity: "error" });
+      }
     }
   };
 
-  // Chat Mode - DIREK AÇILIYOR
-  if (mainMode === 'chat' && currentProject) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '90vh',
-          maxWidth: '800px',
-          margin: '0 auto',
-          background: '#fff',
-          borderRadius: '14px',
-          boxShadow: '0 2px 16px #0001',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header */}
-        <div style={{ padding: '20px', background: '#4f46e5', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '20px' }}>🤖 AI Proje Analisti</h2>
-            <p style={{ margin: '5px 0 0 0', fontSize: '14px', opacity: 0.9 }}>{currentProject.name || currentProject.title}</p>
-          </div>
-          <button
-            onClick={() => {
-              setMainMode('matching');
-              handleMatchCandidates(currentProject._id || currentProject.id);
-            }}
-            disabled={matchLoading}
-            style={{
-              padding: '8px 16px',
-              background: matchLoading ? '#d1d5db' : '#fff',
-              color: '#4f46e5',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: '600',
-              cursor: matchLoading ? 'not-allowed' : 'pointer',
-              fontSize: '13px',
-              whiteSpace: 'nowrap',
-            }}
-            title="Adayları eşleştir"
-          >
-            {matchLoading ? '⏳' : '👥 Aday Bul'}
-          </button>
-        </div>
+  // Daveti geri çekme fonksiyonu
+  const handleRevokeInvite = async (userId) => {
+    if (!selectedProject) return;
+    const key = `${selectedProject}_${userId}`;
+    setInvitedUsers(prev => ({ ...prev, [key]: 'revoking' }));
+    try {
+      await axiosInstance.post("/invites/revoke", {
+        projectId: selectedProject,
+        receiverId: userId
+      });
+      setInvitedUsers(prev => {
+        const updated = { ...prev };
+        delete updated[key];
+        return updated;
+      });
+    } catch (e) {
+      setInvitedUsers(prev => ({ ...prev, [key]: true }));
+      const errorMsg = e?.response?.data?.message;
+      if (
+        (e?.response?.status === 404) ||
+        (errorMsg && (errorMsg.toLowerCase().includes("not found") || errorMsg.toLowerCase().includes("bulunamadı")))
+      ) {
+        setSnackbar({ open: true, message: "Davet geri çekme özelliği şu anda desteklenmiyor veya backend'de bu endpoint yok. Lütfen yöneticinize başvurun.", severity: "error" });
+      } else {
+        setSnackbar({ open: true, message: "Davet geri çekilemedi: " + (errorMsg || "Bir hata oluştu"), severity: "error" });
+      }
+    }
+  };
 
-        {/* Messages Area */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            background: '#f9fafb',
-          }}
-        >
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              style={{
-                display: 'flex',
-                justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
-                marginBottom: '8px',
-              }}
-            >
-              <div
-                style={{
-                  maxWidth: '70%',
-                  padding: '12px 16px',
-                  borderRadius: '10px',
-                  background: msg.type === 'user' ? '#4f46e5' : '#e5e7eb',
-                  color: msg.type === 'user' ? '#fff' : '#1f2937',
-                  wordWrap: 'break-word',
-                  whiteSpace: 'pre-wrap',
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                }}
-              >
-                {msg.text}
+  return (
+    <>
+      <ProfileSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-[#fff6f6] via-[#f4f6f8] to-[#fff6f6] p-6 md:p-12 font-sans text-black">
+        <div className="max-w-6xl mx-auto space-y-10">
+          {/* Başlık */}
+          <header className="flex flex-col items-center text-center space-y-4 pt-4 pb-8">
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#a82936] blur-xl opacity-30 rounded-full"></div>
+              <div className="relative bg-gradient-to-tr from-[#6b0f1a] to-[#a82936] p-4 rounded-2xl shadow-xl border border-white/20">
+                <Users className="w-10 h-10 text-white" strokeWidth={1.5} />
               </div>
             </div>
-          ))}
-          {loading && (
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', color: '#6b7280' }}>
-              <div style={{ width: '8px', height: '8px', background: '#6b7280', borderRadius: '50%', animation: 'pulse 1s infinite' }} />
-              <div style={{ width: '8px', height: '8px', background: '#6b7280', borderRadius: '50%', animation: 'pulse 1s infinite 0.2s' }} />
-              <div style={{ width: '8px', height: '8px', background: '#6b7280', borderRadius: '50%', animation: 'pulse 1s infinite 0.4s' }} />
+            <div>
+              <h1 className="text-4xl font-extrabold text-[#a82936] tracking-tight">
+                Yapay Zeka ile Ekip Arkadaşı Bul
+              </h1>
+              <p className="text-black mt-2 font-medium max-w-xl mx-auto">
+                Projenizin ihtiyaçlarını yapay zekaya analiz ettirin ve veritabanındaki en uygun yetenekleri keşfedip ekibinize davet edin.
+              </p>
             </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+          </header>
 
-        {/* Input Area */}
-        <div
-          style={{
-            padding: '16px',
-            background: '#fff',
-            borderTop: '1px solid #e5e7eb',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-          }}
-        >
-          {/* Soru Sorma Kısmı */}
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={e => setInputMessage(e.target.value)}
-              onKeyPress={e => e.key === 'Enter' && !loading && handleSendMessage()}
-              placeholder="Sorun veya yorum yaz..."
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: '12px 14px',
-                borderRadius: '8px',
-                border: '1px solid #d1d5db',
-                fontSize: '14px',
-                fontFamily: 'inherit',
-                outline: 'none',
-                transition: 'border-color 0.2s',
-              }}
-              onFocus={e => (e.target.style.borderColor = '#4f46e5')}
-              onBlur={e => (e.target.style.borderColor = '#d1d5db')}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={loading || !inputMessage.trim()}
-              style={{
-                padding: '12px 20px',
-                background: loading || !inputMessage.trim() ? '#d1d5db' : '#4f46e5',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: loading || !inputMessage.trim() ? 'not-allowed' : 'pointer',
-                fontSize: '14px',
-                transition: 'background 0.2s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Gönder
-            </button>
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Sol Panel: Proje Seçimi */}
+            <div className="lg:col-span-5 bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-[0_8px_30px_rgba(107,15,26,0.06)] border border-[#a82936]/20 flex flex-col space-y-6 relative overflow-hidden h-fit">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-50 -mr-20 -mt-20 pointer-events-none"></div>
 
-          {/* Proje Seçim Dropdown - Alt Tarafa */}
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <label style={{ fontWeight: '600', color: '#374151', fontSize: '13px', whiteSpace: 'nowrap' }}>📁 Proje:</label>
-            <select
-              value={currentProject._id || currentProject.id || ''}
-              onChange={e => handleSelectProject(e.target.value)}
-              style={{
-                flex: 1,
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: '1px solid #d1d5db',
-                fontSize: '13px',
-                fontFamily: 'inherit',
-                outline: 'none',
-                cursor: 'pointer',
-                transition: 'border-color 0.2s',
-                background: '#fff',
-              }}
-              onFocus={e => (e.target.style.borderColor = '#4f46e5')}
-              onBlur={e => (e.target.style.borderColor = '#d1d5db')}
-            >
-              {projects.map(project => (
-                <option key={project._id || project.id} value={project._id || project.id}>
-                  {project.name || project.title}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div style={{ padding: '12px 16px', background: '#fee2e2', color: '#dc2626', borderTop: '1px solid #fecaca', fontSize: '13px' }}>
-            ⚠️ {error}
-          </div>
-        )}
-
-        <style>{`
-          @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  // Matching Results View
-  if (mainMode === 'matching' && candidateMatches.length > 0) {
-    return (
-      <div
-        style={{
-          maxWidth: '1000px',
-          margin: '20px auto',
-          padding: '20px',
-          background: '#fff',
-          borderRadius: '14px',
-          boxShadow: '0 2px 16px #0001',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '28px', color: '#1f2937' }}>👥 Aday Eşleştirmesi</h1>
-            <p style={{ margin: '8px 0 0 0', color: '#6b7280' }}>
-              {currentProject?.name || currentProject?.title || 'Proje'} için en uygun adaylar
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setMainMode('chat');
-              setCandidateMatches([]);
-            }}
-            style={{
-              padding: '10px 20px',
-              background: '#e5e7eb',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
-          >
-            ← Chat'e Dön
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gap: '16px' }}>
-          {candidateMatches.map((candidate, idx) => (
-            <div
-              key={idx}
-              style={{
-                padding: '20px',
-                border: '2px solid #e5e7eb',
-                borderRadius: '10px',
-                background: candidate.matchPercentage >= 70 ? '#f0fdf4' : '#fef3f2',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 12px #00000015')}
-              onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', color: '#1f2937' }}>{candidate.userName}</h3>
-                  <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '14px' }}>Aday ID: {candidate.userId}</p>
-                </div>
-                <div
-                  style={{
-                    padding: '8px 16px',
-                    background: candidate.matchPercentage >= 70 ? '#10b981' : candidate.matchPercentage >= 50 ? '#f59e0b' : '#ef4444',
-                    color: '#fff',
-                    borderRadius: '20px',
-                    fontWeight: '700',
-                    fontSize: '16px',
-                  }}
+              {/* Tab Geçişleri */}
+              <div className="relative z-10 flex space-x-2 bg-[#f4e6e8]/60 p-1.5 rounded-xl border border-[#a82936]/20">
+                <button 
+                  onClick={() => setInputType('existing')}
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center ${inputType === 'existing' ? 'bg-white text-[#6b0f1a] shadow-sm' : 'text-[#a82936] hover:text-[#6b0f1a]'}`}
                 >
-                  {candidate.matchPercentage}%
-                </div>
+                  <Briefcase className="w-4 h-4 mr-2" /> Kayıtlı Projelerim
+                </button>
+                <button 
+                  onClick={() => setInputType('custom')}
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center ${inputType === 'custom' ? 'bg-white text-[#a82936] shadow-sm' : 'text-[#6b0f1a] hover:text-[#a82936]'}`}
+                >
+                  <FileText className="w-4 h-4 mr-2" /> Yeni Fikir
+                </button>
               </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <p style={{ margin: '0 0 8px 0', fontWeight: '600', color: '#374151', fontSize: '14px' }}>✅ Güçlü Yönleri:</p>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {candidate.strengths.map((strength, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          padding: '6px 12px',
-                          background: '#d1fae5',
-                          color: '#065f46',
-                          borderRadius: '20px',
-                          fontSize: '13px',
-                          fontWeight: '500',
-                        }}
-                      >
-                        {strength}
-                      </span>
-                    ))}
+              {/* Dinamik Girdi Alanı */}
+              <div className="relative z-10 min-h-[160px]">
+                {inputType === 'existing' ? (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <label className="block text-sm font-bold text-slate-700">Üzerinde Çalıştığınız Bir Projeyi Seçin</label>
+                    {loadingProjects ? (
+                      <div className="text-center text-[#a82936] py-4">Projeler yükleniyor...</div>
+                    ) : projectsError ? (
+                      <div className="text-center text-red-500 py-4">{projectsError}</div>
+                    ) : projects.length === 0 ? (
+                      <div className="text-center text-[#a82936] py-4">Hiç projeniz yok.</div>
+                    ) : (
+                      <div className="space-y-2">
+                        {projects.map(proj => (
+                          <button
+                            key={proj._id}
+                            onClick={() => setSelectedProject(proj._id)}
+                            className={`w-full text-left p-4 rounded-xl border transition-all ${selectedProject === proj._id ? 'bg-[#f4e6e8] border-[#a82936] ring-1 ring-[#a82936]' : 'bg-white/50 border-slate-200 hover:border-[#a82936]/40'}`}
+                          >
+                            <p className={`text-sm font-semibold ${selectedProject === proj._id ? 'text-[#a82936]' : 'text-black'}`}>{proj.title}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-
-                <div>
-                  <p style={{ margin: '0 0 8px 0', fontWeight: '600', color: '#374151', fontSize: '14px' }}>📈 Geliştirilecek Alanlar:</p>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {candidate.areasToImprove.map((area, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          padding: '6px 12px',
-                          background: '#fef3c7',
-                          color: '#92400e',
-                          borderRadius: '20px',
-                          fontSize: '13px',
-                          fontWeight: '500',
-                        }}
-                      >
-                        {area}
-                      </span>
-                    ))}
+                ) : (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-left-4 duration-300">
+                    <label className="block text-sm font-bold text-slate-700">Yeni Proje Fikrinizi Anlatın</label>
+                    <textarea
+                      value={customProject}
+                      onChange={(e) => setCustomProject(e.target.value)}
+                      placeholder="Örn: React, Tailwind ve Node.js kullanarak geliştireceğim kampüs içi kütüphane otomasyonu için veri tabanı mimarisini kuracak ve frontend'e destek olacak birine ihtiyacım var..."
+                      className="w-full h-40 p-5 rounded-2xl bg-white/50 border border-[#a82936]/30 focus:bg-white focus:ring-4 focus:ring-[#a82936]/20 focus:border-[#a82936] outline-none transition-all resize-none shadow-inner placeholder:text-[#64748b]"
+                    />
                   </div>
-                </div>
+                )}
               </div>
 
-              <div style={{ padding: '12px', background: '#f3f4f6', borderRadius: '8px', borderLeft: '4px solid #4f46e5' }}>
-                <p style={{ margin: 0, fontSize: '14px', color: '#1f2937', lineHeight: '1.6' }}>
-                  <strong>💡 Tavsiye:</strong> {candidate.recommendation}
-                </p>
-              </div>
+              <button
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || (inputType === 'existing' && !selectedProject) || (inputType === 'custom' && !customProject)}
+                className={`relative z-10 w-full py-4 rounded-2xl font-bold text-white transition-all duration-300 flex items-center justify-center space-x-2 group overflow-hidden ${
+                  isAnalyzing || (inputType === 'existing' && !selectedProject) || (inputType === 'custom' && !customProject)
+                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                  : 'bg-gradient-to-r from-[#6b0f1a] to-[#a82936] hover:from-[#a82936] hover:to-[#6b0f1a] shadow-lg hover:shadow-[#a82936]/30 hover:-translate-y-0.5'
+                }`}
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Adaylar Taranıyor...</span>
+                  </>
+                ) : (
+                  <>
+                    <BrainCircuit className="w-5 h-5 group-hover:animate-pulse" />
+                    <span>Analiz Et ve Ekip Öner</span>
+                  </>
+                )}
+              </button>
             </div>
-          ))}
+
+            {/* Sağ Panel: LLM Sonuçları ve Adaylar */}
+            <div className="lg:col-span-7 bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-[0_8px_30px_rgba(107,15,26,0.06)] border border-[#6b0f1a]/10 min-h-[500px] flex flex-col relative overflow-hidden">
+              
+              {!result && !isAnalyzing && (
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-6 m-auto">
+                  <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-2">
+                    <Target className="w-10 h-10 text-slate-300" strokeWidth={1.5} />
+                  </div>
+                  <p className="text-center px-8 text-sm font-medium leading-relaxed">
+                    Proje seçimi yaptıktan sonra yapay zeka veritabanındaki<br/>öğrenci profillerini tarayarak en uygun adayları listeleyecektir.
+                  </p>
+                </div>
+              )}
+
+              {isAnalyzing && (
+                <div className="h-full flex flex-col items-center justify-center space-y-6 m-auto">
+                  <div className="relative flex items-center justify-center">
+                    <div className="w-24 h-24 border-4 border-indigo-100 rounded-full animate-pulse"></div>
+                    <div className="w-24 h-24 border-4 border-purple-500 rounded-full border-t-transparent animate-spin absolute"></div>
+                    <Sparkles className="w-8 h-8 text-purple-600 absolute animate-pulse" />
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 text-xl animate-pulse">
+                      Proje Gereksinimleri Çıkarılıyor
+                    </p>
+                    <p className="text-slate-500 text-sm font-medium">Veritabanındaki yetenek setleriyle eşleştiriliyor...</p>
+                  </div>
+                </div>
+              )}
+
+              {result && !isAnalyzing && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                  
+                  {/* Çıkarılan Gereksinimler (LLM Çıktısı) */}
+                  <div className="bg-[#f4e6e8]/60 border border-[#a82936]/20 p-5 rounded-2xl">
+                    <p className="text-xs font-bold text-black uppercase tracking-wider mb-3 flex items-center">
+                      <BrainCircuit className="w-4 h-4 mr-2" /> LLM Tarafından Çıkarılan Proje İhtiyaçları
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {result.extractedSkills.map((skill, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-white text-black text-xs font-bold rounded-full border border-[#a82936]/30 shadow-sm">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-4"></div>
+
+                  {/* Aday Listesi */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-black">Önerilen Ekip Arkadaşları</h3>
+                    
+                    {result.candidates.map((candidate) => (
+                      <div key={candidate.id} className="bg-white border border-[#a82936]/20 p-5 rounded-2xl shadow-sm hover:shadow-[#a82936]/10 hover:shadow-md transition-shadow">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                          
+                          {/* Aday Profili */}
+                          <div className="flex items-center space-x-4">
+                            {candidate.profileImage ? (
+                              <img
+                                src={candidate.profileImage}
+                                alt={candidate.name}
+                                className="w-12 h-12 rounded-full object-cover border border-[#a82936]/30 bg-white"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#f4e6e8] to-[#fff6f6] flex items-center justify-center text-[#a82936] font-bold text-lg border border-[#a82936]/30">
+                                {candidate.avatar}
+                              </div>
+                            )}
+                            <div>
+                              <h4 className="font-bold text-black">{candidate.name}</h4>
+                              <p className="text-xs text-black font-medium">{candidate.department}</p>
+                            </div>
+                          </div>
+
+                          {/* Eşleşme Skoru & Buton */}
+                          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                            <div className="text-right mr-2">
+                              <span className="text-2xl font-black text-[#a82936]">%{candidate.matchScore}</span>
+                              <p className="text-[10px] uppercase font-bold text-black/60">Uyum</p>
+                            </div>
+                            {(() => {
+                              const inviteKey = `${selectedProject}_${candidate.id}`;
+                              const invited = invitedUsers[inviteKey] === true;
+                              const loading = invitedUsers[inviteKey] === 'loading';
+                              const revoking = invitedUsers[inviteKey] === 'revoking';
+                              return (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleInvite(candidate.id)}
+                                    disabled={invited || loading || revoking}
+                                    className={`p-2 rounded-lg font-bold text-sm flex items-center transition-all border ${
+                                      invited
+                                        ? 'bg-[#f4e6e8] text-[#a82936] border-[#a82936]/30 cursor-not-allowed'
+                                        : loading
+                                          ? 'bg-slate-200 text-slate-400 border-slate-200 cursor-wait'
+                                          : 'bg-gradient-to-r from-[#6b0f1a] to-[#a82936] text-white border-[#a82936]/40 hover:from-[#a82936] hover:to-[#6b0f1a] shadow-sm'
+                                    }`}
+                                    title="Davet Gönder"
+                                  >
+                                    {loading ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : invited ? (
+                                      <CheckCircle className="w-4 h-4" />
+                                    ) : (
+                                      <Send className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                  {/* Her zaman daveti geri çek butonunu göster, sadece aktif davet varsa aktif olsun */}
+                                  <button
+                                    onClick={() => handleRevokeInvite(candidate.id)}
+                                    disabled={!invited || revoking}
+                                    className={`p-2 rounded-lg font-bold text-sm flex items-center transition-all border ${
+                                      !invited
+                                        ? 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed'
+                                        : revoking
+                                          ? 'bg-slate-200 text-slate-400 border-slate-200 cursor-wait'
+                                          : 'bg-gradient-to-r from-[#fff6f6] to-[#f4e6e8] text-[#a82936] border-[#a82936]/20 hover:bg-[#f4e6e8]'
+                                    }`}
+                                    title="Davet Geri Çek"
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
+
+                        {/* Yetkinlik Detayları */}
+                        <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs font-semibold text-black mb-2 flex items-center">
+                              <CheckCircle className="w-3 h-3 mr-1" /> Eşleşen Yetkinlikler
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {candidate.matchedSkills.map((s, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-[#fff6f6] text-black text-[10px] font-bold rounded-md border border-[#a82936]/30">{s}</span>
+                              ))}
+                            </div>
+                          </div>
+                          {candidate.missingSkills.length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-black/80 mb-2 flex items-center">
+                                <XCircle className="w-3 h-3 mr-1" /> Geliştirilebilir / Eksik
+                              </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {candidate.missingSkills.map((s, i) => (
+                                  <span key={i} className="px-2.5 py-1 bg-[#f4e6e8] text-black/80 text-[10px] font-bold rounded-md border border-[#a82936]/20">{s}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    );
-  }
-
-  return null;
-};
+    </>
+  );
+}; 
 
 export default AIAnalyzer;

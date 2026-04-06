@@ -6,12 +6,16 @@ import {
   getSentInvites, 
   respondInvite 
 } from "../controllers/invitation.controller.js";
+import { revokeInvite } from "../controllers/revokeInvite.controller.js";
 
 const router = express.Router();
 
+
+
+// Davet gönder
 router.post("/send", protectRoute, sendInvite);
-router.get("/received", protectRoute, getReceivedInvites);
-router.get("/sent", protectRoute, getSentInvites);
-router.patch("/respond/:inviteId", protectRoute, respondInvite);
+
+// Daveti geri çek
+router.post("/revoke", protectRoute, revokeInvite);
 
 export default router;
