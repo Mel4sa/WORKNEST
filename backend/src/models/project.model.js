@@ -15,14 +15,9 @@ const projectSchema = new mongoose.Schema({
     maxlength: [1000, 'Proje açıklaması 1000 karakterden fazla olamaz']
   },
   
-  tags: [{
+  skills: [{
     type: String,
     required: true,
-    trim: true
-  }],
-  
-  requiredSkills: [{
-    type: String,
     trim: true
   }],
   

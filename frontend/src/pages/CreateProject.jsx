@@ -8,7 +8,8 @@ import {
   Button,
   Stack,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Autocomplete
 } from "@mui/material";
 import ProfileSnackbar from "../components/profile/ProfileSnackbar";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -22,31 +23,30 @@ const CreateProject = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    tags: []
+    skills: []
   });
-  const [tagInput, setTagInput] = useState("");
+  // skillInput kaldırıldı, sadece Autocomplete kullanılacak
+  const [allSkills, setAllSkills] = useState([]);
+  React.useEffect(() => {
+    axiosInstance.get("/skills").then(res => setAllSkills(res.data)).catch(() => setAllSkills([]));
+  }, []);
+
+
+  // Her kelimenin ilk harfini büyük yapan fonksiyon
+  function toTitleCase(str) {
+    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddTag = () => {
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        tags: [...prev.tags, tagInput.trim()]
-      }));
-      setTagInput("");
+    if (name === "title") {
+      setFormData((prev) => ({ ...prev, [name]: toTitleCase(value) }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleRemoveTag = (tagToRemove) => {
-    setFormData((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((tag) => tag !== tagToRemove)
-    }));
-  };
+  // handleAddSkill ve handleRemoveSkill kaldırıldı, Autocomplete ile yönetilecek
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,8 +55,8 @@ const CreateProject = () => {
       setShowError(true);
       return;
     }
-    if (!formData.tags || formData.tags.length === 0) {
-      setError("En az bir teknoloji eklemelisiniz.");
+    if (!formData.skills || formData.skills.length === 0) {
+      setError("En az bir beceri eklemelisiniz.");
       setShowError(true);
       return;
     }
@@ -68,11 +68,17 @@ const CreateProject = () => {
       await axiosInstance.post("/projects", formData);
       navigate("/projects");
     } catch (err) {
-      setError(err.response?.data?.message || "Proje oluşturulurken bir hata oluştu.");
+      let msg = err.response?.data?.message || "Proje oluşturulurken bir hata oluştu.";
+      // Otomatik düzeltme: teknoloji -> beceri
+      if (msg && msg.toLowerCase().includes("teknoloji")) {
+        msg = msg.replace(/teknoloji/gi, "beceri");
+      }
+      setError(msg);
       setShowError(true);
       // Validation hatalarını göster
       if (err.response?.data?.errors) {
-        setError(err.response.data.errors.join(', '));
+        let errors = err.response.data.errors.map(e => e.replace(/teknoloji/gi, "beceri"));
+        setError(errors.join(', '));
         setShowError(true);
       }
     } finally {
@@ -88,21 +94,7 @@ const CreateProject = () => {
           <Button
             startIcon={<ArrowBackIcon />}
             onClick={() => navigate("/projects")}
-            sx={{
-              color: "#6b0f1a",
-              textTransform: "none",
-              fontWeight: 600,
-              borderRadius: 2,
-              px: 4,
-              py: 1.5,
-              border: "2px solid transparent",
-              "&:hover": {
-                backgroundColor: "rgba(107,15,26,0.05)",
-                border: "2px solid #6b0f1a",
-                transform: "translateX(-4px)"
-              },
-              transition: "all 0.3s ease"
-            }}
+            sx={{ transition: "all 0.3s ease" }}
           >
             Projeler
           </Button>
@@ -163,41 +155,63 @@ const CreateProject = () => {
                   }}
                 />
 
-                {/* Tag Input */}
+                {/* Beceri Input */}
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Teknolojiler</Typography>
-                  <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                    <TextField
-                      fullWidth
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      placeholder="React, Python, Design..."
-                      onKeyPress={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddTag(); } }}
-                      sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, "&.Mui-focused fieldset": { borderColor: "#6b0f1a", borderWidth: 2 } } }}
-                    />
-                    <Button
-                      onClick={handleAddTag}
-                      variant="contained"
-                      sx={{ borderRadius: 2, px: 3, background: "linear-gradient(135deg,#6b0f1a,#8c1c2b)", "&:hover": { background: "linear-gradient(135deg,#8c1c2b,#a91d2d)" } }}
-                    >
-                      Ekle
-                    </Button>
-                  </Box>
-
-                  <Box sx={{ backgroundColor: "#f8fafc", borderRadius: 2, p: 2, minHeight: 80, border: "1px dashed #cbd5e1" }}>
-                    {formData.tags.length > 0 ? (
-                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                        {formData.tags.map((tag, idx) => (
-                          <Chip key={idx} label={tag} onDelete={() => handleRemoveTag(tag)} sx={{ background: "linear-gradient(135deg,#6b0f1a,#8c1c2b)", color: "#fff" }} />
-                        ))}
-                      </Box>
-                    ) : <Typography variant="body2" sx={{ textAlign: "center", py: 2, color: "#64748b" }}>Kullanacağınız teknolojileri ekleyin</Typography>}
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Beceriler</Typography>
+                  <Autocomplete
+                    multiple
+                    freeSolo
+                    options={allSkills.filter(skill => !formData.skills.includes(skill))}
+                    value={[]}
+                    onChange={(e, newValue) => {
+                      // Sadece yeni eklenen beceriyi al
+                      const last = newValue[newValue.length - 1];
+                      if (last && !formData.skills.includes(last)) {
+                        setFormData(prev => ({ ...prev, skills: [...prev.skills, last] }));
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        label="Beceri ekle..."
+                        placeholder="React, Python, Design..."
+                        sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, "&.Mui-focused fieldset": { borderColor: "#6b0f1a", borderWidth: 2 } } }}
+                      />
+                    )}
+                  />
+                  <Box sx={{ backgroundColor: "#f8fafc", borderRadius: 2, p: 2, minHeight: 80, border: "1px dashed #cbd5e1", mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {formData.skills.length === 0 ? (
+                      <Typography variant="body2" sx={{ textAlign: "center", py: 2, color: "#64748b" }}>Kullanacağınız becerileri ekleyin</Typography>
+                    ) : (
+                      formData.skills.map((skill, idx) => (
+                        <Chip
+                          key={idx}
+                          label={skill}
+                          size="small"
+                          color="primary"
+                          onDelete={() => setFormData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }))}
+                          sx={{
+                            fontSize: 13,
+                            height: 28,
+                            borderRadius: 1.5,
+                            px: 1.5,
+                            py: 0.5,
+                            bgcolor: '#6b0f1a',
+                            color: '#fff',
+                            fontWeight: 500,
+                            border: 'none',
+                            '.MuiChip-deleteIcon': { color: '#fff', fontSize: 18 },
+                          }}
+                        />
+                      ))
+                    )}
                   </Box>
                 </Box>
 
                 <Box sx={{ backgroundColor: "rgba(107,15,26,0.04)", borderRadius: 2, p: 2 }}>
                   <Typography variant="body2" sx={{ color: "#64748b", display: "flex", alignItems: "flex-start", gap: 1 }}>
-                    💡 Detaylı açıklama ve doğru teknolojiler, projenize uygun takım üyelerini bulmanızda yardımcı olur.
+                    💡 Detaylı açıklama ve doğru beceriler, projenize uygun takım üyelerini bulmanızda yardımcı olur.
                   </Typography>
                 </Box>
               </Stack>

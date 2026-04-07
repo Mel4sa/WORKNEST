@@ -45,8 +45,14 @@ function ProjectDetail() {
     title: "",
     description: "",
     status: "planned",
-    tags: []
+    skills: []
   });
+
+  const [allSkills, setAllSkills] = useState([]);
+  useEffect(() => {
+    // Skill API'den becerileri çek
+    axiosInstance.get("/skills").then(res => setAllSkills(res.data)).catch(() => setAllSkills([]));
+  }, []);
 
   const handleRemoveMember = async (userId) => {
     try {
@@ -111,7 +117,7 @@ function ProjectDetail() {
       title: capitalizeWords(project.title),
       description: project.description || "",
       status: project.status || "planned",
-      tags: project.tags || []
+      skills: project.skills || []
     });
     setIsEditing(true);
   };
@@ -121,8 +127,8 @@ function ProjectDetail() {
       setError("Başlık ve açıklama boş olamaz.");
       return;
     }
-    if (!editFormData.tags || editFormData.tags.length === 0) {
-      setError("En az bir teknoloji eklemelisiniz.");
+    if (!editFormData.skills || editFormData.skills.length === 0) {
+      setError("En az bir beceri eklemelisiniz.");
       return;
     }
     const capitalizedTitle = capitalizeWords(editFormData.title);
@@ -132,9 +138,9 @@ function ProjectDetail() {
         title: capitalizedTitle,
         description: editFormData.description,
         status: editFormData.status,
-        tags: editFormData.tags
+        skills: editFormData.skills
       });
-      setProject(prev => ({ ...prev, title: capitalizedTitle, description: editFormData.description, status: editFormData.status, tags: editFormData.tags }));
+      setProject(prev => ({ ...prev, title: capitalizedTitle, description: editFormData.description, status: editFormData.status, skills: editFormData.skills }));
       setIsEditing(false);
       setSuccessSnackbar({ open: true, message: "Proje başarıyla güncellendi!" });
     } catch (err) {
@@ -278,9 +284,9 @@ function ProjectDetail() {
                   <MuiAutocomplete
                     multiple
                     freeSolo
-                    options={[]}
-                    value={editFormData.tags}
-                    onChange={(e, newValue) => setEditFormData(f => ({ ...f, tags: newValue }))}
+                    options={allSkills}
+                    value={editFormData.skills}
+                    onChange={(e, newValue) => setEditFormData(f => ({ ...f, skills: newValue }))}
                     renderTags={(value, getTagProps) =>
                       value.map((option, index) => (
                         <Chip variant="outlined" label={option} {...getTagProps({ index })} />
@@ -290,8 +296,8 @@ function ProjectDetail() {
                       <MuiTextField
                         {...params}
                         variant="outlined"
-                        label="Proje Teknolojileri"
-                        placeholder="Teknoloji ekle..."
+                        label="Proje Becerileri"
+                        placeholder="Beceri ekle..."
                         sx={{ mt: 1 }}
                       />
                     )}
@@ -333,13 +339,13 @@ function ProjectDetail() {
                       </Box>
                     )}
 
-                    {project.tags && project.tags.length > 0 && (
+                    {project.skills && project.skills.length > 0 && (
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle2" sx={{ color: '#64748B', fontWeight: 600, mb: 0.5 }}>
-                          Proje Teknolojileri
+                          Proje Becerileri
                         </Typography>
                         <Stack direction="row" spacing={1} flexWrap="wrap">
-                          {project.tags.map((tech, idx) => (
+                          {project.skills.map((skill, idx) => (
                             <Box key={idx} sx={{
                               px: 1.5, py: 0.5, mr: 1, mb: 1,
                               bgcolor: '#F1F5F9',
@@ -352,7 +358,7 @@ function ProjectDetail() {
                               letterSpacing: 0,
                               display: 'inline-block'
                             }}>
-                              {tech}
+                              {skill}
                             </Box>
                           ))}
                         </Stack>

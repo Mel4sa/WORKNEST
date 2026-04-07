@@ -48,13 +48,9 @@ const AIAnalyzer = () => {
     let extractedSkills = [];
     if (inputType === 'existing') {
       const selected = projects.find(p => p._id === selectedProject);
-      // Öncelik requiredSkills, yoksa tags
-      if (selected) {
-        if (selected.requiredSkills && selected.requiredSkills.length > 0) {
-          extractedSkills = selected.requiredSkills;
-        } else if (selected.tags && selected.tags.length > 0) {
-          extractedSkills = selected.tags;
-        }
+      // Artık sadece skills alanı var
+      if (selected && selected.skills && selected.skills.length > 0) {
+        extractedSkills = selected.skills;
       }
     } else {
       // Yeni fikir için örnek dizi
@@ -189,7 +185,7 @@ const AIAnalyzer = () => {
                 Yapay Zeka ile Ekip Arkadaşı Bul
               </h1>
               <p className="text-black mt-2 font-medium max-w-xl mx-auto">
-                Projenizin ihtiyaçlarını yapay zekaya analiz ettirin ve veritabanındaki en uygun yetenekleri keşfedip ekibinize davet edin.
+                Projenizin ihtiyaçlarını yapay zekaya analiz ettirin ve veritabanındaki en uygun becerileri keşfedip ekibinize davet edin.
               </p>
             </div>
           </header>
@@ -410,7 +406,7 @@ const AIAnalyzer = () => {
                         <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <p className="text-xs font-semibold text-black mb-2 flex items-center">
-                              <CheckCircle className="w-3 h-3 mr-1" /> Eşleşen Yetkinlikler
+                              <CheckCircle className="w-3 h-3 mr-1" /> Eşleşen Beceriler
                             </p>
                             <div className="flex flex-wrap gap-1.5">
                               {candidate.matchedSkills.map((s, i) => (
@@ -421,7 +417,7 @@ const AIAnalyzer = () => {
                           {candidate.missingSkills.length > 0 && (
                             <div>
                               <p className="text-xs font-semibold text-black/80 mb-2 flex items-center">
-                                <XCircle className="w-3 h-3 mr-1" /> Geliştirilebilir / Eksik
+                                <XCircle className="w-3 h-3 mr-1" /> Eksik / Geliştirilebilir Beceriler
                               </p>
                               <div className="flex flex-wrap gap-1.5">
                                 {candidate.missingSkills.map((s, i) => (

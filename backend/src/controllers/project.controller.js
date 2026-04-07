@@ -5,7 +5,7 @@ import { createNotification } from "./notification.controller.js";
 // Tüm projeleri getir (genel projeler sayfası için)
 export const getAllProjects = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, tags, search } = req.query;
+  const { page = 1, limit = 10, status, skills, search } = req.query;
     
     const filter = { isActive: true, visibility: 'public' };
     
@@ -14,7 +14,7 @@ export const getAllProjects = async (req, res) => {
     } else {
       filter.status = { $nin: ['completed', 'cancelled'] };
     }
-    if (tags) filter.tags = { $in: tags.split(',') };
+  if (skills) filter.skills = { $in: skills.split(',') };
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -106,7 +106,7 @@ export const getProjectById = async (req, res) => {
 export const createProject = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { title, description, tags, requiredSkills, maxMembers, deadline, visibility, status } = req.body;
+  const { title, description, skills, maxMembers, deadline, visibility, status } = req.body;
 
     // Validasyon
     if (!title || !description) {
@@ -115,17 +115,16 @@ export const createProject = async (req, res) => {
       });
     }
 
-    if (!tags || tags.length === 0) {
+    if (!skills || skills.length === 0) {
       return res.status(400).json({ 
-        message: "En az bir teknoloji seçmelisiniz" 
+        message: "En az bir beceri seçmelisiniz" 
       });
     }
 
     const newProject = new Project({
       title,
       description,
-      tags,
-      requiredSkills: requiredSkills || [],
+      skills,
       maxMembers: maxMembers || 5,
       deadline: deadline ? new Date(deadline) : null,
       visibility: visibility || 'public',
@@ -176,6 +175,15 @@ export const updateProject = async (req, res) => {
     const { id } = req.params;
     const userId = req.user._id;
     const updateData = req.body;
+    // Eğer eski tags veya requiredSkills gelirse dönüştür
+    if (updateData.tags) {
+      updateData.skills = updateData.tags;
+      delete updateData.tags;
+    }
+    if (updateData.requiredSkills) {
+      // ignore or merge if needed
+      delete updateData.requiredSkills;
+    }
 
     const project = await Project.findOne({ _id: id, isActive: true });
 
