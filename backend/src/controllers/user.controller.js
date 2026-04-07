@@ -1,3 +1,42 @@
+// E-posta formatı kontrol fonksiyonu
+function isValidEmail(email) {
+  // Daha katı ve yaygın e-posta regex'i
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+}
+
+export const updateEmailStrict = async (req, res) => {
+  try {
+    let { newEmail } = req.body;
+    console.log("Gelen e-posta:", newEmail);
+    if (!newEmail) return res.status(400).json({ message: "Yeni e-posta gerekli" });
+    newEmail = newEmail.trim();
+    const isValid = isValidEmail(newEmail);
+    console.log("Regex sonucu:", isValid);
+    if (!isValid) return res.status(400).json({ message: "Geçerli bir e-posta girin" });
+
+    const existingUser = await User.findOne({ email: newEmail });
+    if (existingUser && existingUser._id.toString() !== req.user._id.toString()) {
+      return res.status(400).json({ message: "Bu e-posta zaten kullanımda" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { email: newEmail },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    res.status(200).json({
+      message: "E-posta başarıyla güncellendi",
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
 // Tüm kullanıcıları getir
 export const getAllUsers = async (req, res) => {
   try {

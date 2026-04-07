@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ProfileSnackbar from "./ProfileSnackbar";
 import {
   Dialog,
   Typography,
@@ -11,6 +12,7 @@ import {
   List,
   ListItem,
 } from "@mui/material";
+import { Person, Email, Lock, Delete } from "@mui/icons-material";
 import { 
   Visibility, 
   VisibilityOff, 
@@ -22,12 +24,24 @@ import useAuthStore from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 
 const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
+  // Snackbar state (local)
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarText, setSnackbarText] = useState("");
+  const [snackbarType, setSnackbarType] = useState("success");
+
+  // onMessage override: hem parent'a hem local snackbar'a bas
+  const showMessage = (text, type) => {
+    setSnackbarText(text);
+    setSnackbarType(type);
+    setSnackbarOpen(true);
+    if (onMessage) onMessage(text, type);
+  };
   const logout = useAuthStore((state) => state.logout);
   const token = useAuthStore((state) => state.token);
   const navigate = useNavigate();
 
   // State yönetimi
-  const [activeTab, setActiveTab] = useState("fullname");
+  const [activeTab, setActiveTab] = useState(0); // 0: Ad Soyad, 1: E-posta, 2: Şifre, 3: Sil
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -37,34 +51,57 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
 
     // Hesap ayarları fonksiyonları
   const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      showMessage("Yeni şifre en az 6 karakter olmalı!", "error");
+      return;
+    }
     try {
       await axiosInstance.put("/users/change-password", { oldPassword, newPassword });
-      onMessage("Şifre başarıyla güncellendi!", "success");
+      showMessage("Şifre başarıyla güncellendi!", "success");
       handleCloseDialog();
     } catch {
-      onMessage("Şifre güncellenirken hata oluştu!", "error");
+      showMessage("Şifre güncellenirken hata oluştu!", "error");
     }
   };
 
   const setUser = useAuthStore((state) => state.setUser);
+  // Ad soyadın baş harflerini büyüt
+  const capitalizeFullname = (str) => {
+    return str
+      .split(' ')
+      .filter(Boolean)
+      .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   const handleChangeUsername = async () => {
     try {
-  const res = await axiosInstance.put("/users/change-fullname", { fullname: newUsername });
+      const capitalized = capitalizeFullname(newUsername);
+      const res = await axiosInstance.put("/users/change-fullname", { fullname: capitalized });
       if (res.data.user) setUser(res.data.user);
-      onMessage("Ad soyad başarıyla güncellendi!", "success");
+  showMessage("Ad soyad başarıyla güncellendi!", "success");
       handleCloseDialog();
     } catch {
-      onMessage("Ad soyad güncellenirken hata oluştu!", "error");
+  showMessage("Ad soyad güncellenirken hata oluştu!", "error");
     }
   };
 
+  const isValidEmail = (email) => {
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+  };
+
   const handleChangeEmail = async () => {
+    const trimmed = newEmail.trim();
+    if (!isValidEmail(trimmed)) {
+      showMessage("Lütfen geçerli bir e-posta adresi girin!", "error");
+      return;
+    }
     try {
-      await axiosInstance.put("/users/change-email", { newEmail });
-      onMessage("Email başarıyla güncellendi!", "success");
+      await axiosInstance.put("/users/change-email", { newEmail: trimmed });
+  showMessage("Email başarıyla güncellendi!", "success");
       handleCloseDialog();
     } catch {
-      onMessage("Email güncellenirken hata oluştu!", "error");
+  showMessage("Email güncellenirken hata oluştu!", "error");
     }
   };
 
@@ -76,16 +113,17 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
       logout();
       navigate("/login");
     } catch {
-      onMessage("Hesap silinirken hata oluştu!", "error");
+  showMessage("Hesap silinirken hata oluştu!", "error");
     }
   };
 
   const handleCloseDialog = () => {
-    onClose();
-    setOldPassword("");
-    setNewPassword("");
-    setNewUsername("");
-    setNewEmail("");
+  onClose();
+  setOldPassword("");
+  setNewPassword("");
+  setNewUsername("");
+  setNewEmail("");
+  setSnackbarOpen(false);
   };
 
   return (
@@ -413,7 +451,8 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
           </Button>
         </Box>
       )}
-    </Dialog>
+  <ProfileSnackbar open={snackbarOpen} message={snackbarText} severity={snackbarType} onClose={() => setSnackbarOpen(false)} />
+  </Dialog>
   );
 };
 

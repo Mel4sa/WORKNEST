@@ -6,8 +6,8 @@ export default function ProfileSnackbar({ open, message, severity = "success", o
       open={open}
       autoHideDuration={3000}
       onClose={onClose}
-  anchorOrigin={{ vertical: "bottom", horizontal: "center" }} // ekranın alt ortası
-      sx={{ zIndex: 2000 }}
+      anchorOrigin={{ vertical: "top", horizontal: "center" }} // ekranın üst ortası
+      sx={{ zIndex: 9999 }}
     >
       <Alert severity={severity} sx={{ width: "100%" }}>
         {message}

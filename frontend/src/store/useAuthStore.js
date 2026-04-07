@@ -64,8 +64,16 @@ const useAuthStore = create(
       },
 
       register: async (fullname, email, password) => {
+        // Baş harfleri büyük yap
+        const capitalizeFullname = (str) =>
+          str
+            .split(' ')
+            .filter(Boolean)
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+            .join(' ');
+        const capitalized = capitalizeFullname(fullname);
         try {
-          await axiosInstance.post("auth/register", { fullname, email, password });
+          await axiosInstance.post("auth/register", { fullname: capitalized, email, password });
           set({ error: null });
           return true;
         } catch (err) {
