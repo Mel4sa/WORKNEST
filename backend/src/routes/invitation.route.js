@@ -12,6 +12,17 @@ const router = express.Router();
 
 
 
+
+// Alınan davetler
+router.get("/received", protectRoute, getReceivedInvites);
+
+// Gönderilen davetler
+router.get("/sent", protectRoute, getSentInvites);
+
+
+// Daveti kabul et/ reddet
+router.patch("/respond/:inviteId", protectRoute, respondInvite);
+
 // Davet gönder
 router.post("/send", protectRoute, sendInvite);
 
