@@ -22,7 +22,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, "../.env") });
-console.log("CLOUDINARY_URL:", process.env.CLOUDINARY_URL);
 
 const app = express();
 
@@ -63,9 +62,7 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("Bir kullanıcı bağlandı:", socket.id);
   socket.on("disconnect", () => {
-    console.log("Kullanıcı ayrıldı:", socket.id);
   });
 });
 

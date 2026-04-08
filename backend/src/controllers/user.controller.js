@@ -7,11 +7,9 @@ function isValidEmail(email) {
 export const updateEmailStrict = async (req, res) => {
   try {
     let { newEmail } = req.body;
-    console.log("Gelen e-posta:", newEmail);
     if (!newEmail) return res.status(400).json({ message: "Yeni e-posta gerekli" });
     newEmail = newEmail.trim();
     const isValid = isValidEmail(newEmail);
-    console.log("Regex sonucu:", isValid);
     if (!isValid) return res.status(400).json({ message: "Geçerli bir e-posta girin" });
 
     const existingUser = await User.findOne({ email: newEmail });
@@ -186,8 +184,6 @@ export const deletePhoto = async (req, res) => {
 export const updateFullname = async (req, res) => {
   try {
     const { fullname } = req.body;
-    console.log("Gelen fullname:", fullname);
-    console.log("Kullanıcı:", req.user);
     if (!fullname) return res.status(400).json({ message: "Yeni ad soyad gerekli" });
 
     const updatedUser = await User.findByIdAndUpdate(

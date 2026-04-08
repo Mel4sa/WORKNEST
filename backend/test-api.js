@@ -12,4 +12,3 @@
 //   -H "Content-Type: application/json" \
 //   -d '{"action":"accepted"}'
 
-console.log("Test için bu komutları backend terminalden çalıştırın");

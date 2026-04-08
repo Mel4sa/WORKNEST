@@ -73,7 +73,6 @@ function UserProfile() {
       
       
       const response = await axios.post("/invites/send", inviteData);
-      console.log(" Sunucu yanıtı:", response.data);
       
       setSnackbar({
         open: true,

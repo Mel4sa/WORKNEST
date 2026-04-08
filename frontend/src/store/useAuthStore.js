@@ -99,7 +99,6 @@ const useAuthStore = create(
             await get().fetchUser();
           } catch {
             // Token geçersizse logout yap
-            console.log("Token geçersiz, logout yapılıyor...");
             get().logout();
           }
         } else {
