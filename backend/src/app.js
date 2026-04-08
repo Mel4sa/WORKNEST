@@ -1,7 +1,10 @@
+
 import dotenv from "dotenv";
 import express from "express";
 import cookieParser from 'cookie-parser';
 import cors from "cors";
+import http from "http";
+import { Server } from "socket.io";
 
 import inviteRoutes from "./routes/invitation.route.js";
 import userRoutes from "./routes/user.route.js";
@@ -12,8 +15,14 @@ import messageRoutes from "./routes/message.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import connectDB from "./lib/db.js";
 import aiRoutes from "./routes/ai.route.js";
+import skillRoutes from "./routes/skill.route.js";
 
-dotenv.config();
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const app = express();
 
@@ -22,6 +31,7 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
@@ -29,8 +39,6 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
-
-
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -40,16 +48,31 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/chats", chatRoutes);
-
-import skillRoutes from "./routes/skill.route.js";
 app.use("/api/skills", skillRoutes);
 app.use("/api/ai", aiRoutes);
 
-
 app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));
-
 
 connectDB();
 
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }
+});
+
+io.on("connection", (socket) => {
+  socket.on("disconnect", () => {
+    // Bağlantı kesildiğinde yapılacaklar
+  });
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT);
+server.listen(PORT, () => {
+    console.log(`✅ Server ${PORT} portunda çalışıyor (Socket.io ile)`);
+});

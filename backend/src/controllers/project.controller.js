@@ -332,6 +332,21 @@ export const joinProject = async (req, res) => {
       .populate('owner', 'fullname email profileImage')
       .populate('members.user', 'fullname email profileImage');
 
+    // Proje sahibine bildirim gönder
+    if (updatedProject && updatedProject.owner && updatedProject.owner._id.toString() !== userId.toString()) {
+      // Katılan kullanıcıyı çek
+      const joiningUser = updatedProject.members.find(m => m.user._id.toString() === userId.toString());
+      const joiningUserName = joiningUser?.user?.fullname || "Bir kullanıcı";
+      await createNotification({
+        userId: updatedProject.owner._id,
+        type: "member_joined",
+        title: "Projeye Yeni Üye Katıldı",
+        message: `${joiningUserName}, '${updatedProject.title}' projenize katıldı!`,
+        relatedProject: updatedProject._id,
+        relatedUser: userId
+      });
+    }
+
     res.status(200).json({ 
       message: "Projeye başarıyla katıldınız",
       project: updatedProject 
