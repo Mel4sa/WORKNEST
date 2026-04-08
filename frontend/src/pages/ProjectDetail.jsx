@@ -420,7 +420,13 @@ function ProjectDetail() {
                   variant="contained"
                   onClick={handleAddMember}
                   disableElevation
-                  disabled={user && project && project.owner && user._id === project.owner._id}
+                  disabled={
+                    !user || !project || !project.owner ||
+                    user._id === project.owner._id ||
+                    (project.members && project.members.some(
+                      m => (m.user?._id || m._id) === user._id
+                    ))
+                  }
                   sx={{
                     bgcolor: "#0F172A",
                     color: "#FFFFFF",
@@ -428,8 +434,20 @@ function ProjectDetail() {
                     borderRadius: 2,
                     px: 3,
                     "&:hover": { bgcolor: "#334155" },
-                    opacity: user && project && project.owner && user._id === project.owner._id ? 0.5 : 1,
-                    cursor: user && project && project.owner && user._id === project.owner._id ? "not-allowed" : "pointer"
+                    opacity:
+                      !user || !project || !project.owner ||
+                      user._id === project.owner._id ||
+                      (project.members && project.members.some(
+                        m => (m.user?._id || m._id) === user._id
+                      ))
+                        ? 0.5 : 1,
+                    cursor:
+                      !user || !project || !project.owner ||
+                      user._id === project.owner._id ||
+                      (project.members && project.members.some(
+                        m => (m.user?._id || m._id) === user._id
+                      ))
+                        ? "not-allowed" : "pointer"
                   }}
                 >
                   <AddIcon sx={{ mr: 0.5, fontSize: 18 }} /> Katıl
