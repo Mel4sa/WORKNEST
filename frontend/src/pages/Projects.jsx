@@ -323,50 +323,19 @@ function Projects() {
           ))}
         </Box>
 
-        {/* Boş durum */}
-        {projects.length === 0 && !loading && !error && (
-          <Box sx={{ 
-            textAlign: "center", 
-            mt: 8,
-            background: "#6b0f1a",
-            borderRadius: "20px",
-            p: 6,
-            boxShadow: "0 8px 32px rgba(107, 15, 26, 0.15)",
-            border: "none",
-            color: "#fff"
-          }}>
-            <Typography variant="h4" sx={{ color: "#fff", mb: 2, fontWeight: "700" }}>
-              Henüz proje bulunmuyor
-            </Typography>
-            <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.8)", mb: 4, fontSize: "1.1rem" }}>
-              İlk projeyi sen oluştur ve topluluğu büyütmeye başla!
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={handleCreateProject}
-              sx={{
-                borderRadius: "15px",
-                px: 4,
-                py: 1.5,
-                background: "rgba(255,255,255,0.2)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.3)",
-                fontWeight: "700",
-                textTransform: "none",
-                fontSize: "1.1rem",
-                color: "#fff",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.2)",
-                "&:hover": {
-                  background: "rgba(255,255,255,0.3)",
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 25px rgba(0,0,0,0.3)",
-                }
-              }}
-            >
-              İlk Projeyi Oluştur
-            </Button>
-          </Box>
-        )}
+    
+          {projects.length === 0 && !loading && !error && (
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "40vh", textAlign: "center", p: 4 }}>
+              <Typography variant="h5" sx={{ color: "#1a1a1a", fontWeight: "bold", mb: 1 }}>
+                Henüz projeniz bulunmuyor
+              </Typography>
+              <Typography variant="body1" sx={{ color: "#64748b", maxWidth: "450px", lineHeight: 1.6 }}>
+                İlk projenizi oluşturarak takım çalışmasının keyfini çıkarın! 🚀
+              </Typography>
+            </Box>
+          )}
+            
+        
       </Box>
 
       {/* Floating Action Button */}
