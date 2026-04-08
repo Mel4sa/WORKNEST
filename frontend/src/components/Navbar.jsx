@@ -64,7 +64,7 @@ function Navbar() {
         params: { limit: 10 }
       });
       // Sadece okunmamış bildirimleri göster
-      setNotifications((response.data.notifications || []).filter(n => !n.isRead));
+      setNotifications(response.data.notifications || []);
       // Unread count'u ayrıca fetch ediyoruz
       fetchUnreadCount();
     } catch (error) {
@@ -119,18 +119,14 @@ function Navbar() {
   const markAllAsRead = async () => {
     try {
       console.log('🧹 Tüm bildirimler ve mesajlar okundu işaretleniyor...');
-      
-      // Hem bildirimleri hem mesajları işaretle
-      await Promise.all([
-        axiosInstance.patch("/notifications/mark-all-read"),
-  axiosInstance.put("/api/messages/mark-all-read")
-      ]);
-      
+      await axiosInstance.patch("/notifications/mark-all-read");
+      // Bildirimleri okundu olarak işaretle
       setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
-      // Unread count'u yeniden fetch et
       fetchUnreadCount();
-      
-      console.log('✅ Tüm bildirimler ve mesajlar okundu işaretlendi');
+      setTimeout(() => {
+        handleNotificationClose();
+      }, 200);
+      console.log('✅ Tüm bildirimler okundu işaretlendi');
     } catch (error) {
       console.error("❌ Tüm bildirimler okundu olarak işaretlenemedi:", error);
     }
@@ -759,25 +755,23 @@ function Navbar() {
           </Box>
 
           {/* Bildirimler */}
-          {notifications.length === 0 ? (
+          {notifications.filter(n => !n.isRead).length === 0 ? (
             <Box sx={{ p: 3, textAlign: "center" }}>
               <Typography color="text.secondary">
-                Henüz bildiriminiz yok
+                Okunmamış bildiriminiz yok
               </Typography>
             </Box>
           ) : (
-            notifications.map((notification) => (
+            notifications.filter(notification => !notification.isRead).map((notification) => (
               <MenuItem
                 key={notification._id}
                 onClick={() => {
                   // Mesaj bildirimi kontrolü
                   if (notification.type === 'new_message' && notification.relatedUser) {
                     if (!notification.isRead) {
-                      // İlk tıklamada sadece okundu yap
                       markAsRead(notification._id);
                       return;
                     } else {
-                      // İkinci tıklamada (zaten okunmuşsa) chat'e git
                       handleNotificationClose();
                       navigate(`/users/${notification.relatedUser._id}`, { 
                         state: { openChat: true }
@@ -785,13 +779,9 @@ function Navbar() {
                       return;
                     }
                   }
-                  
-                  // Diğer bildirimler için normal davranış
                   if (!notification.isRead) {
                     markAsRead(notification._id);
                   }
-                  
-                  // Diğer bildirim türleri için yönlendirme
                   if (notification.relatedProject && notification.type.includes('invite')) {
                     handleNotificationClose();
                     navigate('/invites');
@@ -803,9 +793,9 @@ function Navbar() {
                 sx={{
                   p: 2,
                   borderBottom: "1px solid #f5f5f5",
-                  backgroundColor: notification.isRead ? "transparent" : "#f8f9ff",
+                  backgroundColor: "#f8f9ff",
                   "&:hover": {
-                    backgroundColor: notification.isRead ? "#f5f5f5" : "#f0f2ff"
+                    backgroundColor: "#f0f2ff"
                   },
                   alignItems: "flex-start",
                   whiteSpace: "normal",
@@ -817,26 +807,24 @@ function Navbar() {
                     <Typography
                       variant="subtitle2"
                       sx={{
-                        fontWeight: notification.isRead ? "500" : "600",
-                        color: notification.isRead ? "#666" : "#333",
+                        fontWeight: "600",
+                        color: "#333",
                         flex: 1
                       }}
                     >
                       {notification.title}
                     </Typography>
-                    {!notification.isRead && (
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          backgroundColor: "#6b0f1a",
-                          borderRadius: "50%",
-                          ml: 1,
-                          mt: 0.5,
-                          flexShrink: 0
-                        }}
-                      />
-                    )}
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        backgroundColor: "#6b0f1a",
+                        borderRadius: "50%",
+                        ml: 1,
+                        mt: 0.5,
+                        flexShrink: 0
+                      }}
+                    />
                   </Box>
                   <Typography
                     variant="body2"

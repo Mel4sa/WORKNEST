@@ -188,26 +188,22 @@ function Bildirimler() {
   };
 
   const handleNotificationClick = (notification) => {
-    console.log("🔥 handleNotificationClick çağrıldı:", {
-      type: notification.type,
-      relatedUser: notification.relatedUser,
-      isRead: notification.isRead
-    });
+  // ...existing code...
 
     // Mesaj bildirimlerinde direkt chat'e git
     if (notification.type === 'new_message' && notification.relatedUser) {
-      console.log("✅ Mesaj bildirimi tespit edildi!");
+  // ...existing code...
       
       // Okunmamışsa okundu olarak işaretle
       if (!notification.isRead) {
-        console.log("📖 Bildirim okundu olarak işaretleniyor...");
+  // ...existing code...
         handleMarkAsRead(notification._id);
       }
       
       // Direkt profile git ve chat aç
       const targetUrl = `/users/${notification.relatedUser._id}`;
-      console.log("🎯 Mesaj bildirimine tıklandı, gidilecek URL:", targetUrl);
-      console.log("🚀 Navigate çağrılıyor state ile:", { openChat: true });
+  // ...existing code...
+  // ...existing code...
       
       navigate(targetUrl, { 
         state: { openChat: true }
@@ -215,7 +211,7 @@ function Bildirimler() {
       return;
     }
 
-    console.log("❌ Mesaj bildirimi değil, normal akış devam ediyor");
+  // ...existing code...
 
     // Diğer bildirimler için eski davranış
     if (!notification.isRead) {
@@ -281,7 +277,7 @@ function Bildirimler() {
             </Card>
           ) : (
             notifications.map((notification) => {
-              console.log("🔍 Bildirim render ediliyor:", notification.type, notification._id);
+              // ...existing code...
               return (
               <Card
                 key={notification._id}
@@ -295,7 +291,7 @@ function Bildirimler() {
                   }
                 }}
                 onClick={() => {
-                  console.log("📱 Bildirim kartına tıklandı:", notification.type, notification);
+                  // ...existing code...
                   handleNotificationClick(notification);
                 }}
               >
@@ -379,7 +375,7 @@ function Bildirimler() {
                         }}
                         onClick={notification.type === 'new_message' && notification.relatedUser ? (e) => {
                           e.stopPropagation();
-                          console.log("💬 Mesaj linkine tıklandı!");
+                          // ...existing code...
                           navigate(`/users/${notification.relatedUser._id}`, { 
                             state: { openChat: true }
                           });

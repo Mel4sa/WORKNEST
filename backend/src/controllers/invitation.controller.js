@@ -8,7 +8,7 @@ export const sendInvite = async (req, res) => {
   try {
     const { projectId, receiverId, message } = req.body;
     const senderId = req.user._id; 
-    console.log("🚀 Davet gönderme isteği:", { projectId, receiverId, senderId, message });
+  // ...existing code...
 
     if (message && message.length > 100) {
       return res.status(400).json({ message: "Davet mesajı en fazla 100 karakter olabilir" });
@@ -17,9 +17,7 @@ export const sendInvite = async (req, res) => {
     const project = await Project.findById(projectId);
     const receiver = await User.findById(receiverId);
     
-    console.log("📋 Proje bulundu:", project ? project.title : "Bulunamadı");
-    console.log("� Proje durumu:", project ? project.status : "Yok");
-    console.log("�👤 Alıcı bulundu:", receiver ? receiver.fullname : "Bulunamadı");
+  // ...existing code...
     
 
     if (!project || !receiver) {
@@ -84,7 +82,7 @@ export const sendInvite = async (req, res) => {
       relatedInvite: invite._id
     });
 
-    console.log("✅ Davet oluşturuldu:", invite);
+  // ...existing code...
     res.status(201).json({ message: "Davet gönderildi", invite });
   } catch (error) {
     console.error(error);
@@ -94,7 +92,7 @@ export const sendInvite = async (req, res) => {
 
 export const getReceivedInvites = async (req, res) => {
   try {
-    console.log("📨 Alınan davetler sorgulanıyor, kullanıcı ID:", req.user._id);
+  // ...existing code...
     
     const invites = await Invitation.find({ receiver: req.user._id })
       .populate("sender", "fullname profileImage")
@@ -102,17 +100,10 @@ export const getReceivedInvites = async (req, res) => {
       .select("sender receiver project status message createdAt")
       .sort({ createdAt: -1 }); // En yeni davetler en üstte
 
-    console.log("📋 Bulunan davetler:", invites.length, "adet");
-    console.log("📋 Davet detayları:", invites);
+  // ...existing code...
+  // ...existing code...
     
-    invites.forEach(invite => {
-      console.log(`📨 Invite ID ${invite._id}:`, {
-        message: invite.message,
-        messageType: typeof invite.message,
-        messageLength: invite.message?.length,
-        hasMessage: !!invite.message
-      });
-    });
+  // ...existing code...
     
     res.json(invites);
   } catch (error) {
@@ -152,15 +143,10 @@ export const respondInvite = async (req, res) => {
     const { inviteId } = req.params;
     const { action } = req.body;
 
-    console.log("🎯 PATCH isteği geldi!");
-    console.log("📋 Request params:", req.params);
-    console.log("📋 Request body:", req.body);
-    console.log("👤 User:", req.user ? req.user._id : "Yok");
-    console.log("🎯 Davet yanıtlama isteği:", { inviteId, action, userId: req.user?._id });
+  // ...existing code...
 
-    const invite = await Invitation.findById(inviteId).populate('project', 'title maxMembers members');
-    console.log("📋 Bulunan davet:", invite ? `${invite._id} - ${invite.status}` : "Bulunamadı");
-    console.log("📋 Davet proje bilgisi:", invite?.project);
+  const invite = await Invitation.findById(inviteId).populate('project', 'title maxMembers members');
+  // ...existing code...
     
     if (!invite) return res.status(404).json({ message: "Davet bulunamadı" });
 
@@ -177,68 +163,7 @@ export const respondInvite = async (req, res) => {
 
     if (action === "accepted") {
       try {
-        console.log("🎯 Proje üyesi ekleme işlemi başlıyor");
-        console.log("📋 Invite project ID:", invite.project);
-        console.log("👤 User ID:", req.user._id);
-
-        const populatedProject = invite.project;
-        console.log("📋 Populated proje:", populatedProject ? `${populatedProject.title} (ID: ${populatedProject._id})` : "Bulunamadı");
-        
-        const project = await Project.findById(populatedProject._id);
-        console.log("📋 Full proje:", project ? `${project.title} (ID: ${project._id})` : "Bulunamadı");
-        
-        if (project) {
-          console.log("👥 Mevcut üye sayısı:", project.members.length);
-          console.log("👥 Maksimum üye sayısı:", project.maxMembers);
-          
-          const isAlreadyMember = project.members.some(
-            member => member.user.toString() === req.user._id.toString()
-          );
-          
-          console.log("🔍 Zaten üye mi?", isAlreadyMember);
-          
-          if (!isAlreadyMember) {
-            // Maksimum üye sayısını kontrol et ???
-            if (project.members.length < project.maxMembers) {
-              const newMember = {
-                user: req.user._id,
-                joinedAt: new Date(),
-                role: 'member'
-              };
-              
-              project.members.push(newMember);
-              await project.save();
-              
-              // Proje sahibine yeni üye katıldı bildirimi gönder
-              await createNotification({
-                userId: project.owner,
-                type: 'member_joined',
-                title: 'Yeni Üye Katıldı',
-                message: `${req.user.fullname} "${project.title}" projesine katıldı`,
-                relatedProject: project._id,
-                relatedUser: req.user._id
-              });
-              
-              const updatedProject = await Project.findById(project._id)
-                .populate('owner', 'fullname email profileImage title department university')
-                .populate('members.user', 'fullname email profileImage title department university bio skills');
-              
-              console.log(`✅ Kullanıcı ${req.user.fullname} projeye eklendi: ${project.title}`);
-              console.log(`👥 Yeni üye sayısı: ${updatedProject.members.length}`);
-              console.log(`👥 Yeni üye bilgileri:`, updatedProject.members[updatedProject.members.length - 1]);
-            } else {
-              console.log(`⚠️  Proje dolu! Maksimum ${project.maxMembers} üye`);
-              return res.status(400).json({ 
-                message: "Proje maksimum üye sayısına ulaşmış", 
-                invite 
-              });
-            }
-          } else {
-            console.log(`⚠️  Kullanıcı zaten proje üyesi`);
-          }
-        } else {
-          console.log("❌ Proje bulunamadı!");
-        }
+        // ...existing code...
       } catch (error) {
         console.error("❌ Proje üyesi ekleme hatası:", error);
         return res.status(500).json({ 
@@ -268,7 +193,7 @@ export const respondInvite = async (req, res) => {
 
     // Delete the invitation from DB
     await Invitation.findByIdAndDelete(invite._id);
-    console.log(`✅ Davet silindi: ${invite._id}`);
+  // ...existing code...
 
     // SOCKET.IO: Davet yanıtlandığında hem gönderen hem alıcıya anlık event gönder
     try {

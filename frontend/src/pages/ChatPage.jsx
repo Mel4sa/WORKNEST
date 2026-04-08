@@ -1,22 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  List, 
-  ListItem, 
-  ListItemAvatar, 
-  ListItemText, 
-  Avatar, 
-  Button, 
-  TextField, 
-  IconButton, 
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Avatar,
+  Button,
+  TextField,
+  IconButton,
   CircularProgress
 } from '@mui/material';
-import { 
-  ArrowBack, 
-  Chat as ChatIcon, 
-  Add,
+import {
+  ArrowBack,
+  Chat as ChatIcon,
   Send,
   Search,
   ErrorOutline
@@ -36,6 +35,7 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
   // partner değişince chatId al
   useEffect(() => {
     if (!partner?._id) return;
+
     const fetchOrCreateChat = async () => {
       try {
         setLoading(true);
@@ -43,6 +43,7 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
         const res = await axiosInstance.get(`chats/user/${partner._id}`);
         setChatId(res.data.chat._id);
       } catch (err) {
+        console.error("Chat başlatma hatası:", err);
         setError(true);
         setChatId(null);
       } finally {
@@ -50,26 +51,30 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
       }
     };
     fetchOrCreateChat();
-  }, [partner]);
+  }, [partner?._id]); // Sadece partner ID değişince tetiklenir
 
   // chatId değişince mesajları çek
   useEffect(() => {
     if (!chatId) return;
+
     const fetchChatMessages = async () => {
       try {
-        setLoading(true);
-        setError(false);
         const msgRes = await axiosInstance.get(`chats/${chatId}/messages`);
-        setMessages(msgRes.data.messages);
+
+        const normalizedMessages = msgRes.data.messages.map(msg => ({
+          ...msg,
+          sender: typeof msg.sender === 'object' && msg.sender !== null
+            ? msg.sender
+            : { _id: msg.sender }
+        }));
+        setMessages(normalizedMessages);
         if (onMessagesRead) onMessagesRead();
       } catch (err) {
-        setError(true);
-      } finally {
-        setLoading(false);
+        console.error("Mesaj çekme hatası:", err);
       }
     };
     fetchChatMessages();
-  }, [chatId, onMessagesRead]);
+  }, [chatId, onMessagesRead]); // onMessagesRead eklendi; parent useCallback ile memoize edildiği için güvenli
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -80,20 +85,38 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !chatId) return;
+
     const messageText = newMessage.trim();
     setNewMessage('');
+
     try {
-      const response = await axiosInstance.post(`chats/${chatId}/messages`, {
+      const response = await axiosInstance.post(`/chats/${chatId}/messages`, {
         content: messageText
       });
-      setMessages(prev => [...prev, response.data]);
+      setMessages(prev => [
+        ...prev,
+        {
+          ...response.data.message,
+          sender: response.data.message.sender && typeof response.data.message.sender === 'object'
+            ? response.data.message.sender
+            : { _id: response.data.message.sender }
+        }
+      ]);
       if (onMessagesRead) onMessagesRead();
     } catch (err) {
-      setNewMessage(messageText);
+      console.error("Mesaj gönderilemedi:", err);
+      setNewMessage(messageText); // Hata olursa mesajı kutuya geri koy
     }
   };
 
-  // Yükleme Durumu
+  if (!partner || !partner._id) {
+    return (
+      <Box sx={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', color: 'text.secondary', fontSize: 18 }}>
+        Sohbet başlatmak için geçerli bir kullanıcı seçin.
+      </Box>
+    );
+  }
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
@@ -103,7 +126,6 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
     );
   }
 
-  // Hata Durumu (API hata verirse sonsuza kadar dönmesin diye)
   if (error) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%', p: 3, textAlign: 'center' }}>
@@ -118,10 +140,10 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
       {/* SOHBET HEADER */}
-      <Box sx={{ 
-        p: 2, 
-        display: 'flex', 
-        alignItems: 'center', 
+      <Box sx={{
+        p: 2,
+        display: 'flex',
+        alignItems: 'center',
         borderBottom: '1px solid #eee',
         bgcolor: '#fff',
         gap: 2,
@@ -132,7 +154,7 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
             <ArrowBack />
           </IconButton>
         </Box>
-        
+
         <Avatar src={partner.profileImage} sx={{ width: 44, height: 44 }}>
           {partner.fullname?.[0]}
         </Avatar>
@@ -147,10 +169,10 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
       </Box>
 
       {/* MESAJLAR ALANI */}
-      <Box sx={{ 
-        flex: 1, 
-        overflowY: 'auto', 
-        p: { xs: 2, md: 3 }, 
+      <Box sx={{
+        flex: 1,
+        overflowY: 'auto',
+        p: { xs: 2, md: 3 },
         bgcolor: '#f5f7fa',
         display: 'flex',
         flexDirection: 'column',
@@ -166,9 +188,9 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
           </Box>
         ) : (
           messages.map((msg, index) => {
-            const isMe = msg.sender === currentUser._id || msg.sender?._id === currentUser._id;
+            const isMe = msg.sender && msg.sender._id === currentUser?._id;
             return (
-              <Box 
+              <Box
                 key={msg._id || index}
                 sx={{
                   alignSelf: isMe ? 'flex-end' : 'flex-start',
@@ -187,17 +209,17 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
                   {msg.content}
                 </Typography>
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    display: 'block', 
-                    textAlign: 'right', 
-                    mt: 0.5, 
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: 'block',
+                    textAlign: 'right',
+                    mt: 0.5,
                     fontSize: '0.65rem',
-                    color: isMe ? 'rgba(255,255,255,0.7)' : 'text.disabled' 
+                    color: isMe ? 'rgba(255,255,255,0.7)' : 'text.disabled'
                   }}
                 >
-                  {new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                  {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
                 </Typography>
               </Box>
             );
@@ -207,12 +229,12 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
       </Box>
 
       {/* MESAJ YAZMA İNPUTU */}
-      <Box 
-        component="form" 
+      <Box
+        component="form"
         onSubmit={handleSendMessage}
-        sx={{ 
-          p: 2, 
-          bgcolor: '#fff', 
+        sx={{
+          p: 2,
+          bgcolor: '#fff',
           borderTop: '1px solid #eee',
           display: 'flex',
           alignItems: 'flex-end',
@@ -244,11 +266,11 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
             }
           }}
         />
-        <IconButton 
+        <IconButton
           type="submit"
           disabled={!newMessage.trim()}
-          sx={{ 
-            bgcolor: newMessage.trim() ? '#8c1c2b' : '#f5f5f5', 
+          sx={{
+            bgcolor: newMessage.trim() ? '#8c1c2b' : '#f5f5f5',
             color: newMessage.trim() ? 'white' : '#bdbdbd',
             width: 48,
             height: 48,
@@ -266,33 +288,54 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
 // --- ANA SAYFA BİLEŞENİ (ChatPage) ---
 export default function ChatPage() {
   const user = useAuthStore((state) => state.user);
-  
-  // Artık sadece ID'yi değil, seçili kullanıcının tüm bilgilerini tutuyoruz
   const [selectedPartner, setSelectedPartner] = useState(null);
-  
   const [conversations, setConversations] = useState([]);
   const [users, setUsers] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchConversations();
-    }
-  }, [user]);
+  // --- Seçili partneri localStorage'da sakla ---
+  const PARTNER_KEY = 'worknest_selected_partner_id';
 
-  const fetchConversations = async () => {
+  // --- KRİTİK DÜZELTME: useCallback ile fonksiyon referansını koruyoruz ---
+  const fetchConversations = useCallback(async () => {
     try {
-      setLoading(true);
       const response = await axiosInstance.get('messages/conversations');
       setConversations(response.data);
-    } catch {
-      setConversations([]);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Konuşmalar yüklenemedi:", err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      setLoading(true);
+      fetchConversations().finally(() => setLoading(false));
+    }
+  }, [user, fetchConversations]);
+
+  // Seçili partneri localStorage'dan yükle, partner yoksa temizle
+  useEffect(() => {
+    if (!user) {
+      setSelectedPartner(null);
+      localStorage.removeItem(PARTNER_KEY);
+      return;
+    }
+    const storedPartnerId = localStorage.getItem(PARTNER_KEY);
+    if (storedPartnerId && conversations.length > 0) {
+      const foundConv = conversations.find(conv => conv.partner._id === storedPartnerId);
+      if (foundConv) {
+        setSelectedPartner(foundConv.partner);
+      } else {
+        setSelectedPartner(null);
+        localStorage.removeItem(PARTNER_KEY);
+      }
+    }
+    if (!storedPartnerId) {
+      setSelectedPartner(null);
+    }
+  }, [user, conversations]);
 
   const searchUsers = async (query) => {
     if (!query.trim()) {
@@ -300,14 +343,12 @@ export default function ChatPage() {
       return;
     }
     try {
-      setLoading(true);
       const response = await axiosInstance.get(`/users/search?q=${encodeURIComponent(query)}`);
       const filteredUsers = response.data.filter(u => u._id !== user._id);
       setUsers(filteredUsers);
-    } catch {
+    } catch (err) {
+      console.error("Arama hatası:", err);
       setUsers([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -317,13 +358,21 @@ export default function ChatPage() {
     searchUsers(query);
   };
 
-  // Seçilen kullanıcıyı nesne olarak kaydediyoruz
   const handleSelectPartner = (partnerData) => {
     setSelectedPartner(partnerData);
+    if (partnerData?._id) {
+      localStorage.setItem(PARTNER_KEY, partnerData._id);
+    }
     if (window.innerWidth < 900) {
       setIsSearching(false);
     }
   };
+
+  // Kullanıcı değişirse seçili partneri temizle (garanti için)
+  useEffect(() => {
+    setSelectedPartner(null);
+    localStorage.removeItem(PARTNER_KEY);
+  }, [user?._id]);
 
   if (!user) {
     return (
@@ -334,31 +383,30 @@ export default function ChatPage() {
   }
 
   return (
-    <Box sx={{ 
+    <Box sx={{
       position: 'absolute',
       top: '64px',
       left: 0,
       right: 0,
       bottom: 0,
-      display: 'flex', 
+      display: 'flex',
       bgcolor: '#fff',
       overflow: 'hidden',
       zIndex: 10
     }}>
-      
-      {/* SOL PANEL: Sohbet Listesi veya Arama */}
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          width: { xs: selectedPartner ? 0 : '100%', md: 360 }, 
+
+      {/* SOL PANEL */}
+      <Paper
+        elevation={0}
+        sx={{
+          width: { xs: selectedPartner ? 0 : '100%', md: 360 },
           flexShrink: 0,
-          borderRadius: 0, 
+          borderRadius: 0,
           display: { xs: selectedPartner ? 'none' : 'flex', md: 'flex' },
           flexDirection: 'column',
-          boxShadow: 'none', 
-          borderRight: '1px solid #eaeaea', 
-          bgcolor: '#fafafa',
-          transition: 'width 0.3s ease'
+          boxShadow: 'none',
+          borderRight: '1px solid #eaeaea',
+          bgcolor: '#fafafa'
         }}
       >
         <Box sx={{ p: 3, background: 'linear-gradient(135deg, #6b0f1a, #8c1c2b)', color: 'white', flexShrink: 0 }}>
@@ -407,7 +455,7 @@ export default function ChatPage() {
           )}
         </Box>
 
-        <Box sx={{ flex: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { background: '#dcdcdc', borderRadius: '10px' } }}>
+        <Box sx={{ flex: 1, overflowY: 'auto' }}>
           {loading ? (
             <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
               <CircularProgress size={28} sx={{ color: "#8c1c2b" }} />
@@ -418,70 +466,63 @@ export default function ChatPage() {
                 <Typography variant="body2" color="text.secondary" textAlign="center" mt={4}>Kullanıcı bulunamadı.</Typography>
               ) : (
                 users.map((u) => (
-                  <ListItem 
-                    button 
-                    key={u._id} 
-                    onClick={() => handleSelectPartner(u)} // Nesneyi gönderiyoruz
-                    sx={{ borderRadius: 2, mb: 0.5, '&:hover': { bgcolor: 'rgba(107, 15, 26, 0.04)' } }}
+                  <ListItem
+                    component="button"
+                    key={u._id}
+                    onClick={() => handleSelectPartner(u)}
+                    sx={{ borderRadius: 2, mb: 0.5 }}
                   >
                     <ListItemAvatar>
                       <Avatar src={u.profileImage}>{u.fullname?.[0]}</Avatar>
                     </ListItemAvatar>
-                    <ListItemText primary={u.fullname} secondary={u.username ? `@${u.username}` : "Kullanıcı"} primaryTypographyProps={{ fontWeight: 500 }} />
+                    <ListItemText primary={u.fullname} secondary={u.username ? `@${u.username}` : "Kullanıcı"} />
                   </ListItem>
                 ))
               )}
             </List>
           ) : (
-            conversations.length === 0 ? (
-              <Box sx={{ p: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <ChatIcon sx={{ fontSize: 48, color: '#e0e0e0', mb: 2 }} />
-                <Typography variant="body2" color="text.secondary">Mesaj kutunuz boş. Yukarıdan arama yaparak iletişime geçin!</Typography>
-              </Box>
-            ) : (
-              <List sx={{ p: 1 }}>
-                {conversations.map((conv) => (
-                  <ListItem 
-                    button 
-                    key={conv.partner._id} 
-                    onClick={() => handleSelectPartner(conv.partner)} // Nesneyi gönderiyoruz
-                    selected={selectedPartner?._id === conv.partner._id}
-                    sx={{ borderRadius: 2, mb: 0.5, '&.Mui-selected': { bgcolor: 'rgba(107, 15, 26, 0.08)' }, '&:hover': { bgcolor: 'rgba(107, 15, 26, 0.04)' } }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar src={conv.partner.profileImage}>{conv.partner.fullname?.[0]}</Avatar>
-                    </ListItemAvatar>
-                    <ListItemText 
-                      primary={conv.partner.fullname} 
-                      secondary={conv.lastMessage?.content || 'Mesaj yok'}
-                      primaryTypographyProps={{ fontWeight: conv.unreadCount > 0 ? 700 : 500 }}
-                      secondaryTypographyProps={{ sx: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }, color: conv.unreadCount > 0 ? 'text.primary' : 'text.secondary' }}
-                    />
-                    {conv.unreadCount > 0 && <Box sx={{ bgcolor: '#e53935', color: 'white', px: 1, borderRadius: 3, fontSize: '0.75rem', fontWeight: 'bold' }}>{conv.unreadCount}</Box>}
-                  </ListItem>
-                ))}
-              </List>
-            )
+            <List sx={{ p: 1 }}>
+              {conversations.map((conv) => (
+                <ListItem
+                  component="button"
+                  key={conv.partner._id}
+                  onClick={() => handleSelectPartner(conv.partner)}
+                  selected={selectedPartner?._id === conv.partner._id}
+                  sx={{ borderRadius: 2, mb: 0.5, '&.Mui-selected': { bgcolor: 'rgba(107, 15, 26, 0.08)' } }}
+                >
+                  <ListItemAvatar>
+                    <Avatar src={conv.partner.profileImage}>{conv.partner.fullname?.[0]}</Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={conv.partner.fullname}
+                    secondary={conv.lastMessage?.content || 'Mesaj yok'}
+                    primaryTypographyProps={{ fontWeight: conv.unreadCount > 0 ? 700 : 500 }}
+                    secondaryTypographyProps={{ noWrap: true }}
+                  />
+                  {conv.unreadCount > 0 && <Box sx={{ bgcolor: '#e53935', color: 'white', px: 1, borderRadius: 3, fontSize: '0.75rem' }}>{conv.unreadCount}</Box>}
+                </ListItem>
+              ))}
+            </List>
           )}
         </Box>
       </Paper>
 
-      {/* SAĞ PANEL: Seçili sohbet */}
+      {/* SAĞ PANEL */}
       <Box sx={{ flex: 1, display: { xs: selectedPartner ? 'flex' : 'none', md: 'flex' }, flexDirection: 'column', bgcolor: '#fff', minWidth: 0 }}>
         {selectedPartner ? (
-          <ChatPanel 
-            partner={selectedPartner} // Artık sadece ID'yi değil, kişinin kendisini gönderiyoruz
+          <ChatPanel
+            partner={selectedPartner}
             currentUser={user}
             onBack={() => setSelectedPartner(null)}
             onMessagesRead={fetchConversations}
           />
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', bgcolor: '#fdfdfd' }}>
-             <Box sx={{ width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(107, 15, 26, 0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
+            <Box sx={{ width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(107, 15, 26, 0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
               <ChatIcon sx={{ fontSize: 60, color: 'rgba(107, 15, 26, 0.2)' }} />
             </Box>
             <Typography color="#8c1c2b" fontSize={22} fontWeight={600} mb={1}>WorkNest Mesajlar</Typography>
-            <Typography color="text.secondary" variant="body2">Sohbet etmek için soldaki listeden birini seçin veya yeni arama yapın.</Typography>
+            <Typography color="text.secondary" variant="body2">Sohbet etmek için soldaki listeden birini seçin.</Typography>
           </Box>
         )}
       </Box>

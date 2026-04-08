@@ -143,6 +143,7 @@ function ChatDialog({
               {messages.map((message) => (
                 <ListItem 
                   key={message.id}
+                  component="div"
                   sx={{ 
                     display: "block",
                     px: 0,

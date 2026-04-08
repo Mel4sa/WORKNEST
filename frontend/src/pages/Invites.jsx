@@ -54,16 +54,12 @@ export default function InvitesPage() {
         })
       ]);
       
-      console.log("🔍 Received invites data:", receivedRes.data);
-      console.log("🔍 Sent invites data:", sentRes.data);
+  // ...existing code...
+  // ...existing code...
       
       // Her bir davet için message alanını kontrol et
       receivedRes.data.forEach(invite => {
-        console.log(`📨 Invite ${invite._id}:`, {
-          message: invite.message,
-          messageType: typeof invite.message,
-          messageLength: invite.message?.length
-        });
+  // ...existing code...
       });
       
   // Sadece bekleyen davetleri göster
