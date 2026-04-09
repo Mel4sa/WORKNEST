@@ -1,10 +1,10 @@
 import Chat from "../models/chat.model.js";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
+import mongoose from "mongoose";
 import { createNotification } from "./notification.controller.js";
 
-// Kullanıcının tüm sohbetlerini getir
-
+// 1. Sol taraftaki sohbet listesini getirir
 export const getUserChats = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -18,129 +18,101 @@ export const getUserChats = async (req, res) => {
       return { ...chat._doc, partner };
     });
 
-    res.status(200).json({ chats: formattedChats }); // "chats" key'i içinde gönderiyoruz
+    res.status(200).json({ chats: formattedChats });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-
-// Belirli bir kullanıcıyla sohbet başlat veya mevcut sohbeti getir
+// 2. Bir kullanıcıya tıklandığında sohbeti bulur veya anında oluşturur
 export const getOrCreateChat = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params; // Tıklanan kişinin ID'si
     const currentUserId = req.user._id;
 
     if (userId === currentUserId.toString()) {
       return res.status(400).json({ message: "Kendinizle sohbet başlatamazsınız" });
     }
 
-    const targetUser = await User.findById(userId);
-    if (!targetUser) {
-      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
-    }
-
-    // Sıra fark etmeksizin iki kullanıcı arasındaki sohbeti bul
+    // Mevcut sohbeti en hızlı şekilde bul
     let chat = await Chat.findOne({
       participants: { $all: [currentUserId, userId], $size: 2 }
-    }).populate({
-      path: 'participants',
-      select: 'fullname username profileImage'
-    });
+    }).populate('participants', 'fullname username profileImage');
 
-    // Eğer sohbet yoksa yeni oluştur
     if (!chat) {
+      // Sohbet yoksa oluştur
       chat = await Chat.create({
-        participants: [currentUserId, userId]
+        participants: [currentUserId, userId],
+        lastActivity: new Date()
       });
-      chat = await Chat.findById(chat._id).populate({
-        path: 'participants',
-        select: 'fullname username profileImage'
-      });
+      // Oluşturulan sohbeti populate et
+      chat = await Chat.findById(chat._id).populate('participants', 'fullname username profileImage');
     }
 
     res.status(200).json({ chat });
   } catch (error) {
-    console.error("Sohbet oluşturma/getirme hatası:", error);
-    res.status(500).json({ message: "Sohbet işlemi başarısız", error: error.message });
+    res.status(500).json({ message: "Sohbet başlatılamadı", error: error.message });
   }
 };
 
-// Sohbetteki mesajları getir
+// 3. Mesajları getirir (Instagram tarzı: Eskiler yukarıda, yeniler aşağıda)
 export const getChatMessages = async (req, res) => {
   try {
     const { chatId } = req.params;
-    const { page = 1, limit = 50 } = req.query;
     const userId = req.user._id;
 
-    const chat = await Chat.findOne({
-      _id: chatId,
-      participants: userId
-    });
-
-    if (!chat) {
-      return res.status(404).json({ message: "Sohbet bulunamadı veya erişim yetkiniz yok" });
+    if (!mongoose.Types.ObjectId.isValid(chatId)) {
+      return res.status(400).json({ message: "Geçersiz sohbet ID" });
     }
 
-    const messages = await Message.find({ chat: chatId })
-      .populate({
-        path: 'sender',
-        select: 'fullname username profileImage'
-      })
-      .sort({ createdAt: -1 })
-      .limit(Number(limit))
-      .skip((Number(page) - 1) * Number(limit));
+    const chat = await Chat.findOne({ _id: chatId, participants: userId });
+    if (!chat) return res.status(404).json({ message: "Sohbet erişimi reddedildi" });
 
-    // Mesajları okundu olarak işaretle
+    const partnerId = chat.participants.find(p => p.toString() !== userId.toString());
+
+    // AKILLI SORGU: Hem chat ID ile hem de eski mesajları (ID'siz olanları) çeker
+    const messages = await Message.find({
+      $or: [
+        { chat: chatId },
+        { 
+          sender: { $in: [userId, partnerId] }, 
+          receiver: { $in: [userId, partnerId] } 
+        }
+      ]
+    })
+    .populate('sender', 'fullname username profileImage')
+    .sort({ createdAt: -1 });
+
+    // Okundu işaretle
     await Message.updateMany(
-      {
-        chat: chatId,
-        sender: { $ne: userId },
-        isRead: false
-      },
-      {
-        $set: { isRead: true }
-      }
+      { chat: chatId, sender: { $ne: userId }, isRead: false },
+      { $set: { isRead: true } }
     );
 
     res.status(200).json({
       messages: messages.reverse(),
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total: await Message.countDocuments({ chat: chatId })
-      }
+      pagination: { total: messages.length }
     });
   } catch (error) {
-    console.error("Mesajları getirme hatası:", error);
-    res.status(500).json({ message: "Mesajlar getirilemedi", error: error.message });
+    res.status(500).json({ message: "Mesajlar yüklenemedi", error: error.message });
   }
 };
 
-// Mesaj gönder
+// 4. Mesaj Gönder
 export const sendMessage = async (req, res) => {
   try {
     const { chatId } = req.params;
     const { content, messageType = "text" } = req.body;
     const userId = req.user._id;
 
-    if (!content || !content.trim()) {
-      return res.status(400).json({ message: "Mesaj içeriği boş olamaz" });
+    if (!content?.trim()) {
+      return res.status(400).json({ message: "İçerik boş olamaz" });
     }
 
-    const chat = await Chat.findOne({
-      _id: chatId,
-      participants: userId
-    });
+    const chat = await Chat.findOne({ _id: chatId, participants: userId });
+    if (!chat) return res.status(404).json({ message: "Sohbet bulunamadı" });
 
-    if (!chat) {
-      return res.status(404).json({ message: "Sohbet bulunamadı veya erişim yetkiniz yok" });
-    }
-
-    // Receiver'ı bul
-    const receiverId = chat.participants.find(
-      participantId => participantId.toString() !== userId.toString()
-    );
+    const receiverId = chat.participants.find(p => p.toString() !== userId.toString());
 
     const message = await Message.create({
       chat: chatId,
@@ -155,36 +127,25 @@ export const sendMessage = async (req, res) => {
       lastActivity: new Date()
     });
 
-    const populatedMessage = await Message.findById(message._id)
-      .populate({
-        path: 'sender',
-        select: 'fullname username profileImage'
-      });
+    const populatedMessage = await Message.findById(message._id).populate('sender', 'fullname username profileImage');
 
-    // Bildirim gönder
-    const otherParticipants = chat.participants.filter(
-      participantId => participantId.toString() !== userId.toString()
-    );
-    for (const participantId of otherParticipants) {
-      try {
-        await createNotification({
-          userId: participantId,
-          type: 'new_message',
-          title: 'Yeni Mesaj',
-          message: `${populatedMessage.sender.fullname} size bir mesaj gönderdi`,
-          relatedUser: userId
-        });
-      } catch (notificationError) {
-        console.error("❌ Bildirim gönderilemedi:", notificationError);
-      }
-    }
+    // Bildirimleri gönder (Sistem yavaşlamasın diye bekletmiyoruz)
+    chat.participants.filter(p => p.toString() !== userId.toString()).forEach(pId => {
+      createNotification({
+        userId: pId,
+        type: 'new_message',
+        title: 'Yeni Mesaj',
+        message: `${populatedMessage.sender.fullname} size mesaj gönderdi`,
+        relatedUser: userId
+      }).catch(err => console.error("Bildirim hatası:", err));
+    });
 
     res.status(201).json({ message: populatedMessage });
   } catch (error) {
-    console.error("Mesaj gönderme hatası:", error);
-    res.status(500).json({ message: "Mesaj gönderilemedi", error: error.message });
+    res.status(500).json({ message: "Gönderilemedi", error: error.message });
   }
 };
+
 
 // Mesaj düzenle
 export const editMessage = async (req, res) => {

@@ -30,7 +30,7 @@ import ProfileSnackbar from "../components/profile/ProfileSnackbar";
 export default function InvitesPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState(0); // 0: Alınan, 1: Gönderilen
+  const [tab, setTab] = useState(0); 
   const [receivedInvites, setReceivedInvites] = useState([]);
   const [sentInvites, setSentInvites] = useState([]);
   const [message, setMessage] = useState("");
@@ -54,12 +54,11 @@ export default function InvitesPage() {
         })
       ]);
       
-  // ...existing code...
-  // ...existing code...
       
-      // Her bir davet için message alanını kontrol et
       receivedRes.data.forEach(invite => {
-  // ...existing code...
+        if (typeof invite.message === "undefined" || invite.message === null) {
+          invite.message = "";
+        }
       });
       
   // Sadece bekleyen davetleri göster
@@ -83,7 +82,7 @@ export default function InvitesPage() {
   // SOCKET.IO: Bağlantı ve event dinleme
   useEffect(() => {
     if (!user?._id) return;
-    if (socketRef.current) return; // Tekrar bağlanmasın
+    if (socketRef.current) return; 
 
     socket.emit("join", user._id);
     socketRef.current = socket;
@@ -123,15 +122,15 @@ export default function InvitesPage() {
       setMessage("Davet başarıyla kabul edildi!");
       setMessageSeverity("success");
       setMessageOpen(true);
-      fetchInvites(); // Listeyi yenile (gerekirse)
+      fetchInvites(); 
     } catch (error) {
+      console.error("Davet kabul edilirken hata oluştu:", error);
       setMessage("Davet kabul edilirken hata oluştu");
       setMessageSeverity("error");
       setMessageOpen(true);
-      fetchInvites(); // Hata olursa tekrar yükle
+      fetchInvites(); 
     }
   };
-
   const handleDecline = async (inviteId) => {
     try {
       // Optimistic UI: daveti hemen kaldır
@@ -145,6 +144,7 @@ export default function InvitesPage() {
       setMessageOpen(true);
       fetchInvites(); 
     } catch (error) {
+      console.error("Davet reddedilirken hata oluştu:", error);
       setMessage("Davet reddedilirken hata oluştu");
       setMessageSeverity("error");
       setMessageOpen(true);

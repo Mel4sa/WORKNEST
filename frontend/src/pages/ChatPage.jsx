@@ -24,6 +24,7 @@ import useAuthStore from '../store/useAuthStore';
 import axiosInstance from '../lib/axios';
 
 // --- SAĞ PANELDEKİ SOHBET ALANI BİLEŞENİ ---
+
 const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -32,63 +33,56 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
   const [chatId, setChatId] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // partner değişince chatId al
+  // Partner değiştiğinde sohbeti ve mesajları çek
   useEffect(() => {
+    let isActive = true;
+    // Partner değiştiğinde her şeyi sıfırla
+    setMessages([]);
+    setChatId(null);
+    setLoading(false);
+    setError(false);
     if (!partner?._id) return;
-
-    const fetchOrCreateChat = async () => {
+    setLoading(true);
+    setError(false);
+    const loadChatData = async () => {
       try {
-        setLoading(true);
-        setError(false);
+        // Sohbet ID'sini al veya oluştur
         const res = await axiosInstance.get(`chats/user/${partner._id}`);
-        setChatId(res.data.chat._id);
-      } catch (err) {
-        console.error("Chat başlatma hatası:", err);
-        setError(true);
-        setChatId(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrCreateChat();
-  }, [partner?._id]); // Sadece partner ID değişince tetiklenir
-
-  // chatId değişince mesajları çek
-  useEffect(() => {
-    if (!chatId) return;
-
-    const fetchChatMessages = async () => {
-      try {
-        const msgRes = await axiosInstance.get(`chats/${chatId}/messages`);
-
-        const normalizedMessages = msgRes.data.messages.map(msg => ({
-          ...msg,
-          sender: typeof msg.sender === 'object' && msg.sender !== null
-            ? msg.sender
-            : { _id: msg.sender }
-        }));
-        setMessages(normalizedMessages);
+        const newChatId = res.data.chat._id;
+        if (!isActive) return;
+        setChatId(newChatId);
+        // Mesajları çek
+        const msgRes = await axiosInstance.get(`chats/${newChatId}/messages`);
+        if (!isActive) return;
+        setMessages(msgRes.data.messages);
         if (onMessagesRead) onMessagesRead();
       } catch (err) {
-        console.error("Mesaj çekme hatası:", err);
+        if (!isActive) return;
+        console.error("Yükleme hatası:", err);
+        setError(true);
+      } finally {
+        if (isActive) setLoading(false);
       }
     };
-    fetchChatMessages();
-  }, [chatId, onMessagesRead]); // onMessagesRead eklendi; parent useCallback ile memoize edildiği için güvenli
+    loadChatData();
+    return () => { isActive = false; };
+  }, [partner?._id, onMessagesRead]);
 
+  // Mesajlar gelince aşağı kaydır
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !chatId) return;
-
+    if (!newMessage.trim()) return;
+    if (!chatId) {
+      setError(true);
+      alert("Sohbet başlatılamadı. Lütfen tekrar deneyin.");
+      return;
+    }
     const messageText = newMessage.trim();
     setNewMessage('');
-
     try {
       const response = await axiosInstance.post(`/chats/${chatId}/messages`, {
         content: messageText
@@ -106,6 +100,8 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
     } catch (err) {
       console.error("Mesaj gönderilemedi:", err);
       setNewMessage(messageText); // Hata olursa mesajı kutuya geri koy
+      setError(true);
+      alert("Mesaj gönderilemedi. Lütfen tekrar deneyin.");
     }
   };
 
@@ -116,6 +112,9 @@ const ChatPanel = ({ partner, currentUser, onBack, onMessagesRead }) => {
       </Box>
     );
   }
+
+  console.log("Seçili partner:", partner);
+console.log("chatId:", chatId);
 
   if (loading) {
     return (
@@ -358,13 +357,20 @@ export default function ChatPage() {
     searchUsers(query);
   };
 
-  const handleSelectPartner = (partnerData) => {
-    setSelectedPartner(partnerData);
+  const handleSelectPartner = async (partnerData) => {
+    setSelectedPartner(null);
+    setIsSearching(false);
     if (partnerData?._id) {
       localStorage.setItem(PARTNER_KEY, partnerData._id);
-    }
-    if (window.innerWidth < 900) {
-      setIsSearching(false);
+      try {
+        // Sohbeti başlat veya bul
+        const res = await axiosInstance.get(`chats/user/${partnerData._id}`);
+        // Partner bilgisini backend'den gelen partner ile güncelle
+        setSelectedPartner(res.data.chat.partner || partnerData);
+      } catch (err) {
+        console.error("Sohbet başlatılamadı:", err);
+        setSelectedPartner(partnerData); // Yine de partner'ı göster
+      }
     }
   };
 
