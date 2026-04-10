@@ -52,6 +52,9 @@ function Navbar() {
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const notificationOpen = Boolean(notificationAnchor);
 
+  // Mesajlar için
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -89,7 +92,15 @@ function Navbar() {
     }
   };
 
-
+  const fetchUnreadMessages = async () => {
+    try {
+      const res = await axiosInstance.get("/chats/unread-count");
+      setUnreadMessageCount(res.data.unreadCount || 0);
+    } catch (err) {
+      console.error("Unread messages fetch error:", err);
+      setUnreadMessageCount(0);
+    }
+  };
 
   const handleNotificationClick = (event) => {
     setNotificationAnchor(event.currentTarget);
@@ -136,13 +147,20 @@ function Navbar() {
   useEffect(() => {
     if (user) {
       fetchUnreadCount();
+      fetchUnreadMessages();
       // Her 5 saniyede bir okunmamış sayıyı güncelle (mesajlar için daha sık)
-      const interval = setInterval(fetchUnreadCount, 5000);
+      const interval = setInterval(() => {
+        fetchUnreadCount();
+        fetchUnreadMessages();
+      }, 5000);
       
       // Mesaj count değiştiğinde hemen güncelle
       const handleMessageCountChange = () => {
         console.log('📨 Message count değişti, unread count güncelleniyor...');
-        setTimeout(fetchUnreadCount, 500); // Biraz gecikme ile güncelle
+        setTimeout(() => {
+          fetchUnreadCount();
+          fetchUnreadMessages();
+        }, 500); // Biraz gecikme ile güncelle
       };
       
       window.addEventListener('messageCountChanged', handleMessageCountChange);
@@ -486,7 +504,21 @@ function Navbar() {
               },
             }}
           >
-            <ChatBubble sx={{ fontSize: "1.3rem" }} />
+            <Badge
+              badgeContent={unreadMessageCount}
+              color="error"
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "#8c1c2b",
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "0.7rem"
+                }
+              }}
+              invisible={unreadMessageCount === 0}
+            >
+              <ChatBubble sx={{ fontSize: "1.3rem" }} />
+            </Badge>
           </IconButton>
 
           {/* Profilim User İkonu */}
@@ -755,30 +787,17 @@ function Navbar() {
           </Box>
 
           {/* Bildirimler */}
-          {notifications.filter(n => !n.isRead).length === 0 ? (
+          {notifications.filter(n => !n.isRead && n.type !== 'new_message').length === 0 ? (
             <Box sx={{ p: 3, textAlign: "center" }}>
               <Typography color="text.secondary">
                 Okunmamış bildiriminiz yok
               </Typography>
             </Box>
           ) : (
-            notifications.filter(notification => !notification.isRead).map((notification) => (
+            notifications.filter(notification => !notification.isRead && notification.type !== 'new_message').map((notification) => (
               <MenuItem
                 key={notification._id}
                 onClick={() => {
-                  // Mesaj bildirimi kontrolü
-                  if (notification.type === 'new_message' && notification.relatedUser) {
-                    if (!notification.isRead) {
-                      markAsRead(notification._id);
-                      return;
-                    } else {
-                      handleNotificationClose();
-                      navigate(`/users/${notification.relatedUser._id}`, { 
-                        state: { openChat: true }
-                      });
-                      return;
-                    }
-                  }
                   if (!notification.isRead) {
                     markAsRead(notification._id);
                   }

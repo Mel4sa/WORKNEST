@@ -3,6 +3,29 @@ import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import { createNotification } from "./notification.controller.js";
+// Bir sohbeti ve tüm mesajlarını sil
+export const deleteChat = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user._id;
+
+    if (!mongoose.Types.ObjectId.isValid(chatId)) {
+      return res.status(400).json({ message: "Geçersiz sohbet ID" });
+    }
+
+    const chat = await Chat.findOne({ _id: chatId, participants: userId });
+    if (!chat) return res.status(404).json({ message: "Sohbet bulunamadı veya yetkiniz yok" });
+
+    // Sohbete ait tüm mesajları sil
+    await Message.deleteMany({ chat: chatId });
+    // Sohbeti sil
+    await Chat.findByIdAndDelete(chatId);
+
+    res.status(200).json({ success: true, message: "Sohbet ve mesajlar silindi", deletedChatId: chatId });
+  } catch (error) {
+    res.status(500).json({ message: "Sohbet silinemedi", error: error.message });
+  }
+};
 
 // 1. Sol taraftaki sohbet listesini getirir
 export const getUserChats = async (req, res) => {
@@ -129,16 +152,7 @@ export const sendMessage = async (req, res) => {
 
     const populatedMessage = await Message.findById(message._id).populate('sender', 'fullname username profileImage');
 
-    // Bildirimleri gönder (Sistem yavaşlamasın diye bekletmiyoruz)
-    chat.participants.filter(p => p.toString() !== userId.toString()).forEach(pId => {
-      createNotification({
-        userId: pId,
-        type: 'new_message',
-        title: 'Yeni Mesaj',
-        message: `${populatedMessage.sender.fullname} size mesaj gönderdi`,
-        relatedUser: userId
-      }).catch(err => console.error("Bildirim hatası:", err));
-    });
+  // Artık mesaj bildirimi notification olarak oluşturulmuyor (chat badge'e taşındı)
 
     res.status(201).json({ message: populatedMessage });
   } catch (error) {

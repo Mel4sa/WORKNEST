@@ -6,7 +6,8 @@ import {
   sendMessage,
   editMessage,
   deleteMessage,
-  getUnreadCount
+  getUnreadCount,
+  deleteChat
 } from "../controllers/chat.controller.js";
 import { protectRoute } from "../middleware/authMiddleware.js";
 
@@ -35,5 +36,8 @@ router.put("/messages/:messageId", editMessage);
 
 // Mesaj sil
 router.delete("/messages/:messageId", deleteMessage);
+
+// Sohbet ve tüm mesajlarını sil
+router.delete("/:chatId", deleteChat);
 
 export default router;

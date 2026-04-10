@@ -75,20 +75,6 @@ export const sendMessage = async (req, res) => {
     await newMessage.save();
   // ...
 
-    // Mesaj bildirimi oluştur
-    try {
-      await createNotification({
-        userId: receiverId,
-        type: 'new_message',
-        title: 'Yeni Mesaj',
-        message: `${sender.fullname} size bir mesaj gönderdi`,
-        relatedUser: senderId
-      });
-  // ...
-    } catch (notificationError) {
-  // ...
-      // Bildirim hatası mesaj gönderimini engellemez
-    }
 
     // Populate edilmiş mesajı geri döndür
     const populatedMessage = await Message.findById(newMessage._id)
@@ -160,7 +146,8 @@ export const getConversations = async (req, res) => {
                 _id: 1,
                 fullname: 1,
                 username: 1,
-                profileImage: 1
+                profileImage: 1,
+                title: 1
               }
             }
           ]
@@ -170,6 +157,11 @@ export const getConversations = async (req, res) => {
         $unwind: '$partner'
       },
       {
+        $addFields: {
+          chatId: '$lastMessage.chat'
+        }
+      },
+      {
         $project: {
           partner: '$partner',
           lastMessage: {
@@ -177,7 +169,8 @@ export const getConversations = async (req, res) => {
             content: '$lastMessage.content',
             createdAt: '$lastMessage.createdAt'
           },
-          unreadCount: '$unreadCount'
+          unreadCount: '$unreadCount',
+          chatId: 1
         }
       },
       {
