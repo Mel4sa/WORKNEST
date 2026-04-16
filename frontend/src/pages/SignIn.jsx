@@ -184,7 +184,7 @@ function SignIn() {
           </Typography>
 
           <TextField
-            label="Ad Soyad"
+            label="Kullanıcı Adı"
             fullWidth
             required
             value={fullname}

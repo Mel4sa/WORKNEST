@@ -65,7 +65,7 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
   };
 
   const setUser = useAuthStore((state) => state.setUser);
-  // Ad soyadın baş harflerini büyüt
+
   const capitalizeFullname = (str) => {
     return str
       .split(' ')
@@ -79,10 +79,10 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
       const capitalized = capitalizeFullname(newUsername);
       const res = await axiosInstance.put("/users/change-fullname", { fullname: capitalized });
       if (res.data.user) setUser(res.data.user);
-  showMessage("Ad soyad başarıyla güncellendi!", "success");
+  showMessage("Kullanıcı adı başarıyla güncellendi!", "success");
       handleCloseDialog();
     } catch {
-  showMessage("Ad soyad güncellenirken hata oluştu!", "error");
+  showMessage("Kullanıcı adı güncellenirken hata oluştu!", "error");
     }
   };
 
@@ -164,7 +164,7 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
         boxShadow: "inset 0 2px 4px rgba(0,0,0,0.05)"
       }}>
         {[
-          { key: "fullname", label: "Ad Soyad" },
+          { key: "fullname", label: "Kullanıcı Adı" },
           { key: "email", label: "E-posta" },
           { key: "password", label: "Şifre" },
           { key: "delete", label: "Sil" },
@@ -196,12 +196,12 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
   {activeTab === "fullname" && (
         <Box sx={{ backgroundColor: "#fff", borderRadius: "16px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
           <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: "#6b0f1a" }}>
-            Ad Soyad Değiştir
+            Kullanıcı Adı Değiştir
           </Typography>
           <TextField 
             fullWidth 
-            label="Yeni Ad Soyad" 
-            placeholder="Yeni ad soyadınızı girin"
+            label="Yeni Kullanıcı Adı" 
+            placeholder="Yeni kullanıcı adınızı girin"
             sx={{ 
               mb: 3,
               "& .MuiOutlinedInput-root": {
@@ -235,7 +235,7 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
             }} 
             onClick={handleChangeUsername}
           >
-            Ad Soyadı Kaydet
+            Kaydet
           </Button>
         </Box>
       )}

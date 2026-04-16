@@ -184,7 +184,7 @@ export const deletePhoto = async (req, res) => {
 export const updateFullname = async (req, res) => {
   try {
     const { fullname } = req.body;
-    if (!fullname) return res.status(400).json({ message: "Yeni ad soyad gerekli" });
+    if (!fullname) return res.status(400).json({ message: "Yeni kullanıcı adı gerekli" });
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
@@ -197,7 +197,7 @@ export const updateFullname = async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Ad soyad başarıyla güncellendi",
+      message: "Kullanıcı adı başarıyla güncellendi",
       user: updatedUser,
     });
   } catch (error) {
