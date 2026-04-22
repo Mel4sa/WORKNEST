@@ -6,7 +6,6 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Her request öncesi token ekle
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token;

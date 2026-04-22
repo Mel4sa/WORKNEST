@@ -32,7 +32,6 @@ import axios from "../../lib/axios";
           await axios.post('skills', { name: skillToAdd });
         } catch (err) {}
         onChange([...skills, skillToAdd]);
-        // Eklenen skill'i autocomplete seçeneklerine de ekle
         setAllSkills((prev) => prev.includes(skillToAdd) ? prev : [...prev, skillToAdd]);
       }
       setInputValue("");

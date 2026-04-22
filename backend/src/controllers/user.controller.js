@@ -1,6 +1,5 @@
-// E-posta formatı kontrol fonksiyonu
+// E-posta formatı kontrol 
 function isValidEmail(email) {
-  // Daha katı ve yaygın e-posta regex'i
   return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
 }
 
@@ -38,7 +37,7 @@ export const updateEmailStrict = async (req, res) => {
 // Tüm kullanıcıları getir
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, "-password"); // şifreyi gönderme
+    const users = await User.find({}, "-password"); 
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: "Kullanıcılar alınamadı", error: err.message });
@@ -62,7 +61,6 @@ export const getUserProfile = async (req, res) => {
 
     res.status(200).json(user);
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -95,7 +93,6 @@ export const updateProfile = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -124,7 +121,6 @@ export const uploadPhoto = async (req, res) => {
     
     const uploadOptions = {
       folder: "profile_photos",
-      format: "jpg", // Her zaman JPG'ye çevir
       transformation: [
         { width: 500, height: 500, crop: "fill" },
         { quality: "auto", format: "jpg" }
@@ -170,7 +166,7 @@ export const uploadPhoto = async (req, res) => {
 export const deletePhoto = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
-      req.user._id, // _id kullan
+      req.user._id,
       { profileImage: "" },
       { new: true }
     );
@@ -230,12 +226,10 @@ export const updateEmail = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
 
-// Şifre değiştirme (sadece kendi profili)
 export const updatePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
@@ -262,7 +256,6 @@ export const updatePassword = async (req, res) => {
 
     res.status(200).json({ message: "Şifre başarıyla güncellendi" });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -279,7 +272,6 @@ export const deleteAccount = async (req, res) => {
 
     res.status(200).json({ message: "Hesap başarıyla silindi" });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
@@ -310,7 +302,6 @@ export const searchUsers = async (req, res) => {
 
     res.status(200).json(users);
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Arama sırasında bir hata oluştu" });
   }
 };

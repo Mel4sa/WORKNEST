@@ -14,10 +14,8 @@ async function importSkills() {
       await Skill.create({ name: skillName });
       added++;
     } catch (e) {
-      // duplicate error vs. için gerek yok çünkü başta siliyoruz
     }
   }
-  console.log(`${added} skill imported.`);
   mongoose.disconnect();
 }
 

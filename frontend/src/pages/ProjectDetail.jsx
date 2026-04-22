@@ -50,7 +50,6 @@ function ProjectDetail() {
 
   const [allSkills, setAllSkills] = useState([]);
   useEffect(() => {
-    // Skill API'den becerileri çek
     axiosInstance.get("/skills").then(res => setAllSkills(res.data)).catch(() => setAllSkills([]));
   }, []);
 
@@ -366,13 +365,11 @@ function ProjectDetail() {
                     )}
                   </Box>
 
-                  {/* TAM GENİŞLİK VE ORTALAMA İÇİN DEĞİŞTİRİLEN KISIM BURASI */}
                   <Box sx={{ 
                     mt: 'auto', 
                     pt: 4, 
                     width: '100%', 
                     display: 'flex',
-                    // TeamStatusChip içindeki her şeyi (yazı, arkaplan) ezerek %100 genişliğe zorlar
                     '& > *': {
                       width: '100% !important',
                       justifyContent: 'center !important',
@@ -382,7 +379,6 @@ function ProjectDetail() {
                       fontWeight: '700 !important',
                       borderRadius: '12px !important',
                     },
-                    // Eğer Chip bileşeniyse içindeki metni de ortalamak için:
                     '& .MuiChip-label': {
                       width: '100%',
                       textAlign: 'center'

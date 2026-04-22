@@ -1,4 +1,3 @@
-  // MongoDB bağlantısı başarılı logu korunuyor
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 

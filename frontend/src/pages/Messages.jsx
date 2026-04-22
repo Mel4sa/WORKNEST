@@ -51,7 +51,6 @@ function Messages() {
   const [chatDialogOpen, setChatDialogOpen] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Chat listesini getir
   const fetchActiveChats = useCallback(async () => {
     try {
       setLoading(true);
@@ -59,18 +58,15 @@ function Messages() {
       const chats = response.data.chats || [];
       setActiveChats(chats);
 
-      // Her chat için partner bilgilerini getir
       const partnersData = {};
       const unreadData = {};
       
       for (const chat of chats) {
-        // Partner'ı bul (current user olmayan participant)
         const partner = chat.participants.find(p => p._id !== user._id);
         if (partner) {
           partnersData[partner._id] = partner;
         }
         
-        // Okunmamış mesaj sayısını hesapla
         const unreadCount = chat.messages?.filter(msg => 
           !msg.readBy?.some(read => read.user === user._id) && 
           msg.sender !== user._id
@@ -88,19 +84,16 @@ function Messages() {
     }
   }, [user._id]);
 
-  // Mesajları getir
   const fetchMessages = useCallback(async (chatId) => {
     try {
       const response = await axiosInstance.get(`/chats/${chatId}/messages`);
       setMessages(response.data.messages || []);
       
-      // Okunmamış sayacını sıfırla
       setUnreadCounts(prev => ({
         ...prev,
         [chatId]: 0
       }));
       
-      // Scroll to bottom
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -110,11 +103,9 @@ function Messages() {
     }
   }, []);
 
-  // Mesaj gönder
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sending || !selectedChat) return;
 
-    // Optimistic update
     const tempMessage = {
       _id: 'temp-' + Date.now(),
       content: newMessage.trim(),
@@ -136,25 +127,20 @@ function Messages() {
         content: tempMessage.content,
         messageType: 'text'
       });
-
-      // Replace temp message with real message
       setMessages(prev => prev.map(msg => 
         msg._id === tempMessage._id ? response.data.message : msg
       ));
 
-      // Notification event dispatch
       window.dispatchEvent(new CustomEvent('messageReceived', {
         detail: { chatId: selectedChat._id, message: response.data.message }
       }));
 
-      // Scroll to bottom
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
 
     } catch (err) {
       console.error('Mesaj gönderilemedi:', err);
-      // Remove temp message on error
       setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));
       setNewMessage(tempMessage.content);
       showSnackbar('Mesaj gönderilemedi');
@@ -163,7 +149,6 @@ function Messages() {
     }
   };
 
-  // Mesaj sil
   const handleDeleteMessage = async (messageId) => {
     try {
       await axiosInstance.delete(`/chats/messages/${messageId}`);
@@ -177,14 +162,12 @@ function Messages() {
     }
   };
 
-  // Chat seç ve aç
   const handleChatOpen = (chat) => {
     setSelectedChat(chat);
     setChatDialogOpen(true);
     fetchMessages(chat._id);
   };
 
-  // Chat kapat
   const handleChatClose = () => {
     setChatDialogOpen(false);
     setSelectedChat(null);
@@ -192,7 +175,6 @@ function Messages() {
     setNewMessage('');
   };
 
-  // Menu işlemleri
   const handleMenuOpen = (event, message) => {
     setAnchorEl(event.currentTarget);
     setSelectedMessage(message);
@@ -203,7 +185,6 @@ function Messages() {
     setSelectedMessage(null);
   };
 
-  // Snackbar
   const showSnackbar = (message) => {
     setSnackbar({ open: true, message });
   };
@@ -212,7 +193,6 @@ function Messages() {
     setSnackbar({ open: false, message: '' });
   };
 
-  // Mesaj silme kontrolü (1 gün)
   const canDeleteMessage = (message) => {
     if (message.sender._id !== user._id) return false;
     const messageDate = new Date(message.createdAt);
@@ -221,7 +201,6 @@ function Messages() {
     return (now - messageDate) < oneDayInMs;
   };
 
-  // Format time
   const formatTime = (dateString) => {
     return new Date(dateString).toLocaleTimeString('tr-TR', {
       hour: '2-digit',
@@ -229,19 +208,16 @@ function Messages() {
     });
   };
 
-  // Format date
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('tr-TR');
   };
 
-  // Component mount
   useEffect(() => {
     if (user) {
       fetchActiveChats();
     }
   }, [user, fetchActiveChats]);
 
-  // Notification listener
   useEffect(() => {
     const handleNewMessage = () => {
       fetchActiveChats();
@@ -250,7 +226,6 @@ function Messages() {
       }
     };
 
-    // Her 5 saniyede bir chat listesini refresh et (real-time için)
     const refreshInterval = setInterval(() => {
       if (user && !chatDialogOpen) {
         fetchActiveChats();
@@ -360,7 +335,6 @@ function Messages() {
         </List>
       )}
 
-      {/* Chat Dialog */}
       <Dialog
         open={chatDialogOpen}
         onClose={handleChatClose}
@@ -399,7 +373,6 @@ function Messages() {
         </DialogTitle>
         
         <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Messages Area */}
           <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
             {messages.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -511,7 +484,6 @@ function Messages() {
             )}
           </Box>
 
-          {/* Message Input */}
           <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
             <TextField
               fullWidth
@@ -545,7 +517,6 @@ function Messages() {
         </DialogContent>
       </Dialog>
 
-      {/* Message Menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -560,7 +531,6 @@ function Messages() {
         </MenuItem>
       </Menu>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}

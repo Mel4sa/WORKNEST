@@ -3,7 +3,6 @@ import Skill from "../models/skill.model.js";
 
 const router = express.Router();
 
-// Tüm yetenekleri getir
 router.get("/", async (req, res) => {
   try {
     const skills = await Skill.find({}, "name").sort({ name: 1 });
@@ -13,7 +12,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni yetenek ekle
 router.post("/", async (req, res) => {
   const { name } = req.body;
   if (!name || typeof name !== "string") {

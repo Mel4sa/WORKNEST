@@ -13,7 +13,6 @@ export default function useSkills() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Yeni skill ekleme fonksiyonu
   const addSkill = async (name) => {
     try {
       const res = await axios.post("/api/skills", { name });

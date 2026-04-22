@@ -24,12 +24,10 @@ import useAuthStore from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 
 const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
-  // Snackbar state (local)
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarText, setSnackbarText] = useState("");
   const [snackbarType, setSnackbarType] = useState("success");
 
-  // onMessage override: hem parent'a hem local snackbar'a bas
   const showMessage = (text, type) => {
     setSnackbarText(text);
     setSnackbarType(type);
@@ -40,7 +38,6 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
   const token = useAuthStore((state) => state.token);
   const navigate = useNavigate();
 
-  // State yönetimi
   const [activeTab, setActiveTab] = useState(0); // 0: Ad Soyad, 1: E-posta, 2: Şifre, 3: Sil
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -49,7 +46,6 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
   const [newUsername, setNewUsername] = useState("");
   const [newEmail, setNewEmail] = useState("");
 
-    // Hesap ayarları fonksiyonları
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
       showMessage("Yeni şifre en az 6 karakter olmalı!", "error");
@@ -153,7 +149,6 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
       </Typography>
       <Divider sx={{ mb: 3, backgroundColor: "#ddd" }} />
       
-      {/* Tab Navigation */}
       <Box sx={{ 
         display: "flex", 
         justifyContent: "space-around", 

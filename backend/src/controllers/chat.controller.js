@@ -3,7 +3,6 @@ import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import { createNotification } from "./notification.controller.js";
-// Bir sohbeti ve tüm mesajlarını sil
 export const deleteChat = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -16,9 +15,8 @@ export const deleteChat = async (req, res) => {
     const chat = await Chat.findOne({ _id: chatId, participants: userId });
     if (!chat) return res.status(404).json({ message: "Sohbet bulunamadı veya yetkiniz yok" });
 
-    // Sohbete ait tüm mesajları sil
     await Message.deleteMany({ chat: chatId });
-    // Sohbeti sil
+
     await Chat.findByIdAndDelete(chatId);
 
     res.status(200).json({ success: true, message: "Sohbet ve mesajlar silindi", deletedChatId: chatId });
@@ -27,7 +25,6 @@ export const deleteChat = async (req, res) => {
   }
 };
 
-// 1. Sol taraftaki sohbet listesini getirir
 export const getUserChats = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -47,28 +44,24 @@ export const getUserChats = async (req, res) => {
   }
 };
 
-// 2. Bir kullanıcıya tıklandığında sohbeti bulur veya anında oluşturur
 export const getOrCreateChat = async (req, res) => {
   try {
-    const { userId } = req.params; // Tıklanan kişinin ID'si
+    const { userId } = req.params; 
     const currentUserId = req.user._id;
 
     if (userId === currentUserId.toString()) {
       return res.status(400).json({ message: "Kendinizle sohbet başlatamazsınız" });
     }
 
-    // Mevcut sohbeti en hızlı şekilde bul
     let chat = await Chat.findOne({
       participants: { $all: [currentUserId, userId], $size: 2 }
     }).populate('participants', 'fullname username profileImage');
 
     if (!chat) {
-      // Sohbet yoksa oluştur
       chat = await Chat.create({
         participants: [currentUserId, userId],
         lastActivity: new Date()
       });
-      // Oluşturulan sohbeti populate et
       chat = await Chat.findById(chat._id).populate('participants', 'fullname username profileImage');
     }
 
@@ -78,7 +71,6 @@ export const getOrCreateChat = async (req, res) => {
   }
 };
 
-// 3. Mesajları getirir (Instagram tarzı: Eskiler yukarıda, yeniler aşağıda)
 export const getChatMessages = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -93,7 +85,6 @@ export const getChatMessages = async (req, res) => {
 
     const partnerId = chat.participants.find(p => p.toString() !== userId.toString());
 
-    // AKILLI SORGU: Hem chat ID ile hem de eski mesajları (ID'siz olanları) çeker
     const messages = await Message.find({
       $or: [
         { chat: chatId },
@@ -106,7 +97,6 @@ export const getChatMessages = async (req, res) => {
     .populate('sender', 'fullname username profileImage')
     .sort({ createdAt: -1 });
 
-    // Okundu işaretle
     await Message.updateMany(
       { chat: chatId, sender: { $ne: userId }, isRead: false },
       { $set: { isRead: true } }
@@ -121,7 +111,7 @@ export const getChatMessages = async (req, res) => {
   }
 };
 
-// 4. Mesaj Gönder
+// Mesaj Gönder
 export const sendMessage = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -152,7 +142,6 @@ export const sendMessage = async (req, res) => {
 
     const populatedMessage = await Message.findById(message._id).populate('sender', 'fullname username profileImage');
 
-  // Artık mesaj bildirimi notification olarak oluşturulmuyor (chat badge'e taşındı)
 
     res.status(201).json({ message: populatedMessage });
   } catch (error) {
@@ -257,7 +246,6 @@ export const deleteMessage = async (req, res) => {
   }
 };
 
-// Okunmamış mesaj sayısını getir
 export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;

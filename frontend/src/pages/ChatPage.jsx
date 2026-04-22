@@ -31,7 +31,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import ProfileSnackbar from '../components/profile/ProfileSnackbar';
 
-// --- SAĞ PANELDEKİ SOHBET ALANI BİLEŞENİ ---
 
 const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loading: externalLoading }) => {
   const [messages, setMessages] = useState([]);
@@ -41,11 +40,9 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
   const messagesEndRef = useRef(null);
   const messageInputRef = useRef(null);
 
-  // Context menu state
-  const [contextMenu, setContextMenu] = useState(null); // { mouseX, mouseY, message }
+  const [contextMenu, setContextMenu] = useState(null);
   const [editMessageId, setEditMessageId] = useState(null);
   const [editMessageText, setEditMessageText] = useState('');
-  // Snackbar state
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
 
   useEffect(() => {
@@ -54,7 +51,7 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
       setLoading(false);
       return;
     }
-    setLoading(true); // Partner değiştiğinde hemen loading başlasın
+    setLoading(true);
     let isActive = true;
     const loadChatData = async () => {
       try {
@@ -129,7 +126,6 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
 
   const handleCloseContextMenu = () => {
     setContextMenu(null);
-    // Menü kapanınca mesaj kutusuna odaklan
     setTimeout(() => {
       messageInputRef.current?.focus();
     }, 0);
@@ -175,7 +171,6 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
     );
   }
 
-  // Eğer dışarıdan loading true geliyorsa spinner göster
   if (externalLoading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
@@ -207,7 +202,7 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', position: 'relative' }}>
-      {/* Uyarı navbarın hemen altında ve içerikte en üstte */}
+      
   <Box sx={{ position: 'fixed', top: '96px', left: 0, right: 0, zIndex: 30000, pointerEvents: 'none' }}>
         <ProfileSnackbar open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })} />
       </Box>
@@ -234,7 +229,6 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
         ) : (
           messages.map((msg, index) => {
             const isMe = msg.sender && (msg.sender._id === currentUser?._id || msg.sender === currentUser?._id);
-            // Düzenleme modunda ise
             if (editMessageId === msg._id) {
               return (
                 <Box key={msg._id || index} sx={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%', minWidth: '10%', bgcolor: isMe ? '#8c1c2b' : '#fff', color: isMe ? '#fff' : 'text.primary', p: 1.5, borderRadius: 2, borderBottomRightRadius: isMe ? 0 : 8, borderBottomLeftRadius: !isMe ? 0 : 8, boxShadow: '0 1px 2px rgba(0,0,0,0.05)', wordBreak: 'break-word' }}>
@@ -268,7 +262,6 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
             );
           })
         )}
-        {/* Mesaj sağ tık menüsü */}
         <Menu
           open={!!contextMenu}
           onClose={handleCloseContextMenu}
@@ -311,7 +304,7 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
   );
 };
 
-// --- ANA SAYFA BİLEŞENİ (ChatPage) ---
+// ANA SAYFA BİLEŞENİ
 export default function ChatPage() {
   const user = useAuthStore((state) => state.user);
   const [selectedPartner, setSelectedPartner] = useState(null);
@@ -329,7 +322,6 @@ export default function ChatPage() {
   const fetchConversations = useCallback(async () => {
     try {
       const response = await axiosInstance.get('messages/conversations');
-      // Her conv objesinde chatId alanı garanti olsun
       const normalized = response.data.map(conv => ({
         ...conv,
         chatId: conv.chatId || conv._id
@@ -346,8 +338,6 @@ export default function ChatPage() {
       fetchConversations().finally(() => setLoading(false));
     }
   }, [user, fetchConversations]);
-
-  // Sayfa yenilendiğinde seçili partneri koru
   useEffect(() => {
     const storedPartnerId = localStorage.getItem(PARTNER_KEY);
     if (storedPartnerId && conversations.length > 0 && !selectedPartner) {
@@ -357,9 +347,8 @@ export default function ChatPage() {
         setSelectedChatId(foundConv._id || foundConv.chatId);
       }
     }
-  }, [conversations]); // Sadece konuşmalar listesi geldiğinde 1 kez kontrol et
+  }, [conversations]); 
 
-  // ChatPage ilk açıldığında partner kaydını temizle
   useEffect(() => {
     localStorage.removeItem('worknest_selected_partner_id');
     setSelectedPartner(null);
@@ -383,7 +372,6 @@ export default function ChatPage() {
     setIsSearching(false);
     if (!partnerData?._id) return;
 
-    // Okunmamış badge'i anında sıfırla (UI'da kaybolsun)
     setConversations(prev => prev.map(conv =>
       conv.partner._id === partnerData._id ? { ...conv, unreadCount: 0 } : conv
     ));
@@ -414,18 +402,14 @@ const handleDeleteConfirm = async () => {
   try {
   await axiosInstance.delete(`/chats/${deleteTarget.chatId}`);
 
-    // UI'dan silinen sohbeti temizle
     setConversations(prev => prev.filter(c => c.chatId !== deleteTarget.chatId));
 
-    // Eğer silinen sohbet şu an ekranda açıksa paneli kapat
     if (selectedChatId === deleteTarget.chatId) {
       setSelectedPartner(null);
       setSelectedChatId(null);
       localStorage.removeItem(PARTNER_KEY);
     }
     
-    // Opsiyonel: Başarı mesajı
-    // alert("Sohbet başarıyla silindi.");
   } catch (err) {
     console.error("Silme hatası:", err);
     alert('Sohbet silinemedi. Lütfen tekrar deneyin.');
@@ -506,7 +490,7 @@ const handleDeleteConfirm = async () => {
             currentUser={user}
             onBack={() => setSelectedPartner(null)}
             onMessagesRead={fetchConversations}
-            loading={selectedPartner && !selectedChatId} // chatId gelene kadar loading true
+            loading={selectedPartner && !selectedChatId}
           />
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', bgcolor: '#fdfdfd' }}>

@@ -45,7 +45,6 @@ function InviteDialog({
       </DialogTitle>
       
       <DialogContent sx={{ p: 3 }}>
-        {/* Project Selection */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle2" sx={{ 
             fontWeight: "700", 
@@ -101,7 +100,6 @@ function InviteDialog({
           </FormControl>
         </Box>
         
-        {/* Invitation Message */}
         <TextField
           fullWidth
           multiline

@@ -63,7 +63,7 @@ export const getUserProjects = async (req, res) => {
   }
 };
 
-// Sadece kendi (sahip olunan) projeleri getir - davet gönderme için
+// Sadece kendi projeleri getir
 export const getOwnedProjects = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -108,7 +108,6 @@ export const createProject = async (req, res) => {
     const userId = req.user._id;
   const { title, description, skills, maxMembers, deadline, visibility, status } = req.body;
 
-    // Validasyon
     if (!title || !description) {
       return res.status(400).json({ 
         message: "Başlık ve açıklama gereklidir" 
@@ -175,13 +174,11 @@ export const updateProject = async (req, res) => {
     const { id } = req.params;
     const userId = req.user._id;
     const updateData = req.body;
-    // Eğer eski tags veya requiredSkills gelirse dönüştür
     if (updateData.tags) {
       updateData.skills = updateData.tags;
       delete updateData.tags;
     }
     if (updateData.requiredSkills) {
-      // ignore or merge if needed
       delete updateData.requiredSkills;
     }
 
@@ -209,7 +206,6 @@ export const updateProject = async (req, res) => {
           .map(member => member.user._id)
           .filter(memberId => memberId.toString() !== userId.toString());
 
-        // Her üyeye bildirim gönder
         for (const memberId of memberUserIds) {
           await createNotification({
             userId: memberId,
@@ -271,7 +267,6 @@ export const deleteProject = async (req, res) => {
   }
 };
 
-// Database temizleme - silinmiş projeleri tamamen kaldır
 export const cleanupDeletedProjects = async (req, res) => {
   try {
     const deletedProjects = await Project.deleteMany({ isActive: false });
@@ -310,7 +305,6 @@ export const joinProject = async (req, res) => {
       return res.status(404).json({ message: "Proje bulunamadı" });
     }
 
-    // Zaten üye mi kontrol et
     const isAlreadyMember = project.members.some(
       member => member.user.toString() === userId.toString()
     );
@@ -332,9 +326,7 @@ export const joinProject = async (req, res) => {
       .populate('owner', 'fullname email profileImage')
       .populate('members.user', 'fullname email profileImage');
 
-    // Proje sahibine bildirim gönder
     if (updatedProject && updatedProject.owner && updatedProject.owner._id.toString() !== userId.toString()) {
-      // Katılan kullanıcıyı çek
       const joiningUser = updatedProject.members.find(m => m.user._id.toString() === userId.toString());
       const joiningUserName = joiningUser?.user?.fullname || "Bir kullanıcı";
       await createNotification({
@@ -390,32 +382,12 @@ export const leaveProject = async (req, res) => {
 };
 
 export const removeMember = async (req, res) => {
-  console.log("🚀 removeMember API çağrıldı!");
-  console.log("📥 Request params:", req.params);
-  console.log("👤 Request user:", req.user ? req.user._id.toString() : 'No user');
-  
   try {
     const { id, userId } = req.params;
     const requesterId = req.user._id;
 
-    console.log("🗑️  Üye silme isteği:", { 
-      projectId: id, 
-      userIdToRemove: userId, 
-      requesterId: requesterId.toString(),
-      params: req.params,
-      user: req.user ? req.user._id.toString() : 'No user'
-    });
-
-    // Proje var mı kontrol et
-    console.log("🔍 Proje aranıyor, ID:", id);
     const project = await Project.findOne({ _id: id, isActive: true });
-    console.log("📋 Proje bulundu mu:", project ? "Evet" : "Hayır");
     
-    if (project) {
-      console.log("👤 Proje sahibi:", project.owner.toString());
-      console.log("🔒 İstek yapan:", requesterId.toString());
-      console.log("🤝 Sahiplik kontrolü:", project.owner.toString() === requesterId.toString());
-    }
 
     if (!project) {
       return res.status(404).json({ message: "Proje bulunamadı" });
@@ -428,44 +400,20 @@ export const removeMember = async (req, res) => {
     if (userId === requesterId.toString()) {
       return res.status(400).json({ message: "Proje sahibi kendisini çıkaramaz" });
     }
-
-    console.log("👥 Mevcut üyeler:", project.members.map(m => ({ 
-      id: m.user.toString(), 
-      _id: m._id 
-    })));
     
     const memberIndex = project.members.findIndex(
       member => member.user.toString() === userId
     );
 
-    console.log("🔍 Aranan üye index:", memberIndex);
-
     if (memberIndex === -1) {
-      console.log("❌ Üye bulunamadı");
       return res.status(400).json({ message: "Bu kullanıcı projenin üyesi değil" });
     }
-
-    console.log("🗑️  Üye çıkarılıyor:", project.members[memberIndex]);
     const removedMember = project.members[memberIndex];
     project.members.splice(memberIndex, 1);
     
-    console.log("💾 Proje kaydediliyor...");
     await project.save();
-    console.log("✅ Üye başarıyla çıkarıldı");
-    console.log("🔄 Bildirim bloğuna giriliyor...");
-    
-    // Çıkarılan üyeye bildirim gönder
-    console.log("🎯 Try bloğuna giriliyor...");
+
     try {
-      console.log("📢 Bildirim gönderiliyor:", {
-        userId: userId,
-        type: 'member_left',
-        title: 'Projeden Çıkarıldınız',
-        message: `"${project.title}" projesinden çıkarıldınız`,
-        relatedProject: project._id,
-        relatedUser: requesterId
-      });
-      
       const notification = await createNotification({
         userId: userId,
         type: 'member_left',
@@ -475,23 +423,18 @@ export const removeMember = async (req, res) => {
         relatedUser: requesterId
       });
       
-      console.log("✅ Bildirim başarıyla oluşturuldu:", notification);
     } catch (notificationError) {
-      console.error("❌ Bildirim gönderilemedi:", notificationError);
     }
 
     const updatedProject = await Project.findById(id)
       .populate('owner', 'fullname email profileImage title department university')
       .populate('members.user', 'fullname email profileImage title department university bio skills');
 
-    console.log("🏁 Response gönderiliyor...");
     res.status(200).json({ 
       message: "Üye başarıyla çıkarıldı",
       project: updatedProject 
     });
-    console.log("✅ Response gönderildi");
   } catch (error) {
-    console.log("❌ Catch bloğuna girdi:", error.message);
     res.status(500).json({ message: "Üye çıkarılamadı", error: error.message });
   }
 };

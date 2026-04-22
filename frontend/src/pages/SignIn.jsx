@@ -21,7 +21,6 @@ function SignIn() {
   const register = useAuthStore((state) => state.register);
   const error = useAuthStore((state) => state.error);
 
-  // Şifre kurallarını kontrol et
   const passwordRules = {
     length: password.length >= 8 && password.length <= 20,
     uppercase: /[A-Z]/.test(password),
@@ -48,7 +47,6 @@ function SignIn() {
       top: 0,
       left: 0
     }}>
-      {/* SOL TARAF - Slogan (sadece desktop'ta görünür) */}
       <Box
         sx={{
           display: { xs: "none", md: "flex" },
@@ -100,8 +98,6 @@ function SignIn() {
           </Typography>
         </Box>
       </Box>
-
-      {/* SAĞ TARAF - SignIn */}
       <Box
         sx={{
           flex: { xs: 1, md: 1 },
@@ -115,7 +111,6 @@ function SignIn() {
           margin: 0,
         }}
       >
-        {/* SignIn container - dikey ve yatay olarak ortalanmış */}
         <Box sx={{ 
           width: "100%", 
           maxWidth: 450,
@@ -126,7 +121,6 @@ function SignIn() {
           minHeight: "100vh",
           py: 4
         }}>
-          {/* Mobile header */}
           <Box 
             sx={{ 
               display: { xs: "block", md: "none" }, 
@@ -156,7 +150,6 @@ function SignIn() {
             </Typography>
           </Box>
 
-          {/* SignIn formu */}
           <Box
             component="form"
             onSubmit={(e) => {
@@ -235,8 +228,6 @@ function SignIn() {
               }
             }}
           />
-
-          {/* Şifre Kuralları */}
           <Box sx={{ mb: 3 }}>
             <RuleItem
               text="8-20 karakter arası olmalı"
@@ -300,7 +291,6 @@ function SignIn() {
   );
 }
 
-// ✅ Kuralların yanındaki ikon satırı
 function RuleItem({ text, valid }) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>

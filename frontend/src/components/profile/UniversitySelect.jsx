@@ -18,7 +18,7 @@ export default function UniversitySelect({ value, onChange }) {
       autoHighlight
       sx={{
         "& .MuiOutlinedInput-root": {
-          borderRadius: "30px", // oval yapıldı
+          borderRadius: "30px",
           "&.Mui-focused fieldset": { borderColor: "#915d56" },
           "& fieldset": { borderColor: "#915d56" },
         },

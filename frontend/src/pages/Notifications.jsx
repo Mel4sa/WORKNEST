@@ -71,10 +71,9 @@ function Bildirimler() {
     fetchNotifications();
   }, []);
 
-  // SOCKET.IO: Bağlantı ve event dinleme
   useEffect(() => {
     if (!user?._id) return;
-    if (socketRef.current) return; // Tekrar bağlanmasın
+    if (socketRef.current) return; 
 
     const socket = io("http://localhost:3000", {
       withCredentials: true
@@ -82,7 +81,6 @@ function Bildirimler() {
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      // Kullanıcı kendi odasına join olsun
       socket.emit("join", user._id);
     });
 
@@ -108,14 +106,12 @@ function Bildirimler() {
   };
 
   const handleMarkAsRead = (notificationId) => {
-    // Önce arayüzde hızlıca güncelle
     setNotifications(prev =>
       prev.map(notif =>
         notif._id === notificationId ? { ...notif, isRead: true } : notif
       )
     );
     setUnreadCount(prev => Math.max(0, prev - 1));
-    // Sonra API çağrısı
     axiosInstance.patch(`/notifications/${notificationId}/read`).catch(err => {
       console.error('Bildirim okundu olarak işaretlenemedi:', err);
     });
@@ -128,7 +124,6 @@ function Bildirimler() {
     setUnreadCount(0);
     axiosInstance.patch('/notifications/mark-all-read')
       .then(() => {
-        // Sunucu işlemi tamamladıktan sonra tekrar fetch et
         fetchNotifications();
       })
       .catch(err => {
@@ -137,13 +132,11 @@ function Bildirimler() {
   };
 
   const handleDeleteNotification = (notificationId) => {
-    // Önce arayüzde hızlıca güncelle
     const deletedNotification = notifications.find(n => n._id === notificationId);
     setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
     if (deletedNotification && !deletedNotification.isRead) {
       setUnreadCount(prev => Math.max(0, prev - 1));
     }
-    // Sonra API çağrısı
     axiosInstance.delete(`/notifications/${notificationId}`).catch(err => {
       console.error('Bildirim silinemedi:', err);
     });
@@ -188,22 +181,13 @@ function Bildirimler() {
   };
 
   const handleNotificationClick = (notification) => {
-  // ...existing code...
 
-    // Mesaj bildirimlerinde direkt chat'e git
     if (notification.type === 'new_message' && notification.relatedUser) {
-  // ...existing code...
-      
-      // Okunmamışsa okundu olarak işaretle
+  
       if (!notification.isRead) {
-  // ...existing code...
         handleMarkAsRead(notification._id);
       }
-      
-      // Direkt profile git ve chat aç
       const targetUrl = `/users/${notification.relatedUser._id}`;
-  // ...existing code...
-  // ...existing code...
       
       navigate(targetUrl, { 
         state: { openChat: true }
@@ -211,14 +195,10 @@ function Bildirimler() {
       return;
     }
 
-  // ...existing code...
-
-    // Diğer bildirimler için eski davranış
     if (!notification.isRead) {
       handleMarkAsRead(notification._id);
     }
 
-    // Bildirim türüne göre yönlendirme
     if (notification.relatedProject && notification.type.includes('invite')) {
       navigate('/invites');
     } else if (notification.relatedProject) {
@@ -237,7 +217,6 @@ function Bildirimler() {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#fafbfc', py: 4 }}>
       <Container maxWidth="md">
-        {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
             
@@ -263,7 +242,6 @@ function Bildirimler() {
 
         <ProfileSnackbar open={!!error} message={error} severity="error" onClose={() => setError("")} />
 
-        {/* Bildirimler Listesi */}
         <Stack spacing={2}>
           {notifications.length === 0 ? (
             <Card sx={{ p: 6, textAlign: 'center', backgroundColor: '#fff' }}>
@@ -277,7 +255,6 @@ function Bildirimler() {
             </Card>
           ) : (
             notifications.map((notification) => {
-              // ...existing code...
               return (
               <Card
                 key={notification._id}
@@ -287,17 +264,15 @@ function Bildirimler() {
                   border: notification.isRead ? '1px solid #e2e8f0' : '2px solid rgba(74, 13, 22, 0.2)',
                   boxShadow: 'none',
                   '&:hover': {
-                    border: '2px solid #800020', // Bordo
+                    border: '2px solid #800020', 
                   }
                 }}
                 onClick={() => {
-                  // ...existing code...
                   handleNotificationClick(notification);
                 }}
               >
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', gap: 2 }}>
-                    {/* Bildirim İkonu */}
                     <Box
                       sx={{
                         display: 'flex',
@@ -313,7 +288,6 @@ function Bildirimler() {
                       {getNotificationIcon(notification.type)}
                     </Box>
 
-                    {/* İçerik */}
                     <Box sx={{ flex: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
                         <Typography
@@ -375,7 +349,6 @@ function Bildirimler() {
                         }}
                         onClick={notification.type === 'new_message' && notification.relatedUser ? (e) => {
                           e.stopPropagation();
-                          // ...existing code...
                           navigate(`/users/${notification.relatedUser._id}`, { 
                             state: { openChat: true }
                           });
@@ -384,7 +357,6 @@ function Bildirimler() {
                         {notification.message}
                       </Typography>
 
-                      {/* Alt Bilgiler */}
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Typography
                           variant="caption"
@@ -411,7 +383,6 @@ function Bildirimler() {
                         )}
                       </Box>
 
-                      {/* İlgili Kullanıcı */}
                       {notification.relatedUser && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                           <Avatar
@@ -434,7 +405,6 @@ function Bildirimler() {
           )}
         </Stack>
 
-        {/* Daha Fazla Yükle Butonu */}
         {hasMore && notifications.length > 0 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <Button

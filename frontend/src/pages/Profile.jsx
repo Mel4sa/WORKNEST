@@ -38,7 +38,6 @@ export default function ProfilePage() {
   const setUser = useAuthStore((state) => state.setUser);
   const fetchUser = useAuthStore((state) => state.fetchUser);
 
-  // Profil state
   const [skills, setSkills] = useState([]);
   const [bio, setBio] = useState("");
   const [university, setUniversity] = useState("");
@@ -52,19 +51,16 @@ export default function ProfilePage() {
 
   const fileInputRef = useRef(null);
 
-  // Snackbar
   const [messageOpen, setMessageOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [messageType, setMessageType] = useState("success");
 
-  // Message handler function for AccountSettingsDialog
   const handleMessage = (text, type) => {
     setMessageText(text);
     setMessageType(type);
     setMessageOpen(true);
   };
 
-  // Kullanıcıyı fetch et
   useEffect(() => {
     const init = async () => {
       if (!token) return;
@@ -78,7 +74,6 @@ export default function ProfilePage() {
     init();
   }, [fetchUser, token]);
 
-  // User geldiğinde stateleri set et ve eksik profil kontrolü
   useEffect(() => {
     if (user) {
       setSkills(user.skills || []);
@@ -92,10 +87,8 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  // Profil fotoğrafı değişimi
   const handleChangeProfilePhoto = () => fileInputRef.current.click();
   
-  // Profil fotoğrafı silme
   const handleDeleteProfilePhoto = async () => {
     try {
       await axios.delete("/users/delete-photo", {
@@ -119,18 +112,14 @@ export default function ProfilePage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Dosya türünü kontrol et
     const isHeic = file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
     
-    // HEIC dosyaları için preview oluşturulamayabilir, o yüzden fallback kullan
     try {
       setPreview(URL.createObjectURL(file));
     } catch {
-      // HEIC dosyaları için preview oluşturulamazsa, loading göster
       setPreview("");
     }
 
-    // HEIC dosyası için özel mesaj göster
     if (isHeic) {
       setMessageText("HEIC fotoğraf yükleniyor ve JPG formatına çevriliyor...");
       setMessageType("info");
@@ -147,7 +136,6 @@ export default function ProfilePage() {
       
       await fetchUser();
       
-      // Başarı mesajı (format bilgisi dahil)
       if (response.data.originalFormat === 'HEIC') {
         setMessageText("HEIC fotoğraf başarıyla JPG formatına çevrilerek yüklendi!");
       } else {
@@ -157,7 +145,6 @@ export default function ProfilePage() {
     } catch {
       setPreview(user?.profileImage || "");
       
-      // HEIC için özel hata mesajı
       if (isHeic) {
         setMessageText("HEIC fotoğraf yüklenirken hata oluştu. Lütfen JPG formatında tekrar deneyin.");
       } else {
@@ -169,7 +156,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Profil kaydet
   const handleSaveProfile = async () => {
     const profileData = { university, department, title: role, skills, bio, github, linkedin };
     try {
@@ -215,7 +201,6 @@ export default function ProfilePage() {
       left: 0,
       zIndex: 1000
     }}>
-      {/* SOL TARAF - Profil Kartı (sadece desktop'ta görünür) */}
       <Box
         sx={{
           display: { xs: "none", md: "flex" },
@@ -240,7 +225,6 @@ export default function ProfilePage() {
           height: "100%",
           py: 4
         }}>
-          {/* Profil Fotoğrafı */}
           <Box
             sx={{
               position: "relative",
@@ -292,7 +276,6 @@ export default function ProfilePage() {
               </Box>
             </Box>
             
-            {/* Profil fotoğrafı kaldırma ikonu (dairenin hemen altında, ortalanmış ve Tooltip ile) */}
             {preview && (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                 <Tooltip title="Profil fotoğrafını kaldır" arrow>
@@ -359,7 +342,6 @@ export default function ProfilePage() {
             </Typography>
           </Box>
 
-          {/* Sosyal Linkler */}
           <Stack direction="row" spacing={1.5} sx={{ mb: 4 }}>
             {github && (
               <IconButton 
@@ -403,7 +385,6 @@ export default function ProfilePage() {
         </Box>
       </Box>
 
-      {/* SAĞ TARAF - Profil Formu */}
       <Box
         sx={{
           flex: 2,
@@ -414,33 +395,31 @@ export default function ProfilePage() {
           alignItems: "flex-start",
           p: { xs: 1, sm: 3, md: 6 },
           minHeight: "100vh",
-          maxHeight: { xs: "calc(100vh - 64px)", md: "none" }, // Desktop'ta height sınırı kaldır
+          maxHeight: { xs: "calc(100vh - 64px)", md: "none" },
           margin: 0,
           overflowY: "auto",
           pt: { xs: 8, md: 6 },
           pb: { xs: 6, md: 2 },
         }}
       >
-        {/* Profil Formu Container */}
         <Box sx={{ 
           width: "100%", 
           maxWidth: 700,
           display: "flex",
           flexDirection: "column",
-          py: { xs: 2, md: 1 }, // Desktop'ta padding küçültüldü
-          pb: { xs: 4, md: 1 }, // Desktop'ta bottom padding küçültüldü
+          py: { xs: 2, md: 1 }, 
+          pb: { xs: 4, md: 1 },
           minHeight: "fit-content",
-          height: { md: "fit-content" } // Desktop'ta fit-content
+          height: { md: "fit-content" }
         }}>
-          {/* Mobile header */}
           <Box 
             sx={{ 
               display: { xs: "flex", md: "none" }, 
               flexDirection: "column",
               alignItems: "center",
               textAlign: "center", 
-              mb: 2, // Margin küçültüldü
-              mt: 1  // Top margin küçültüldü
+              mb: 2, 
+              mt: 1 
             }}
           >
             <Box sx={{ position: "relative", mb: 2 }}>
@@ -458,7 +437,6 @@ export default function ProfilePage() {
                 {!preview && <Person sx={{ fontSize: 60, color: "#fff" }} />}
               </Avatar>
               
-              {/* Profil fotoğrafını kaldırma butonu (mobil) */}
               {preview && (
                 <Button
                   onClick={handleDeleteProfilePhoto}
@@ -496,7 +474,6 @@ export default function ProfilePage() {
             </Typography>
           </Box>
 
-          {/* Form Container */}
           <Box
             sx={{
               width: "100%",
@@ -506,15 +483,14 @@ export default function ProfilePage() {
               p: { xs: 1, sm: 2, md: 3 },
               display: "flex",
               flexDirection: "column",
-              gap: { xs: 2, md: 3 } // Mobile'da gap küçültüldü
+              gap: { xs: 2, md: 3 } 
             }}
           >
-            {/* Başlık ve Ayarlar */}
             <Box sx={{ 
               display: "flex", 
               alignItems: "center", 
               justifyContent: "space-between", 
-              mb: { xs: 1, md: 2 }, // Mobile'da margin küçültüldü
+              mb: { xs: 1, md: 2 },
               px: { xs: 1, sm: 0 }
             }}>
               <Typography
@@ -522,7 +498,7 @@ export default function ProfilePage() {
                 sx={{ 
                   fontWeight: "bold", 
                   color: "#6b0f1a",
-                  fontSize: { xs: "1.3rem", sm: "1.5rem" } // Mobile font boyutu
+                  fontSize: { xs: "1.3rem", sm: "1.5rem" } 
                 }}
               >
                 Profil Bilgileri
@@ -532,7 +508,7 @@ export default function ProfilePage() {
                 sx={{
                   backgroundColor: "#003fd3ff",
                   color: "#fff",
-                  size: { xs: "small", sm: "medium" }, // Mobile'da küçük boyut
+                  size: { xs: "small", sm: "medium" },
                   "&:hover": { backgroundColor: "#0056b3", transform: "scale(1.05)" },
                   transition: "all 0.2s",
                 }}
@@ -541,7 +517,6 @@ export default function ProfilePage() {
               </IconButton>
             </Box>
 
-            {/* Pozisyon */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mx: { xs: 1, sm: 0 } }}>
               <TextField
                 label="Title"
@@ -555,8 +530,6 @@ export default function ProfilePage() {
                 }}
               />
             </Box>
-
-            {/* Biyografi */}
 
             <Box sx={{ position: 'relative', mx: { xs: 1, sm: 0 } }}>
               <TextField 
@@ -588,8 +561,7 @@ export default function ProfilePage() {
               </Box>
             </Box>
 
-            {/* Üniversite & Bölüm */}
-            <Box sx={{ mx: { xs: 1, sm: 0 } }}> {/* Mobile'da yatay margin */}
+            <Box sx={{ mx: { xs: 1, sm: 0 } }}> 
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: "#6b0f1a" }}>
                 Eğitim Bilgileri
               </Typography>
@@ -626,8 +598,7 @@ export default function ProfilePage() {
               </Stack>
             </Box>
 
-            {/* Sosyal Bağlantılar */}
-            <Box sx={{ mx: { xs: 1, sm: 0 } }}> {/* Mobile'da yatay margin */}
+            <Box sx={{ mx: { xs: 1, sm: 0 } }}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: "#6b0f1a" }}>
                 Sosyal Bağlantılar
               </Typography>
@@ -673,15 +644,13 @@ export default function ProfilePage() {
               </Stack>
             </Box>
 
-            {/* Yetenekler */}
-            <Box sx={{ mx: { xs: 1, sm: 0 } }}> {/* Mobile'da yatay margin */}
+            <Box sx={{ mx: { xs: 1, sm: 0 } }}> 
               <SkillsSelect
                 skills={skills}
                 onChange={setSkills}
               />
             </Box>
 
-            {/* Kaydet Butonu */}
             <Button
               variant="contained"
               disabled={!isProfileChanged}
@@ -695,7 +664,7 @@ export default function ProfilePage() {
                 "&:hover": { backgroundColor: "#0056b3" },
                 fontSize: "1.1rem",
                 mt: { xs: 1, md: 2 },
-                mb: { xs: 3, md: 4 }, // Bottom margin artırıldı
+                mb: { xs: 3, md: 4 },
                 mx: { xs: 1, sm: 0 }
               }}
             >
@@ -707,7 +676,6 @@ export default function ProfilePage() {
 
       <ProfileSnackbar open={messageOpen} message={messageText} severity={messageType} onClose={() => setMessageOpen(false)} />
 
-      {/* Account Settings Dialog */}
       <AccountSettingsDialog 
         open={open} 
         onClose={() => setOpen(false)} 

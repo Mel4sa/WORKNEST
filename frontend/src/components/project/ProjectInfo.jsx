@@ -26,7 +26,6 @@ function ProjectInfo({ project, isEditing, editFormData, onFormDataChange, progr
         display: "flex",
         flexDirection: "column"
       }}>
-        {/* Proje Lideri */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
           <Avatar 
             src={project.owner?.profileImage}
@@ -51,7 +50,6 @@ function ProjectInfo({ project, isEditing, editFormData, onFormDataChange, progr
 
         <Divider sx={{ my: 3 }} />
 
-        {/* Açıklama */}
         <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
           Proje Açıklaması
         </Typography>
@@ -83,7 +81,6 @@ function ProjectInfo({ project, isEditing, editFormData, onFormDataChange, progr
           </Typography>
         )}
 
-        {/* İlerleme Çubuğu */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
             Proje İlerleme Durumu

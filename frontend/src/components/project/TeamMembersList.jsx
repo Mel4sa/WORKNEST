@@ -18,7 +18,6 @@ function TeamMembersList({ project, onRemoveMember, currentUser }) {
   return (
     <Card>
       <CardContent>
-        {/* Lider */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
           <Avatar
             src={project.owner?.profileImage}
@@ -35,11 +34,9 @@ function TeamMembersList({ project, onRemoveMember, currentUser }) {
             </Typography>
           </Box>
         </Box>
-        {/* Üyeler */}
         {project.members && project.members.length > 0 ? (
           project.members
             .filter(member => {
-              // Proje liderini üyeler listesinden çıkar
               const memberUserId = member.user?._id || member._id;
               return memberUserId !== project.owner?._id;
             })

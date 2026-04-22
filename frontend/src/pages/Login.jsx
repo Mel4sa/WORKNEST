@@ -59,8 +59,6 @@ export default function Login() {
       reset_link: resetLink
     };
 
-    console.log("EmailJS gönderim parametreleri:", templateParams);
-
     await emailjs.send(
       import.meta.env.VITE_YOUR_SERVICE_ID,  
       import.meta.env.VITE_YOUR_TEMPLATE_ID, 
@@ -94,7 +92,6 @@ export default function Login() {
       top: 0,
       left: 0
     }}>
-      {/* SOL TARAF - Slogan (sadece desktop'ta görünür) */}
       <Box
         sx={{
           display: { xs: "none", md: "flex" },
@@ -148,7 +145,6 @@ export default function Login() {
         </Box>
       </Box>
 
-      {/* SAĞ TARAF - Login */}
       <Box
         sx={{
           flex: { xs: 1, md: 1 },
@@ -162,7 +158,6 @@ export default function Login() {
           margin: 0,
         }}
       >
-        {/* Login container - dikey ve yatay olarak ortalanmış */}
         <Box sx={{ 
           width: "100%", 
           maxWidth: 450,
@@ -173,7 +168,6 @@ export default function Login() {
           minHeight: "100vh",
           py: 4
         }}>
-          {/* Mobile header */}
           <Box 
             sx={{ 
               display: { xs: "block", md: "none" }, 
@@ -203,7 +197,6 @@ export default function Login() {
             </Typography>
           </Box>
 
-          {/* Login kutusu */}
           <Box
             component="form"
             onSubmit={handleLogin}
@@ -322,7 +315,6 @@ export default function Login() {
         </Box>
       </Box>
 
-      {/* Şifremi Unuttum Modal */}
       <Modal
         open={openForgot}
         onClose={() => {

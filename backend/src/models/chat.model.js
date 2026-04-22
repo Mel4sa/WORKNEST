@@ -19,7 +19,6 @@ const chatSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// İndeksler
 chatSchema.index({ participants: 1 });
 chatSchema.index({ lastActivity: -1 });
 

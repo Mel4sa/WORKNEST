@@ -64,7 +64,6 @@ const useAuthStore = create(
       },
 
       register: async (fullname, email, password) => {
-        // Baş harfleri büyük yap
         const capitalizeFullname = (str) =>
           str
             .split(' ')
@@ -94,11 +93,9 @@ const useAuthStore = create(
         const token = get().token || localStorage.getItem("token");
         if (token) {
           try {
-            // Token'ı set et ve kullanıcıyı fetch et
             set({ token });
             await get().fetchUser();
           } catch {
-            // Token geçersizse logout yap
             get().logout();
           }
         } else {
@@ -107,7 +104,7 @@ const useAuthStore = create(
       },
     }),
     {
-      name: "auth-storage", // localStorage key
+      name: "auth-storage",
       getStorage: () => localStorage,
       partialize: (state) => ({
         user: state.user,

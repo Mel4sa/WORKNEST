@@ -8,7 +8,6 @@ export const sendInvite = async (req, res) => {
   try {
     const { projectId, receiverId, message } = req.body;
     const senderId = req.user._id; 
-  // ...existing code...
 
     if (message && message.length > 100) {
       return res.status(400).json({ message: "Davet mesajı en fazla 100 karakter olabilir" });
@@ -17,15 +16,12 @@ export const sendInvite = async (req, res) => {
     const project = await Project.findById(projectId);
     const receiver = await User.findById(receiverId);
     
-  // ...existing code...
     
 
     if (!project || !receiver) {
       return res.status(404).json({ message: "Proje veya kullanıcı bulunamadı" });
     }
 
-
-    // Kullanıcı zaten proje üyesiyse davet gönderme
     const isAlreadyMember = project.members.some(m => {
       if (m.user) return m.user.toString() === receiverId.toString();
       return m.toString() === receiverId.toString();
@@ -34,7 +30,6 @@ export const sendInvite = async (req, res) => {
       return res.status(400).json({ message: "Bu kullanıcı zaten proje üyesi!" });
     }
 
-    // Aynı projede bekleyen bir davet var mı kontrol et
     const existingInvite = await Invitation.findOne({
       project: projectId,
       receiver: receiverId,
@@ -57,7 +52,7 @@ export const sendInvite = async (req, res) => {
       project: projectId,
       sender: senderId,
       receiver: receiverId,
-      status: "pending", // pending, accepted, declined
+      status: "pending", 
       message: message || "Projeye katılmaya davet ediliyorsunuz!"
     });
 
@@ -82,7 +77,6 @@ export const sendInvite = async (req, res) => {
       relatedInvite: invite._id
     });
 
-  // ...existing code...
     res.status(201).json({ message: "Davet gönderildi", invite });
   } catch (error) {
     console.error(error);
@@ -92,19 +86,12 @@ export const sendInvite = async (req, res) => {
 
 export const getReceivedInvites = async (req, res) => {
   try {
-  // ...existing code...
     
     const invites = await Invitation.find({ receiver: req.user._id })
       .populate("sender", "fullname profileImage")
       .populate("project", "title")
       .select("sender receiver project status message createdAt")
-      .sort({ createdAt: -1 }); // En yeni davetler en üstte
-
-  // ...existing code...
-  // ...existing code...
-    
-  // ...existing code...
-    
+      .sort({ createdAt: -1 }); 
     res.json(invites);
   } catch (error) {
     console.error(error);
@@ -118,17 +105,7 @@ export const getSentInvites = async (req, res) => {
       .populate("receiver", "fullname profileImage")
       .populate("project", "title")
       .select("sender receiver project status message createdAt")
-      .sort({ createdAt: -1 }); // En yeni davetler en üstte
-
-    // console.log("📤 Gönderilen davetler:", invites.length, "adet");
-    // invites.forEach(invite => {
-    //   console.log(`📤 Sent Invite ID ${invite._id}:`, {
-    //     message: invite.message,
-    //     messageType: typeof invite.message,
-    //     messageLength: invite.message?.length,
-    //     hasMessage: !!invite.message
-    //   });
-    // });
+      .sort({ createdAt: -1 }); 
 
     res.json(invites);
   } catch (error) {
@@ -143,10 +120,8 @@ export const respondInvite = async (req, res) => {
     const { inviteId } = req.params;
     const { action } = req.body;
 
-  // ...existing code...
 
   const invite = await Invitation.findById(inviteId).populate('project', 'title maxMembers members');
-  // ...existing code...
     
     if (!invite) return res.status(404).json({ message: "Davet bulunamadı" });
 
@@ -159,13 +134,11 @@ export const respondInvite = async (req, res) => {
 
 
     const oldStatus = invite.status;
-    // If accepted, add user to project, then delete invite. If declined, just delete invite.
 
     if (action === "accepted") {
       try {
-        // ...existing code...
       } catch (error) {
-        console.error("❌ Proje üyesi ekleme hatası:", error);
+        console.error("Proje üyesi ekleme hatası:", error);
         return res.status(500).json({ 
           message: "Davet kabul edildi ama proje üyesi eklenemedi", 
           invite 
@@ -173,8 +146,6 @@ export const respondInvite = async (req, res) => {
       }
     }
 
-
-    // Send notification before deleting invite
     const notificationType = action === "accepted" ? 'invite_accepted' : 'invite_declined';
     const notificationTitle = action === "accepted" ? 'Davet Kabul Edildi' : 'Davet Reddedildi';
     const notificationMessage = action === "accepted" 
@@ -191,15 +162,11 @@ export const respondInvite = async (req, res) => {
       relatedInvite: invite._id
     });
 
-    // Delete the invitation from DB
     await Invitation.findByIdAndDelete(invite._id);
-  // ...existing code...
 
-    // SOCKET.IO: Davet yanıtlandığında hem gönderen hem alıcıya anlık event gönder
     try {
       const io = req.app.get("io");
       if (io) {
-        // Alıcıya (yanıtlayan) ve gönderen kullanıcıya event gönder
         io.to(invite.receiver.toString()).emit("invite:updated");
         io.to(invite.sender.toString()).emit("invite:updated");
       }

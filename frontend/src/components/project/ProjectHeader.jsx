@@ -43,7 +43,6 @@ function ProjectHeader({
         flexDirection: "column",
         overflow: "auto"
       }}>
-        {/* Başlık */}
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
           {isEditing ? (
             <TextField
@@ -73,7 +72,6 @@ function ProjectHeader({
             </Typography>
           )}
 
-          {/* Düzenleme Butonu - Sadece proje sahibi için */}
           {currentUser && project.owner?._id === currentUser._id && (
             <>
               {isEditing ? (
@@ -127,7 +125,6 @@ function ProjectHeader({
           )}
         </Box>
 
-        {/* Proje Lideri */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
           <Avatar 
             src={project.owner?.profileImage}
@@ -152,7 +149,6 @@ function ProjectHeader({
 
         <Divider sx={{ my: 3 }} />
 
-        {/* Proje Açıklaması */}
         <Typography variant="h6" sx={{ fontWeight: "600", mb: 2 }}>
           Proje Açıklaması
         </Typography>

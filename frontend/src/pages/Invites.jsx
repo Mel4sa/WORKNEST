@@ -41,7 +41,6 @@ export default function InvitesPage() {
   const { user } = useAuthStore();
   const socketRef = useRef(null);
 
-  // API çağrıları
   const fetchInvites = useCallback(async () => {
     try {
       setLoading(true);
@@ -61,7 +60,6 @@ export default function InvitesPage() {
         }
       });
       
-  // Sadece bekleyen davetleri göster
   setReceivedInvites(receivedRes.data.filter(invite => invite.status === 'pending'));
       setSentInvites(sentRes.data);
     } catch (error) {
@@ -79,7 +77,6 @@ export default function InvitesPage() {
     }
   }, [token, fetchInvites]);
 
-  // SOCKET.IO: Bağlantı ve event dinleme
   useEffect(() => {
     if (!user?._id) return;
     if (socketRef.current) return; 
@@ -107,7 +104,6 @@ export default function InvitesPage() {
 
   const handleAccept = async (inviteId) => {
     try {
-      // Optimistic UI: daveti hemen kaldır
       setReceivedInvites(prev => prev.filter(invite => invite._id !== inviteId));
       const requestData = { action: "accepted" };
       await axiosInstance.patch(`/invites/respond/${inviteId}`, 
@@ -133,7 +129,6 @@ export default function InvitesPage() {
   };
   const handleDecline = async (inviteId) => {
     try {
-      // Optimistic UI: daveti hemen kaldır
       setReceivedInvites(prev => prev.filter(invite => invite._id !== inviteId));
       await axiosInstance.patch(`/invites/respond/${inviteId}`, 
         { action: "declined" },
@@ -165,7 +160,6 @@ export default function InvitesPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Başlık Bölümü */}
       <Box sx={{ 
         mb: 4, 
         textAlign: "center",
@@ -257,7 +251,6 @@ export default function InvitesPage() {
               >
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "space-between" }}>
-                    {/* Sol Taraf - Gönderici Bilgisi */}
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
                       <Avatar 
                         src={invite.sender?.profileImage}
@@ -294,7 +287,6 @@ export default function InvitesPage() {
                       </Box>
                     </Box>
 
-                    {/* Sağ Taraf - Durum ve Aksiyon */}
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                       <Chip
                         label={
@@ -406,7 +398,6 @@ export default function InvitesPage() {
             >
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "space-between" }}>
-                  {/* Sol Taraf - Alıcı Bilgisi */}
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
                     <Avatar 
                       src={invite.receiver?.profileImage}
@@ -443,7 +434,6 @@ export default function InvitesPage() {
                     </Box>
                   </Box>
 
-                  {/* Sağ Taraf - Durum */}
                   <Chip
                     label={
                       invite.status === 'accepted' ? 'Kabul Edildi' :

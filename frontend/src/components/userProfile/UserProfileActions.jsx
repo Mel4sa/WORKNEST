@@ -35,8 +35,7 @@ function UserProfileActions({
       >
         Geri Dön
       </Button>
-
-      {/* Davet At ve Mesaj Gönder Butonları */}
+      
       <Stack spacing={2} alignItems="flex-end">
         <Button 
           variant="contained" 

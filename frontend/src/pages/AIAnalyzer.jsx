@@ -4,10 +4,8 @@ import { BrainCircuit, Loader2, Users, Target, CheckCircle, Sparkles, Send, Brie
 import ProfileSnackbar from '../components/profile/ProfileSnackbar';
 
 const AIAnalyzer = () => {
-  // Snackbar için state (Bileşenin içine taşındı)
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Kullanıcının girdi yöntemi: 'existing' (mevcut proje) veya 'custom' (yeni proje)
   const [inputType, setInputType] = useState('existing');
   const [selectedProject, setSelectedProject] = useState('');
   const [customProject, setCustomProject] = useState('');
@@ -15,10 +13,8 @@ const AIAnalyzer = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   
-  // Davet durumlarını projeId+userId bazlı tut
   const [invitedUsers, setInvitedUsers] = useState({});
 
-  // Gerçek projeler
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [projectsError, setProjectsError] = useState("");
@@ -44,32 +40,26 @@ const AIAnalyzer = () => {
     setIsAnalyzing(true);
     setResult(null);
 
-    // 1. Proje ihtiyaçlarını belirle
     let extractedSkills = [];
     if (inputType === 'existing') {
       const selected = projects.find(p => p._id === selectedProject);
-      // Artık sadece skills alanı var
       if (selected && selected.skills && selected.skills.length > 0) {
         extractedSkills = selected.skills;
       }
     } else {
-      // Yeni fikir için örnek dizi
       extractedSkills = ["React", "Node.js", "MongoDB", "TypeScript", "REST API", "UI/UX Tasarım"];
     }
 
     try {
-      // 2. Kullanıcıları çek
       const usersRes = await axiosInstance.get("/users");
       const users = usersRes.data || [];
 
-      // 3. Eşleşme algoritması
-      // Şu anki kullanıcının id'sini almak için /me endpointini kullan
       let myId = null;
       try {
         const meRes = await axiosInstance.get("/users/me");
         myId = meRes.data?._id;
-      } catch  {
-        // Kullanıcı id'si alınamazsa myId null kalır
+      } catch (e) {
+        console.warn('Could not fetch current user for excluding from results:', e);
       }
 
       const candidates = users
@@ -91,7 +81,7 @@ const AIAnalyzer = () => {
         })
         .filter(c => c.matchScore > 0)
         .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 5); // En iyi 5 adayı göster
+        .slice(0, 5);
 
       setResult({
         extractedSkills,
@@ -112,7 +102,6 @@ const AIAnalyzer = () => {
     const key = `${selectedProject}_${userId}`;
     setInvitedUsers(prev => ({ ...prev, [key]: 'loading' }));
     try {
-      // Proje ve kullanıcıya özel mesaj hazırla
       const selected = projects.find(p => p._id === selectedProject);
       const projectTitle = selected?.title || "bir proje";
       const message = `Sizi '${projectTitle}' projesini birlikte yapmak için ekibine davet ediyor!`;
@@ -133,7 +122,6 @@ const AIAnalyzer = () => {
     }
   };
 
-  // Daveti geri çekme fonksiyonu
   const handleRevokeInvite = async (userId) => {
     if (!selectedProject) return;
     const key = `${selectedProject}_${userId}`;
@@ -172,7 +160,6 @@ const AIAnalyzer = () => {
       />
       <div className="min-h-screen bg-gradient-to-br from-[#fff6f6] via-[#f4f6f8] to-[#fff6f6] p-6 md:p-12 font-sans text-black">
         <div className="max-w-6xl mx-auto space-y-10">
-          {/* Başlık */}
           <header className="flex flex-col items-center text-center space-y-4 pt-4 pb-8">
             <div className="relative">
               <div className="absolute inset-0 bg-[#a82936] blur-xl opacity-30 rounded-full"></div>
@@ -191,11 +178,9 @@ const AIAnalyzer = () => {
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Sol Panel: Proje Seçimi */}
             <div className="lg:col-span-5 bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-[0_8px_30px_rgba(107,15,26,0.06)] border border-[#a82936]/20 flex flex-col space-y-6 relative overflow-hidden h-fit">
               <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-50 -mr-20 -mt-20 pointer-events-none"></div>
 
-              {/* Tab Geçişleri */}
               <div className="relative z-10 flex space-x-2 bg-[#f4e6e8]/60 p-1.5 rounded-xl border border-[#a82936]/20">
                 <button 
                   onClick={() => setInputType('existing')}
@@ -211,7 +196,6 @@ const AIAnalyzer = () => {
                 </button>
               </div>
 
-              {/* Dinamik Girdi Alanı */}
               <div className="relative z-10 min-h-[160px]">
                 {inputType === 'existing' ? (
                   <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -272,7 +256,6 @@ const AIAnalyzer = () => {
               </button>
             </div>
 
-            {/* Sağ Panel: LLM Sonuçları ve Adaylar */}
             <div className="lg:col-span-7 bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-[0_8px_30px_rgba(107,15,26,0.06)] border border-[#6b0f1a]/10 min-h-[500px] flex flex-col relative overflow-hidden">
               
               {!result && !isAnalyzing && (
@@ -305,7 +288,6 @@ const AIAnalyzer = () => {
               {result && !isAnalyzing && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
                   
-                  {/* Çıkarılan Gereksinimler (LLM Çıktısı) */}
                   <div className="bg-[#f4e6e8]/60 border border-[#a82936]/20 p-5 rounded-2xl">
                     <p className="text-xs font-bold text-black uppercase tracking-wider mb-3 flex items-center">
                       <BrainCircuit className="w-4 h-4 mr-2" /> LLM Tarafından Çıkarılan Proje İhtiyaçları
@@ -321,7 +303,6 @@ const AIAnalyzer = () => {
 
                   <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-4"></div>
 
-                  {/* Aday Listesi */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-bold text-black">Önerilen Ekip Arkadaşları</h3>
                     
@@ -329,7 +310,6 @@ const AIAnalyzer = () => {
                       <div key={candidate.id} className="bg-white border border-[#a82936]/20 p-5 rounded-2xl shadow-sm hover:shadow-[#a82936]/10 hover:shadow-md transition-shadow">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                           
-                          {/* Aday Profili */}
                           <div className="flex items-center space-x-4">
                             {candidate.profileImage ? (
                               <img
@@ -348,7 +328,6 @@ const AIAnalyzer = () => {
                             </div>
                           </div>
 
-                          {/* Eşleşme Skoru & Buton */}
                           <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                             <div className="text-right mr-2">
                               <span className="text-2xl font-black text-[#a82936]">%{candidate.matchScore}</span>
@@ -381,7 +360,6 @@ const AIAnalyzer = () => {
                                       <Send className="w-4 h-4" />
                                     )}
                                   </button>
-                                  {/* Her zaman daveti geri çek butonunu göster, sadece aktif davet varsa aktif olsun */}
                                   <button
                                     onClick={() => handleRevokeInvite(candidate.id)}
                                     disabled={!invited || revoking}
@@ -402,7 +380,6 @@ const AIAnalyzer = () => {
                           </div>
                         </div>
 
-                        {/* Yetkinlik Detayları */}
                         <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <p className="text-xs font-semibold text-black mb-2 flex items-center">

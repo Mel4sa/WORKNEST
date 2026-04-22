@@ -25,14 +25,11 @@ const CreateProject = () => {
     description: "",
     skills: []
   });
-  // skillInput kaldırıldı, sadece Autocomplete kullanılacak
   const [allSkills, setAllSkills] = useState([]);
   React.useEffect(() => {
     axiosInstance.get("/skills").then(res => setAllSkills(res.data)).catch(() => setAllSkills([]));
   }, []);
 
-
-  // Her kelimenin ilk harfini büyük yapan fonksiyon
   function toTitleCase(str) {
     return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
   }
@@ -45,8 +42,6 @@ const CreateProject = () => {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
-
-  // handleAddSkill ve handleRemoveSkill kaldırıldı, Autocomplete ile yönetilecek
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,13 +64,11 @@ const CreateProject = () => {
       navigate("/projects");
     } catch (err) {
       let msg = err.response?.data?.message || "Proje oluşturulurken bir hata oluştu.";
-      // Otomatik düzeltme: teknoloji -> beceri
       if (msg && msg.toLowerCase().includes("teknoloji")) {
         msg = msg.replace(/teknoloji/gi, "beceri");
       }
       setError(msg);
       setShowError(true);
-      // Validation hatalarını göster
       if (err.response?.data?.errors) {
         let errors = err.response.data.errors.map(e => e.replace(/teknoloji/gi, "beceri"));
         setError(errors.join(', '));
@@ -89,7 +82,6 @@ const CreateProject = () => {
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f8fafc", py: 6, px: 2 }}>
       <Container maxWidth="lg">
-        {/* Üst Kısım */}
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 6 }}>
           <Button
             startIcon={<ArrowBackIcon />}
@@ -99,7 +91,6 @@ const CreateProject = () => {
             Projeler
           </Button>
 
-          {/* Fikrini Hayata Geçir */}
           <Typography variant="h2" sx={{ fontWeight: 800, fontSize: { xs: "2rem", md: "3rem" }, textAlign: "center", flex: 1 }}>
             Fikrini Hayata <br />
             <Box
@@ -115,14 +106,12 @@ const CreateProject = () => {
             </Box>
           </Typography>
 
-          <Box sx={{ width: 120 }} /> {/* Sağ boşluk için */}
+          <Box sx={{ width: 120 }} /> 
         </Box>
 
         <ProfileSnackbar open={showError} message={error} severity="error" onClose={() => setShowError(false)} />
 
-        {/* Form */}
         <Box component="form" onSubmit={handleSubmit}>
-          {/* Tek Kolon - Proje Detayları */}
           <Box sx={{ maxWidth: "800px", margin: "0 auto" }}>
             <Box sx={{ backgroundColor: "#fff", borderRadius: 3, p: 4, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 4 }}>Proje Detayları</Typography>
@@ -155,7 +144,6 @@ const CreateProject = () => {
                   }}
                 />
 
-                {/* Beceri Input */}
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Beceriler</Typography>
                   <Autocomplete
@@ -164,7 +152,6 @@ const CreateProject = () => {
                     options={allSkills.filter(skill => !formData.skills.includes(skill))}
                     value={[]}
                     onChange={(e, newValue) => {
-                      // Sadece yeni eklenen beceriyi al
                       const last = newValue[newValue.length - 1];
                       if (last && !formData.skills.includes(last)) {
                         setFormData(prev => ({ ...prev, skills: [...prev.skills, last] }));
@@ -218,7 +205,6 @@ const CreateProject = () => {
             </Box>
           </Box>
 
-          {/* Alt Buton */}
           <Box sx={{ mt: 6, textAlign: "center" }}>
             <Button
               type="submit"

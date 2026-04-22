@@ -11,7 +11,6 @@ import {
 
 const router = express.Router();
 
-// Tüm route'lar authentication gerektirir
 router.use(protectRoute);
 
 router.get("/", getNotifications);

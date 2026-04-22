@@ -19,7 +19,7 @@ import axiosInstance from "../lib/axios";
 function Home() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
-  const [allProjects, setAllProjects] = useState([]); // Tüm projeler
+  const [allProjects, setAllProjects] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,7 +41,6 @@ function Home() {
     }
   };
 
-  // Arama fonksiyonu
   const handleSearch = (query) => {
     setSearchQuery(query);
     if (!query.trim()) {
@@ -89,7 +88,6 @@ function Home() {
       py: { xs: 3, md: 5 }
     }}>
       <Box sx={{ maxWidth: "1200px", mx: "auto", px: { xs: 2, sm: 3, md: 4 } }}>
-        {/* Projeler Section Title */}
         <Box sx={{ 
           mb: 5,
           display: "flex",
@@ -150,7 +148,6 @@ function Home() {
 
         <ProfileSnackbar open={showError} message={error} severity="error" onClose={() => setShowError(false)} />
 
-        {/* Search Bar */}
         <Box sx={{ 
           mb: 6
         }}>
@@ -190,10 +187,8 @@ function Home() {
           />
         </Box>
 
-        {/* Projeler Listesi */}
         {projects.length > 0 ? (
           <>
-            {/* Arama sonucu bilgisi */}
             {searchQuery && (
               <Box sx={{ mb: 3, textAlign: "center" }}>
                 <Typography variant="body1" sx={{ color: "#64748b" }}>
@@ -224,7 +219,6 @@ function Home() {
                     }
                   }}
                 >
-                  {/* Avatar */}
                   <Avatar
                     src={project.owner?.profileImage}
                     sx={{
@@ -245,9 +239,7 @@ function Home() {
                     {project.owner?.fullname?.[0]}
                   </Avatar>
 
-                  {/* İçerik */}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    {/* Başlık */}
                     <Typography
                       variant="h6"
                       sx={{
@@ -260,7 +252,6 @@ function Home() {
                       {project.title}
                     </Typography>
 
-                    {/* Sahibi */}
                     <Typography
                       variant="body2"
                       sx={{
@@ -280,7 +271,6 @@ function Home() {
                       {project.owner?.fullname || "Bilinmeyen Kullanıcı"}
                     </Typography>
 
-                    {/* Açıklama */}
                     <Typography
                       variant="body2"
                       sx={{
@@ -296,7 +286,6 @@ function Home() {
                       {project.description}
                     </Typography>
 
-                    {/* Teknolojiler */}
                     {project.tags && project.tags.length > 0 && (
                       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                         {project.tags.slice(0, 4).map((tag, index) => (
@@ -332,7 +321,6 @@ function Home() {
                     )}
                   </Box>
 
-                  {/* Status */}
                   <Box sx={{ flexShrink: 0, textAlign: "right" }}>
                     <Chip
                       label={

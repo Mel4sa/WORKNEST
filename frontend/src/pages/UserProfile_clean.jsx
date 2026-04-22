@@ -26,13 +26,12 @@ function UserProfile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [projects, setProjects] = useState([]); // Current user'ın projeleri (davet için)
+  const [projects, setProjects] = useState([]);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState("");
   const [inviteMessage, setInviteMessage] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Current user'ın projelerini getir (davet için)
   const fetchUserProjects = useCallback(async () => {
     try {
       const response = await axios.get("/projects/my-projects");
@@ -62,7 +61,6 @@ function UserProfile() {
     }
   }, [userId, fetchUserProfile, fetchUserProjects]);
 
-  // Davet gönderme fonksiyonu
   const handleSendInvite = async () => {
     try {
       const inviteData = {
@@ -204,7 +202,6 @@ function UserProfile() {
         </CardContent>
       </Card>
 
-      {/* Davet Dialogu */}
       <InviteDialog
         open={inviteDialogOpen}
         onClose={() => {
@@ -221,7 +218,6 @@ function UserProfile() {
         receiverName={user.fullname}
       />
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

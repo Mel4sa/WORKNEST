@@ -3,7 +3,6 @@ import { Box, Typography, Chip, Stack } from "@mui/material";
 function UserProfileDetails({ user }) {
   return (
     <>
-      {/* Eğitim Bilgileri */}
       {(user.university || user.department) && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ 
@@ -26,7 +25,6 @@ function UserProfileDetails({ user }) {
         </Box>
       )}
 
-      {/* Hakkında */}
       {user.bio && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ 
@@ -45,7 +43,6 @@ function UserProfileDetails({ user }) {
         </Box>
       )}
 
-      {/* Yetenekler */}
       {user.skills && user.skills.length > 0 && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ 
@@ -75,7 +72,6 @@ function UserProfileDetails({ user }) {
         </Box>
       )}
 
-      {/* Üyelik Tarihi */}
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Typography variant="body2" sx={{ color: "#666" }}>
           {new Date(user.createdAt).toLocaleDateString('tr-TR', {

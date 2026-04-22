@@ -71,7 +71,7 @@ const projectSchema = new mongoose.Schema({
   },
   
 }, {
-  timestamps: true, // createdAt ve updatedAt otomatik eklenir
+  timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });

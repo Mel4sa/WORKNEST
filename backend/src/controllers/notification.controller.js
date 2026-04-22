@@ -1,6 +1,5 @@
 import Notification from "../models/notification.model.js";
 
-// Bildirim oluştur (genel helper function)
 export const createNotification = async ({
   userId,
   type,
@@ -11,9 +10,6 @@ export const createNotification = async ({
   relatedInvite = null
 }) => {
   try {
-    // Bildirim logu: kime, hangi tipte, hangi projeye, hangi kullanıcıdan
-    console.log(`🔔 Bildirim oluşturuluyor: userId=${userId}, type=${type}, title=${title}, message=${message}, relatedProject=${relatedProject}, relatedUser=${relatedUser}, relatedInvite=${relatedInvite}`);
-
     const notification = await Notification.create({
       user: userId,
       type,
@@ -24,7 +20,6 @@ export const createNotification = async ({
       relatedInvite
     });
 
-    // SOCKET.IO: Bildirim gönder
     try {
       const { default: app } = await import("../app.js");
       const io = app.get("io");
@@ -34,11 +29,9 @@ export const createNotification = async ({
     } catch (e) {
       console.error("Socket emit hatası:", e);
     }
-
-    console.log(`✅ Bildirim oluşturuldu! notificationId=${notification._id}, userId=${notification.user}, type=${notification.type}`);
     return notification;
   } catch (error) {
-    console.error('❌ Bildirim oluşturulamadı:', error);
+    console.error('Bildirim oluşturulamadı:', error);
     throw error;
   }
 };
@@ -64,12 +57,10 @@ export const getRecentNotifications = async (req, res) => {
       unreadCount
     });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Son bildirimler getirilemedi" });
   }
 };
 
-// Kullanıcının bildirimlerini getir
 export const getNotifications = async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
@@ -97,7 +88,6 @@ export const getNotifications = async (req, res) => {
       total
     });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Bildirimler getirilemedi" });
   }
 };
@@ -105,19 +95,12 @@ export const getNotifications = async (req, res) => {
 export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;
-    
-  // ...
-    
     const unreadCount = await Notification.countDocuments({ 
       user: userId, 
       isRead: false 
     });
-
-  // ...
-
     res.status(200).json({ unreadCount });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Okunmamış bildirim sayısı getirilemedi" });
   }
 };
@@ -139,12 +122,10 @@ export const markAsRead = async (req, res) => {
 
     res.status(200).json({ message: "Bildirim okundu olarak işaretlendi" });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Bildirim güncellenemedi" });
   }
 };
 
-// Tüm bildirimleri okundu olarak işaretle
 export const markAllAsRead = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -156,7 +137,6 @@ export const markAllAsRead = async (req, res) => {
 
     res.status(200).json({ message: "Tüm bildirimler okundu olarak işaretlendi" });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Bildirimler güncellenemedi" });
   }
 };
@@ -176,7 +156,6 @@ export const deleteNotification = async (req, res) => {
       return res.status(404).json({ message: "Bildirim bulunamadı" });
     }
 
-    // SOCKET.IO: Bildirim silindi event'i gönder
     try {
       const { default: app } = await import("../app.js");
       const io = app.get("io");
@@ -189,7 +168,6 @@ export const deleteNotification = async (req, res) => {
 
     res.status(200).json({ message: "Bildirim silindi" });
   } catch (error) {
-  // ...
     res.status(500).json({ message: "Bildirim silinemedi" });
   }
 };

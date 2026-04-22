@@ -22,7 +22,6 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // İsim ve soyadının her kelimesinin baş harfini büyüt
     const capitalizedFullname = fullname
       .toLowerCase()
       .split(' ')
@@ -119,12 +118,11 @@ export const forgotPassword = async (req, res) => {
 
     const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
 
-    // EmailJS ile email gönder
+    // EmailJS 
     try {
       await sendPasswordResetEmail(user.email, user.fullname, resetLink);
-      console.log("✅ Password reset email sent successfully");
     } catch (emailError) {
-      console.error("❌ Email sending failed:", emailError);
+      console.error("mail sending failed:", emailError);
     }
 
     res.status(200).json({
@@ -146,7 +144,7 @@ export const resetPassword = async (req, res) => {
   try {
     const user = await User.findOne({
       resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }, // token geçerli mi kontrol
+      resetPasswordExpires: { $gt: Date.now() }, 
     });
 
     if (!user) return res.status(400).json({ message: "Geçersiz veya süresi dolmuş token." });

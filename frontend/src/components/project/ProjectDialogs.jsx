@@ -19,7 +19,6 @@ function ProjectDialogs({
 }) {
   return (
     <>
-      {/* Silme Onay Dialog'u */}
             <Dialog 
         open={deleteDialogOpen} 
         onClose={onDeleteDialogClose}
@@ -85,7 +84,6 @@ function ProjectDialogs({
         </DialogActions>
       </Dialog>
 
-      {/* İptal Onay Dialog'u */}
       <Dialog
         open={cancelDialogOpen}
         onClose={onCancelDialogClose}

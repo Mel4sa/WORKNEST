@@ -6,10 +6,8 @@ async function updateInvitations() {
   try {
     await mongoose.connect(MONGO_URI);
 
-    // Tüm invitation'ları al
     const invitations = await Invitation.find({});
 
-    // Message alanı olmayan kayıtları güncelle
     let updatedCount = 0;
     for (const invitation of invitations) {
       if (!invitation.message) {
@@ -21,7 +19,6 @@ async function updateInvitations() {
     }
 
     
-    // Kontrol et
     const updatedInvitations = await Invitation.find({}).select('_id message');
     updatedInvitations.forEach(inv => {
     });

@@ -68,7 +68,6 @@ export default function ResetPassword() {
     }
   };
 
-  // --- Yeni link gönderme işlemi ---
   const handleResend = async () => {
     if (!email.trim()) {
       setResendMessage("Lütfen e-posta adresinizi girin.");
@@ -77,8 +76,6 @@ export default function ResetPassword() {
     }
 
     try {
-      
-      // Backend'den yeni şifre sıfırlama linki al
       const res = await axiosInstance.post(
         "/auth/resend-reset-link",
         { email: email.trim() }
@@ -88,7 +85,6 @@ export default function ResetPassword() {
       const resetLink = res.data.resetLink;
       const fullname = res.data.fullname || "Kullanıcı";
 
-      // EmailJS ile gerçek email gönder
       const templateParams = {
         to_email: email.trim(),
         to_name: fullname,

@@ -30,8 +30,6 @@ function UserProfile() {
   const [inviteMessage, setInviteMessage] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Current user'ın sahip olduğu projeleri getir (davet için)
-  // Kullanıcının lider veya üye olduğu projeleri getir
   const fetchUserProjects = useCallback(async () => {
     try {
       const response = await axios.get(`/projects/my-projects`);
@@ -92,7 +90,6 @@ function UserProfile() {
     }
   };
 
-  // Eğer kendi profilini görmeye çalışıyorsa, normal Profile sayfasına yönlendir
   useEffect(() => {
     if (currentUser && userId === currentUser._id) {
       navigate("/profile");
@@ -142,7 +139,6 @@ function UserProfile() {
       minHeight: "100vh", 
       backgroundColor: "#f8fafc"
     }}>
-      {/* Header Section */}
       <Box sx={{ 
         display: "flex", 
         justifyContent: "space-between", 
@@ -183,12 +179,10 @@ function UserProfile() {
         </Box>
       </Box>
 
-      {/* Main Content */}
       <Box sx={{
         maxWidth: "900px",
         mx: "auto"
       }}>
-        {/* Profile Header with Avatar */}
         <Box sx={{
           padding: { xs: "20px", md: "30px" },
           textAlign: "center"
@@ -221,7 +215,6 @@ function UserProfile() {
             {user.fullname}
           </Typography>
 
-          {/* Joined Date */}
           <Typography 
             variant="caption" 
             sx={{ 
@@ -250,7 +243,6 @@ function UserProfile() {
             </Typography>
           )}
 
-          {/* Social Links */}
           {((user.github && user.github.trim() !== "") || (user.linkedin && user.linkedin.trim() !== "")) ? (
             <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 2 }}>
               {user.github && user.github.trim() !== "" && (
@@ -287,9 +279,7 @@ function UserProfile() {
           ) : null}
         </Box>
 
-        {/* Profile Content */}
         <Box sx={{ p: { xs: 2, md: 3 } }}>
-          {/* Education */}
           {(user.university || user.department) ? (
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle2" sx={{ 
@@ -315,7 +305,6 @@ function UserProfile() {
             </Box>
           ) : null}
 
-          {/* Bio */}
           {user.bio ? (
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle2" sx={{ 
@@ -337,7 +326,6 @@ function UserProfile() {
             </Box>
           ) : null}
 
-          {/* Skills */}
           {user.skills && user.skills.length > 0 ? (
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle2" sx={{ 
@@ -368,7 +356,6 @@ function UserProfile() {
             </Box>
           ) : null}
 
-          {/* Kullanıcının Projeleri */}
           {projects && projects.length > 0 && (
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle2" sx={{
@@ -412,7 +399,6 @@ function UserProfile() {
         </Box>
       </Box>
 
-      {/* Davet Dialogu */}
       <InviteDialog
         open={inviteDialogOpen}
         onClose={() => {
@@ -429,7 +415,6 @@ function UserProfile() {
         onSendInvite={handleSendInvite}
       />
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

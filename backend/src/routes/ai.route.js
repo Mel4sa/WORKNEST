@@ -34,7 +34,6 @@ router.post("/analyze-project", async (req, res) => {
   }
 });
 
-// ChatBot endpoint - proje hakkında konuşmak için
 router.post("/analyze", protectRoute, async (req, res) => {
   try {
     const { projectContext, message, projectId } = req.body;
@@ -70,7 +69,6 @@ router.post("/analyze", protectRoute, async (req, res) => {
   }
 });
 
-// Kullanıcı-Proje Eşleştirme (Tek Kullanıcı)
 router.post("/match-user", protectRoute, async (req, res) => {
   try {
     const { userId, projectId } = req.body;
@@ -82,7 +80,6 @@ router.post("/match-user", protectRoute, async (req, res) => {
       });
     }
 
-    // Kullanıcı ve proje bilgilerini al
     const user = await User.findById(userId).select("fullname username skills");
     const project = await Project.findById(projectId).select("title description");
 
@@ -100,10 +97,8 @@ router.post("/match-user", protectRoute, async (req, res) => {
       });
     }
 
-    // Proje gereksinimlerini analiz et
     const projectRequirements = await analyzeProjectWithAI(project.description);
 
-    // Kullanıcı-Proje eşleştirmesini yap
     const match = await matchUserToProject(
       user.skills || [],
       projectRequirements,
@@ -132,7 +127,6 @@ router.post("/match-user", protectRoute, async (req, res) => {
   }
 });
 
-// Birden Fazla Kullanıcı-Proje Eşleştirmesi
 router.post("/match-candidates", protectRoute, async (req, res) => {
   try {
     const { projectId } = req.body;
@@ -144,7 +138,6 @@ router.post("/match-candidates", protectRoute, async (req, res) => {
       });
     }
 
-    // Proje bilgisini al
     const project = await Project.findById(projectId).select("title description");
 
     if (!project) {
@@ -154,13 +147,10 @@ router.post("/match-candidates", protectRoute, async (req, res) => {
       });
     }
 
-    // Tüm kullanıcıları al (şifreyi hariç tut)
     const users = await User.find({}, "-password").select("_id fullname username skills");
 
-    // Proje gereksinimlerini analiz et
     const projectRequirements = await analyzeProjectWithAI(project.description);
 
-    // Tüm kullanıcıları projeye eşleştir
     const matches = await matchMultipleUsersToProject(users, projectRequirements, project.title);
 
     return res.status(200).json({

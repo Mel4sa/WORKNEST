@@ -19,7 +19,6 @@ function UserProfileHeader({ user }) {
         {user.username}
       </Typography>
       
-      {/* Sosyal Medya İkonları */}
       {((user.github && user.github.trim() !== "") || (user.linkedin && user.linkedin.trim() !== "")) && (
         <Box sx={{ 
           display: "flex", 

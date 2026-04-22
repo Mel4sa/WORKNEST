@@ -1,4 +1,3 @@
-// import GlobalChatButton from "./GlobalChatButton";
 import { useState, useEffect, useRef } from "react";
 import {
   Box,
@@ -46,13 +45,11 @@ function Navbar() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   
-  // Bildirim state'leri
   const [notifications, setNotifications] = useState([]);
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const notificationOpen = Boolean(notificationAnchor);
 
-  // Mesajlar için
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
   const handleLogout = () => {
@@ -60,15 +57,12 @@ function Navbar() {
     navigate("/login");
   };
 
-  // Bildirim fonksiyonları
   const fetchNotifications = async () => {
     try {
       const response = await axiosInstance.get("/notifications", {
         params: { limit: 10 }
       });
-      // Sadece okunmamış bildirimleri göster
       setNotifications(response.data.notifications || []);
-      // Unread count'u ayrıca fetch ediyoruz
       fetchUnreadCount();
     } catch (error) {
       console.error("Bildirimler getirilemedi:", error);
@@ -77,7 +71,6 @@ function Navbar() {
 
   const fetchUnreadCount = async () => {
     try {
-      // Sadece bildirim sayısını göster, mesaj sayısını ekleme
       try {
         const notificationResponse = await axiosInstance.get("/notifications/unread-count");
         const notifCount = notificationResponse.data.unreadCount || 0;
@@ -104,7 +97,7 @@ function Navbar() {
 
   const handleNotificationClick = (event) => {
     setNotificationAnchor(event.currentTarget);
-    fetchNotifications(); // Her tıklamada güncel bildirimleri getir
+    fetchNotifications();
   };
 
   const handleNotificationClose = () => {
@@ -129,38 +122,31 @@ function Navbar() {
 
   const markAllAsRead = async () => {
     try {
-      console.log('🧹 Tüm bildirimler ve mesajlar okundu işaretleniyor...');
       await axiosInstance.patch("/notifications/mark-all-read");
-      // Bildirimleri okundu olarak işaretle
       setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
       fetchUnreadCount();
       setTimeout(() => {
         handleNotificationClose();
       }, 200);
-      console.log('✅ Tüm bildirimler okundu işaretlendi');
     } catch (error) {
-      console.error("❌ Tüm bildirimler okundu olarak işaretlenemedi:", error);
+      console.error("Tüm bildirimler okundu olarak işaretlenemedi:", error);
     }
   };
 
-  // Sayfa yüklendiğinde okunmamış bildirim sayısını getir
   useEffect(() => {
     if (user) {
       fetchUnreadCount();
       fetchUnreadMessages();
-      // Her 5 saniyede bir okunmamış sayıyı güncelle (mesajlar için daha sık)
       const interval = setInterval(() => {
         fetchUnreadCount();
         fetchUnreadMessages();
       }, 5000);
       
-      // Mesaj count değiştiğinde hemen güncelle
       const handleMessageCountChange = () => {
-        console.log('📨 Message count değişti, unread count güncelleniyor...');
         setTimeout(() => {
           fetchUnreadCount();
           fetchUnreadMessages();
-        }, 500); // Biraz gecikme ile güncelle
+        }, 500);
       };
       
       window.addEventListener('messageCountChanged', handleMessageCountChange);
@@ -172,7 +158,6 @@ function Navbar() {
     }
   }, [user]);
 
-  // Kişi arama fonksiyonu
   const searchUsers = async (query) => {
     if (!query.trim()) {
       setSearchResults([]);
@@ -194,7 +179,6 @@ function Navbar() {
     }
   };
 
-  // Arama input değişimi
   const handleSearchChange = (event, newValue) => {
     setSearchQuery(newValue);
     if (newValue) {
@@ -205,7 +189,6 @@ function Navbar() {
     }
   };
 
-  // Kullanıcı seçimi
   const handleUserSelect = (selectedUser) => {
 
     setSearchQuery("");
@@ -214,7 +197,6 @@ function Navbar() {
     navigate(`/profile/${selectedUser._id}`);
   };
 
-  // Navigation items
   const navItems = [
     { label: "Ana Sayfa", path: "/home" },
     { label: "AI Analyzer", path: "/ai-analyzer" },
@@ -257,7 +239,6 @@ function Navbar() {
         overflow: "hidden",
         boxSizing: "border-box"
       }}>
-        {/* Logo */}
         <Link to="/home" style={{ textDecoration: "none" }}>
           <Typography 
             variant="h5" 
@@ -293,7 +274,6 @@ function Navbar() {
           </Typography>
         </Link>
 
-        {/* Büyük ekran menü */}
         <Box sx={{ 
           display: { xs: "none", md: "flex" }, 
           gap: { md: 0.8, lg: 1.5 }, 
@@ -303,7 +283,6 @@ function Navbar() {
           ml: { md: 2, lg: 3 },
           mr: { md: 0.5, lg: 1 }
         }}>
-          {/* Menü butonları - Profilim hariç */}
           {navItems.filter(item => item.label !== "Profilim").map((item) => (
             <Button
               key={item.label}
@@ -328,19 +307,17 @@ function Navbar() {
           ))}
         </Box>
 
-        {/* Sağ taraf - Arama, Bildirim ve Çıkış */}
         <Box sx={{ 
           display: { xs: "none", md: "flex" }, 
           gap: { md: 2, lg: 2.5 }, 
           alignItems: "center",
           flexShrink: 0
         }}>
-          {/* Kişi Arama - sola kaydırıldı */}
           <Box sx={{ 
             position: "relative", 
             minWidth: { md: "240px", lg: "320px" }, 
             maxWidth: { md: "300px", lg: "380px" },
-            mr: { md: 2, lg: 3 } // Sola kaydırmak için sağa margin eklendi
+            mr: { md: 2, lg: 3 }
           }}>
             <Autocomplete
               freeSolo
@@ -461,7 +438,6 @@ function Navbar() {
             />
           </Box>
 
-          {/* Bildirim İkonu */}
           <IconButton
             onClick={handleNotificationClick}
             sx={{
@@ -490,7 +466,6 @@ function Navbar() {
             </Badge>
           </IconButton>
 
-          {/* Chat İkonu */}
           <IconButton
             onClick={() => navigate('/chat')}
             sx={{
@@ -521,7 +496,6 @@ function Navbar() {
             </Badge>
           </IconButton>
 
-          {/* Profilim User İkonu */}
           <IconButton
             onClick={() => navigate('/profile')}
             sx={{
@@ -540,7 +514,6 @@ function Navbar() {
             </Avatar>
           </IconButton>
 
-          {/* Çıkış Butonu */}
           {user && (
             <Button
               variant="contained"
@@ -567,7 +540,6 @@ function Navbar() {
           )}
         </Box>
 
-        {/* Küçük ekran hamburger */}
         <IconButton
           sx={{
             display: { xs: "flex", md: "none" },
@@ -583,7 +555,6 @@ function Navbar() {
           <MenuIcon />
         </IconButton>
 
-        {/* Drawer */}
         <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
           <Box sx={{ 
             width: { xs: 280, sm: 320 }, 
@@ -593,7 +564,6 @@ function Navbar() {
             display: "flex",
             flexDirection: "column"
           }}>
-            {/* Mobil Arama */}
             <Box sx={{ mb: 3 }}>
               <Autocomplete
                 freeSolo
@@ -710,7 +680,6 @@ function Navbar() {
               ))}
             </List>
 
-            {/* Çıkış Yap butonu drawer'ın altında */}
             {user && (
               <Box sx={{ mt: "auto", pt: 2 }}>
                 <Button
@@ -738,7 +707,6 @@ function Navbar() {
           </Box>
         </Drawer>
 
-        {/* Bildirim Menüsü */}
         <Menu
           anchorEl={notificationAnchor}
           open={notificationOpen}
@@ -756,13 +724,11 @@ function Navbar() {
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           onEntered={() => {
-            // Scroll to top when menu opens
             if (notificationMenuPaperRef.current) {
               notificationMenuPaperRef.current.scrollTo({ top: 0 });
             }
           }}
         >
-          {/* Başlık */}
           <Box sx={{ p: 2, borderBottom: "1px solid #e0e0e0" }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Typography variant="h6" sx={{ fontWeight: "600", color: "#333" }}>
@@ -786,7 +752,6 @@ function Navbar() {
             </Box>
           </Box>
 
-          {/* Bildirimler */}
           {notifications.filter(n => !n.isRead && n.type !== 'new_message').length === 0 ? (
             <Box sx={{ p: 3, textAlign: "center" }}>
               <Typography color="text.secondary">
@@ -874,7 +839,6 @@ function Navbar() {
             ))
           )}
 
-          {/* Alt kısım */}
           <Divider />
           <Box sx={{ p: 1, textAlign: "center" }}>
             <Button

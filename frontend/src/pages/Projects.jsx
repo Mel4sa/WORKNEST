@@ -68,7 +68,6 @@ function Projects() {
       pt: 2,
       pb: 8
     }}>
-      {/* Hero Section */}
       <Box sx={{ 
         textAlign: "center", 
         mb: 3,
@@ -91,7 +90,6 @@ function Projects() {
           Takım çalışması ve inovasyon burada başlıyor
         </Typography>
        
-        {/* Decorative Line */}
         <Box sx={{
           width: "120px",
           height: "4px",
@@ -106,7 +104,6 @@ function Projects() {
        
       </Box>
 
-      {/* Hata mesajı */}
       {error && (
         <Box sx={{ px: 3, mb: 3, maxWidth: 1200, mx: "auto" }}>
           <Alert 
@@ -121,9 +118,7 @@ function Projects() {
         </Box>
       )}
 
-      {/* Main Content Container */}
       <Box sx={{ px: 3, maxWidth: 1200, mx: "auto" }}>
-        {/* Projeler List */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {projects.map((project) => (
             <Box
@@ -147,7 +142,6 @@ function Projects() {
                 }
               }}
             >
-              {/* Proje Avatar/Icon */}
               <Box
                 sx={{
                   width: { xs: 50, md: 60 },
@@ -175,7 +169,6 @@ function Projects() {
                 </Typography>
               </Box>
 
-              {/* Mobile ve Desktop Layout Container */}
               <Box sx={{ 
                 display: "flex", 
                 flexDirection: { xs: "column", md: "row" },
@@ -184,7 +177,6 @@ function Projects() {
                 width: "100%",
                 gap: { xs: 2, md: 0 }
               }}>
-                {/* Proje Bilgileri */}
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
                   <Typography 
@@ -198,7 +190,6 @@ function Projects() {
                     {project.title}
                   </Typography>
                   
-                  {/* Status Badge */}
                   <Chip
                     label={
                       project.status === "completed" ? "Tamamlandı" :
@@ -230,7 +221,6 @@ function Projects() {
                   alignItems: { xs: "flex-start", md: "center" }, 
                   gap: { xs: 1, md: 3 }
                 }}>
-                  {/* Proje Lideri */}
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Avatar 
                       src={project.owner?.profileImage}
@@ -273,7 +263,6 @@ function Projects() {
                     </Typography>
                   </Box>
 
-                  {/* Üye Sayısı */}
                   <Typography variant="body2" sx={{ 
                     color: "#6b7280",
                     fontSize: { xs: "0.8rem", md: "0.875rem" }
@@ -283,14 +272,13 @@ function Projects() {
                         const memberUserId = member.user?._id || member._id;
                         return memberUserId !== project.owner?._id;
                       }).length || 0;
-                      const totalMembers = regularMembers + 1; // +1 proje lideri için
+                      const totalMembers = regularMembers + 1; 
                       return `${totalMembers} üye`;
                     })()}
                   </Typography>
                 </Box>
               </Box>
 
-              {/* Sağ taraf - İncele Butonu */}
               <Button
                 variant="contained"
                 onClick={(e) => {
@@ -338,7 +326,6 @@ function Projects() {
         
       </Box>
 
-      {/* Floating Action Button */}
       <Fab
         onClick={handleCreateProject}
         sx={{

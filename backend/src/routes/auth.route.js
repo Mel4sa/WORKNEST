@@ -12,7 +12,6 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 router.post("/resend-reset-link", resendResetLink);
 
-// Test endpoint
 router.get("/test-email", async (req, res) => {
   try {
     const result = await testEmailConfig();

@@ -16,11 +16,9 @@ import { protectRoute } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Public routes
 router.get("/", getAllProjects); 
 router.post("/cleanup", cleanupDeletedProjects); 
 
-// Authentication 
 router.use(protectRoute); 
 
 router.get("/my-projects", getUserProjects);

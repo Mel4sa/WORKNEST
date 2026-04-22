@@ -42,7 +42,6 @@ function ChatDialog({
     scrollToBottom();
   }, [messages]);
 
-  // Menu işlemleri
   const handleMenuOpen = (event, message) => {
     setMenuAnchor(event.currentTarget);
     setSelectedMessage(message);
@@ -53,7 +52,6 @@ function ChatDialog({
     setSelectedMessage(null);
   };
 
-  // Mesajın silinebilir olup olmadığını kontrol et (1 gün kontrolü)
   const canDeleteMessage = (message) => {
     if (!message.isMe) return false;
     const oneDayAgo = new Date();
@@ -111,7 +109,6 @@ function ChatDialog({
         display: "flex",
         flexDirection: "column"
       }}>
-        {/* Mesajlar Listesi */}
         <Box sx={{ 
           flex: 1,
           overflowY: "auto",
@@ -159,7 +156,6 @@ function ChatDialog({
                     ml: message.isMe ? "auto" : 0,
                     mr: message.isMe ? 0 : "auto"
                   }}>
-                    {/* Profil Fotoğrafı */}
                     <Avatar
                       src={message.senderAvatar}
                       sx={{
@@ -210,7 +206,6 @@ function ChatDialog({
                       </Box>
                     </Paper>
                     
-                    {/* Kendi mesajlarında menu butonu */}
                     {message.isMe && canDeleteMessage(message) && (
                       <IconButton
                         size="small"
@@ -231,8 +226,7 @@ function ChatDialog({
             </List>
           )}
         </Box>
-        
-        {/* Mesaj Gönderme Alanı */}
+
         <Box sx={{ 
           p: 2, 
           borderTop: "1px solid #eee",
@@ -296,7 +290,6 @@ function ChatDialog({
         </Box>
       </DialogContent>
 
-      {/* Mesaj Menüsü */}
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}

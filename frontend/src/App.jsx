@@ -54,7 +54,6 @@ function AppRoutes() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* Korunan sayfalar */}
           <Route element={<ProtectedRoute />}>
             <Route path="/home" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
@@ -69,13 +68,11 @@ function AppRoutes() {
             <Route path="/chat" element={<ChatPage />} />
           </Route>
 
-          {/* Public sayfalar */}
           <Route element={<PublicRoute />}>
             <Route path="/signin" element={<SignIn />} />
             <Route path="/login" element={<Login />} />
           </Route>
 
-          {/* Şifre sıfırlama route'u */}
           <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           <Route path="*" element={<Navigate to="/login" replace />} />
@@ -90,7 +87,6 @@ function App() {
   const initialize = useAuthStore((state) => state.initialize);
 
   useEffect(() => {
-    // Geliştirme aşamasında localStorage temizle (bir kere)
     const hasCleared = localStorage.getItem("dev_cleared");
     if (!hasCleared) {
       localStorage.clear();
