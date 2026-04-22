@@ -121,7 +121,7 @@ export const respondInvite = async (req, res) => {
     const { action } = req.body;
 
 
-  const invite = await Invitation.findById(inviteId).populate('project', 'title maxMembers members');
+  const invite = await Invitation.findById(inviteId).populate('project', 'title members');
     
     if (!invite) return res.status(404).json({ message: "Davet bulunamadı" });
 

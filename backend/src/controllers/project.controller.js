@@ -106,7 +106,7 @@ export const getProjectById = async (req, res) => {
 export const createProject = async (req, res) => {
   try {
     const userId = req.user._id;
-  const { title, description, skills, maxMembers, deadline, visibility, status } = req.body;
+  const { title, description, skills, deadline, visibility, status } = req.body;
 
     if (!title || !description) {
       return res.status(400).json({ 
@@ -124,7 +124,6 @@ export const createProject = async (req, res) => {
       title,
       description,
       skills,
-      maxMembers: maxMembers || 5,
       deadline: deadline ? new Date(deadline) : null,
       visibility: visibility || 'public',
       status: status || 'planned',
@@ -313,12 +312,6 @@ export const joinProject = async (req, res) => {
       return res.status(400).json({ message: "Zaten bu projenin üyesisiniz" });
     }
 
-    // Maksimum üye kontrolü
-    if (project.members.length >= project.maxMembers) {
-      return res.status(400).json({ message: "Proje maksimum üye kapasitesine ulaştı" });
-    }
-
-    // Üye olarak ekle
     project.members.push({ user: userId, role: 'member' });
     await project.save();
 

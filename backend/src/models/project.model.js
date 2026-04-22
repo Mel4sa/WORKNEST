@@ -48,12 +48,6 @@ const projectSchema = new mongoose.Schema({
     }
   }],
   
-  maxMembers: {
-    type: Number,
-    min: 2,
-    max: 10,
-    default: 5
-  },
   
   deadline: {
     type: Date
