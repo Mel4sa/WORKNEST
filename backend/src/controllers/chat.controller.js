@@ -198,7 +198,7 @@ export const editMessage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Mesaj düzenleme hatası:", error);
+    console.error("Mesaj düzenleme hatası:", error);
     res.status(500).json({
       message: "Mesaj düzenlenemedi",
       error: error.message

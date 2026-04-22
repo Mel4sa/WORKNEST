@@ -88,13 +88,27 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
       await axiosInstance.delete(`/chats/messages/${messageId}`);
       setMessages(prev => prev.filter(m => m._id !== messageId));
     } catch (err) {
-      alert('Mesaj silinemedi.');
+      let msg = 'Mesaj silinemedi.';
+      if (err.response && err.response.data && err.response.data.message) {
+        msg = err.response.data.message;
+      }
+      setSnackbar({ open: true, message: msg, severity: 'error' });
     }
     setContextMenu(null);
   };
 
   // Mesajı düzenle
   const handleEditMessage = (msg) => {
+    // 10 dakika kontrolü
+    const createdAt = new Date(msg.createdAt);
+    const now = new Date();
+    const diffMs = now - createdAt;
+    const diffMinutes = diffMs / (1000 * 60);
+    if (diffMinutes > 10) {
+      setSnackbar({ open: true, message: 'Bu mesaj 10 dakikadan eski olduğu için düzenlenemez', severity: 'error' });
+      setContextMenu(null);
+      return;
+    }
     setEditMessageId(msg._id);
     setEditMessageText(msg.content);
     setContextMenu(null);

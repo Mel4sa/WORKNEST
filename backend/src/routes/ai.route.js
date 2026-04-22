@@ -1,5 +1,4 @@
 import express from "express";
-import { analyzeProjectWithAI, chatWithAI, matchUserToProject, matchMultipleUsersToProject } from "../lib/gemini.service.js";
 import { protectRoute } from "../middleware/authMiddleware.js";
 import User from "../models/user.model.js";
 import Project from "../models/project.model.js";
