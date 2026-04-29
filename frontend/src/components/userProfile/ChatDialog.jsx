@@ -91,9 +91,7 @@ function ChatDialog({
           <Avatar src={user?.profileImage} sx={{ width: 40, height: 40 }}>
             {user?.fullname?.[0]}
           </Avatar>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            {user?.fullname}
-          </Typography>
+          <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{user?.fullname}</span>
         </Box>
         <IconButton 
           onClick={onClose}

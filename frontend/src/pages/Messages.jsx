@@ -363,9 +363,9 @@ function Messages() {
                   >
                     {partners[selectedChat.participants.find(p => p._id !== user._id)?._id]?.fullname?.charAt(0).toUpperCase()}
                   </Avatar>
-                  <Typography variant="h6">
+                  <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>
                     {partners[selectedChat.participants.find(p => p._id !== user._id)?._id]?.fullname || 'Bilinmeyen Kullanıcı'}
-                  </Typography>
+                  </span>
                 </>
               )}
             </Box>

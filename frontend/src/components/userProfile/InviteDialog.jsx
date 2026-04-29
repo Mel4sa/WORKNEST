@@ -37,11 +37,11 @@ function InviteDialog({
     >
       <DialogTitle sx={{ 
         borderBottom: "1px solid #e2e8f0",
-        pb: 2
+        pb: 2,
+        fontWeight: "700",
+        color: "#2c3e50"
       }}>
-        <Typography variant="h6" sx={{ fontWeight: "700", color: "#2c3e50" }}>
-          {user?.fullname} adlı kullanıcıyı projeye davet et
-        </Typography>
+        {user?.fullname} adlı kullanıcıyı projeye davet et
       </DialogTitle>
       
       <DialogContent sx={{ p: 3 }}>

@@ -32,7 +32,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     const success = await login(email, password);
-    if (success) navigate("/profile");
+    if (success) navigate("/");
   };
 
   const handleForgot = async () => {
