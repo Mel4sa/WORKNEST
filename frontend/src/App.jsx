@@ -85,17 +85,14 @@ function AppRoutes() {
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
-
   useEffect(() => {
     const hasCleared = localStorage.getItem("dev_cleared");
     if (!hasCleared) {
       localStorage.clear();
       localStorage.setItem("dev_cleared", "true");
     }
-    
     initialize();
   }, [initialize]);
-
   return (
     <Router>
       <AppRoutes />

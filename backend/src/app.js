@@ -1,4 +1,3 @@
-
 import dotenv from "dotenv";
 import express from "express";
 import cookieParser from 'cookie-parser';
@@ -73,5 +72,8 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server ${PORT} portunda çalışıyor (Socket.io ile)`);
+  console.log(`Server ${PORT} portunda çalışıyor (Socket.io ile)`);
 });
+
+export { app, io };
+export default app;

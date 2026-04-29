@@ -1,4 +1,5 @@
 import Notification from "../models/notification.model.js";
+import { io } from "../app.js";
 
 export const createNotification = async ({
   userId,
@@ -21,8 +22,6 @@ export const createNotification = async ({
     });
 
     try {
-      const { default: app } = await import("../app.js");
-      const io = app.get("io");
       if (io) {
         io.to(userId.toString()).emit("notification:new", { notification });
       }
@@ -157,8 +156,6 @@ export const deleteNotification = async (req, res) => {
     }
 
     try {
-      const { default: app } = await import("../app.js");
-      const io = app.get("io");
       if (io) {
         io.to(userId.toString()).emit("notification:deleted", { notificationId });
       }

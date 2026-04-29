@@ -137,6 +137,10 @@ export const respondInvite = async (req, res) => {
 
     if (action === "accepted") {
       try {
+        await Project.findByIdAndUpdate(
+          invite.project._id,
+          { $addToSet: { members: { user: req.user._id, role: 'member' } } }
+        );
       } catch (error) {
         console.error("Proje üyesi ekleme hatası:", error);
         return res.status(500).json({ 

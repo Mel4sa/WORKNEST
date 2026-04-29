@@ -376,11 +376,12 @@ export const leaveProject = async (req, res) => {
 
 export const removeMember = async (req, res) => {
   try {
+
     const { id, userId } = req.params;
+    const { reason } = req.body;
     const requesterId = req.user._id;
 
     const project = await Project.findOne({ _id: id, isActive: true });
-    
 
     if (!project) {
       return res.status(404).json({ message: "Proje bulunamadı" });
@@ -393,7 +394,7 @@ export const removeMember = async (req, res) => {
     if (userId === requesterId.toString()) {
       return res.status(400).json({ message: "Proje sahibi kendisini çıkaramaz" });
     }
-    
+
     const memberIndex = project.members.findIndex(
       member => member.user.toString() === userId
     );
@@ -403,7 +404,7 @@ export const removeMember = async (req, res) => {
     }
     const removedMember = project.members[memberIndex];
     project.members.splice(memberIndex, 1);
-    
+
     await project.save();
 
     try {
@@ -411,11 +412,12 @@ export const removeMember = async (req, res) => {
         userId: userId,
         type: 'member_left',
         title: 'Projeden Çıkarıldınız',
-        message: `"${project.title}" projesinden çıkarıldınız`,
+        message: reason
+          ? `"${project.title}" projesinden ${reason} sebebiyle çıkarıldınız. `
+          : `"${project.title}" projesinden çıkarıldınız`,
         relatedProject: project._id,
         relatedUser: requesterId
       });
-      
     } catch (notificationError) {
     }
 
