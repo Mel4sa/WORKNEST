@@ -65,7 +65,12 @@ function Home() {
   }, []);
 
   const handleProjectClick = (id) => {
-    navigate(`/projects/${id}`);
+    const target = `/projects/${id}`;
+    if (window.location.pathname === target) {
+      window.location.reload();
+    } else {
+      navigate(target);
+    }
   };
 
   if (loading) {
@@ -271,54 +276,83 @@ function Home() {
                       {project.owner?.fullname || "Bilinmeyen Kullanıcı"}
                     </Typography>
 
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#64748b",
-                        mb: 1.5,
-                        lineHeight: 1.4,
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden"
-                      }}
-                    >
-                      {project.description}
-                    </Typography>
-
-                    {project.tags && project.tags.length > 0 && (
-                      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                        {project.tags.slice(0, 4).map((tag, index) => (
-                          <Chip
-                            key={index}
-                            label={tag}
-                            size="small"
-                            sx={{
-                              height: "24px",
-                              backgroundColor: "#f1f5f9",
-                              color: "#475569",
-                              fontWeight: "500",
-                              fontSize: "0.75rem",
-                              "& .MuiChip-label": {
-                                px: 1
-                              }
-                            }}
-                          />
-                        ))}
-                        {project.tags.length > 4 && (
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "#64748b",
-                              alignSelf: "center",
-                              fontSize: "0.75rem"
-                            }}
-                          >
-                            +{project.tags.length - 4} daha
-                          </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mb: 1.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "#64748b",
+                            lineHeight: 1.4,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            mr: 1
+                          }}
+                        >
+                          {project.description.length > 100
+                            ? project.description.slice(0, 100) + "..."
+                            : project.description}
+                        </Typography>
+                        {project.tags && project.tags.length > 0 && (
+                          <>
+                            {project.tags.slice(0, 4).map((tag, index) => (
+                              <Chip
+                                key={index}
+                                label={tag}
+                                size="small"
+                                sx={{
+                                  height: "22px",
+                                  backgroundColor: "#f1f5f9",
+                                  color: "#475569",
+                                  fontWeight: "500",
+                                  fontSize: "0.72rem",
+                                  ml: 0.5
+                                }}
+                              />
+                            ))}
+                            {project.tags.length > 4 && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: "#64748b",
+                                  fontSize: "0.75rem",
+                                  ml: 0.5
+                                }}
+                              >
+                                ...
+                              </Typography>
+                            )}
+                          </>
                         )}
                       </Box>
-                    )}
+                      {project.skills && project.skills.length > 0 && (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
+                          {project.skills.slice(0, 6).map((skill, idx) => (
+                            <Chip
+                              key={idx}
+                              label={skill}
+                              size="small"
+                              sx={{
+                                height: "22px",
+                                backgroundColor: "#e0f2fe",
+                                color: "#0369a1",
+                                fontWeight: "500",
+                                fontSize: "0.72rem"
+                              }}
+                            />
+                          ))}
+                          {project.skills.length > 6 && (
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#64748b", fontSize: "0.75rem", ml: 0.5 }}
+                            >
+                              ...
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+                    </Box>
                   </Box>
 
                   <Box sx={{ flexShrink: 0, textAlign: "right" }}>
