@@ -1,3 +1,7 @@
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import React, { useEffect, useState, useCallback } from "react";
 import { TextField as MuiTextField, Chip, Autocomplete as MuiAutocomplete } from '@mui/material';
 import { useParams, useNavigate } from "react-router-dom";
@@ -48,18 +52,34 @@ function ProjectDetail() {
     skills: []
   });
 
+  
+  const [removeMemberDialog, setRemoveMemberDialog] = useState({ open: false, userId: null });
+  const [removeReason, setRemoveReason] = useState("");
+
   const [allSkills, setAllSkills] = useState([]);
   useEffect(() => {
     axiosInstance.get("/skills").then(res => setAllSkills(res.data)).catch(() => setAllSkills([]));
   }, []);
 
-  const handleRemoveMember = async (userId) => {
+  const handleRemoveMember = (userId) => {
+    setRemoveMemberDialog({ open: true, userId });
+    setRemoveReason("");
+  };
+
+  const confirmRemoveMember = async () => {
+    const userId = removeMemberDialog.userId;
+    if (!userId) return;
     try {
-      await axiosInstance.delete(`/projects/${project._id}/members/${userId}`);
+      await axiosInstance.delete(`/projects/${project._id}/members/${userId}`,
+        { data: { reason: removeReason } } // opsiyonel gerekçe
+      );
       fetchProject();
       setSuccessSnackbar({ open: true, message: "Üye başarıyla çıkarıldı!" });
     } catch (err) {
       setError(err.response?.data?.message || "Üye silinirken bir hata oluştu.");
+    } finally {
+      setRemoveMemberDialog({ open: false, userId: null });
+      setRemoveReason("");
     }
   };
 
@@ -467,6 +487,31 @@ function ProjectDetail() {
                   currentUser={user}
                   onRemoveMember={handleRemoveMember}
                 />
+                    {/* Üye çıkarma onay dialogu */}
+                    <Dialog open={removeMemberDialog.open} onClose={() => setRemoveMemberDialog({ open: false, userId: null })}>
+                      <DialogTitle>Üyeyi Çıkar</DialogTitle>
+                      <DialogContent>
+                        <Typography mb={2}>Bu üyeyi projeden çıkarmak istediğinize emin misiniz?</Typography>
+                        <TextField
+                          label="Gerekçe (opsiyonel)"
+                          fullWidth
+                          multiline
+                          minRows={2}
+                          value={removeReason}
+                          onChange={e => setRemoveReason(e.target.value)}
+                          placeholder="İsterseniz çıkarma sebebini yazabilirsiniz..."
+                          sx={{ mt: 1 }}
+                        />
+                      </DialogContent>
+                      <DialogActions>
+                        <Button onClick={() => setRemoveMemberDialog({ open: false, userId: null })}>
+                          Vazgeç
+                        </Button>
+                        <Button onClick={confirmRemoveMember} color="error" variant="contained">
+                          Evet, Çıkar
+                        </Button>
+                      </DialogActions>
+                    </Dialog>
               </Box>
             </Paper>
           </Box>

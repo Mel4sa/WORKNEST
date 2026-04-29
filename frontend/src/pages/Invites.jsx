@@ -134,7 +134,7 @@ export default function InvitesPage() {
         { action: "declined" },
         { headers: { Authorization: `Bearer ${token}` }}
       );
-      setMessage("Davet başarıyla reddedildi!");
+      setMessage("Davet reddedildi!");
       setMessageSeverity("error");
       setMessageOpen(true);
       fetchInvites(); 
