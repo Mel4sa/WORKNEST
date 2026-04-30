@@ -68,7 +68,7 @@ export default function ProfilePage() {
         setLoading(true);
         await fetchUser();
       } finally {
-        setLoading(false);
+        setLoading(false); 
       }
     };
     init();

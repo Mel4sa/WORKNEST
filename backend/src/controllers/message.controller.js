@@ -3,16 +3,23 @@ export const deleteConversation = async (req, res) => {
     const { partnerId } = req.params;
     const currentUserId = req.user._id;
 
-    const result = await Message.deleteMany({
-      $or: [
-        { sender: currentUserId, receiver: partnerId },
-        { sender: partnerId, receiver: currentUserId }
-      ]
-    });
+    // Mesajları fiziksel olarak silmiyoruz, sadece silen kişiyi listeye ekliyoruz
+    const result = await Message.updateMany(
+      {
+        $or: [
+          { sender: currentUserId, receiver: partnerId },
+          { sender: partnerId, receiver: currentUserId }
+        ],
+        deletedBy: { $ne: currentUserId } // Zaten silinmemişse ekle
+      },
+      {
+        $push: { deletedBy: currentUserId }
+      }
+    );
 
-    res.status(200).json({ success: true, deletedCount: result.deletedCount });
+    res.status(200).json({ success: true, message: 'Sohbet sizden gizlendi.' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Sohbet silinemedi', error: error.message });
+    res.status(500).json({ success: false, message: 'Sohbet gizlenemedi', error: error.message });
   }
 };
 import Message from '../models/message.model.js';
@@ -28,7 +35,8 @@ export const getMessages = async (req, res) => {
       $or: [
         { sender: currentUserId, receiver: partnerId },
         { sender: partnerId, receiver: currentUserId }
-      ]
+      ],
+      deletedBy: { $ne: currentUserId } // SİHİRLİ DOKUNUŞ: Silen kişiye gösterme
     })
     .populate('sender', 'fullname username profileImage')
     .populate('receiver', 'fullname username profileImage')
@@ -85,7 +93,8 @@ export const getConversations = async (req, res) => {
           $or: [
             { sender: currentUserId },
             { receiver: currentUserId }
-          ]
+          ],
+          deletedBy: { $ne: currentUserId } // Bu kullanıcı bu mesajı sildiyse listede sayma
         }
       },
       {

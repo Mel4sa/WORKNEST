@@ -99,7 +99,6 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
 
   // Mesajı düzenle
   const handleEditMessage = (msg) => {
-    // 10 dakika kontrolü
     const createdAt = new Date(msg.createdAt);
     const now = new Date();
     const diffMs = now - createdAt;
@@ -229,7 +228,7 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
         <Avatar src={partner.profileImage} sx={{ width: 44, height: 44 }}>{partner.fullname?.[0]}</Avatar>
         <Box>
           <Typography variant="subtitle1" fontWeight={600} lineHeight={1.2}>{partner.fullname}</Typography>
-          <Typography variant="body2" color="text.secondary">{partner.title || 'Kullanıcı'}</Typography>
+          <Typography variant="body2" color="text.secondary">{partner.title || 'Ünvan Belirtilmedi'}</Typography>
         </Box>
       </Box>
 
@@ -318,7 +317,6 @@ const ChatPanel = ({ partner, chatId, currentUser, onBack, onMessagesRead, loadi
   );
 };
 
-// ANA SAYFA BİLEŞENİ
 export default function ChatPage() {
   const user = useAuthStore((state) => state.user);
   const [selectedPartner, setSelectedPartner] = useState(null);
@@ -352,6 +350,7 @@ export default function ChatPage() {
       fetchConversations().finally(() => setLoading(false));
     }
   }, [user, fetchConversations]);
+
   useEffect(() => {
     const storedPartnerId = localStorage.getItem(PARTNER_KEY);
     if (storedPartnerId && conversations.length > 0 && !selectedPartner) {
@@ -473,7 +472,11 @@ const handleDeleteConfirm = async () => {
               {users.map((u) => (
                 <ListItem component="button" key={u._id} onClick={() => handleSelectPartner(u)} sx={{ borderRadius: 2, mb: 0.5 }}>
                   <ListItemAvatar><Avatar src={u.profileImage}>{u.fullname?.[0]}</Avatar></ListItemAvatar>
-                  <ListItemText primary={u.fullname} secondary={u.username ? `@${u.username}` : "Kullanıcı"} />
+                  <ListItemText 
+                    primary={u.fullname} 
+                    /* 1. DEĞİŞİKLİK: Arama sonuçlarında kişinin ünvanı yazıyor */
+                    secondary={u.title || "Ünvan Belirtilmedi"} 
+                  />
                 </ListItem>
               ))}
             </List>
@@ -482,7 +485,13 @@ const handleDeleteConfirm = async () => {
               {conversations.map((conv) => (
                 <ListItem component="div" key={conv.partner._id} onClick={() => handleSelectPartner(conv.partner)} selected={selectedPartner?._id === conv.partner._id} sx={{ borderRadius: 2, mb: 0.5, '&.Mui-selected': { bgcolor: 'rgba(107, 15, 26, 0.08)' }, position: 'relative', cursor: 'pointer' }}>
                   <ListItemAvatar><Avatar src={conv.partner.profileImage}>{conv.partner.fullname?.[0]}</Avatar></ListItemAvatar>
-                  <ListItemText primary={conv.partner.fullname} secondary={conv.lastMessage?.content || 'Mesaj yok'} primaryTypographyProps={{ fontWeight: conv.unreadCount > 0 ? 700 : 500 }} secondaryTypographyProps={{ noWrap: true }} />
+                  <ListItemText 
+                    primary={conv.partner.fullname} 
+                    /* 2. DEĞİŞİKLİK: Sohbet listesinde kişinin ünvanı yazıyor */
+                    secondary={conv.partner.title || 'Ünvan Belirtilmedi'} 
+                    primaryTypographyProps={{ fontWeight: conv.unreadCount > 0 ? 700 : 500 }} 
+                    secondaryTypographyProps={{ noWrap: true }} 
+                  />
                   {conv.unreadCount > 0 && <Box sx={{ bgcolor: '#e53935', color: 'white', px: 1, borderRadius: 3, fontSize: '0.75rem' }}>{conv.unreadCount}</Box>}
                   <IconButton edge="end" size="small" sx={{ ml: 1, color: '#bdbdbd', zIndex: 2 }} onClick={e => { e.stopPropagation(); handleDeleteClick(conv); }}>
                     <Delete />

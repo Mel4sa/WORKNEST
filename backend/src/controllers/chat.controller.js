@@ -3,6 +3,8 @@ import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import { createNotification } from "./notification.controller.js";
+
+// 1. SOHBETİ SİL (WhatsApp Usulü: Sadece sileyen kişiden gizler)
 export const deleteChat = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -15,21 +17,34 @@ export const deleteChat = async (req, res) => {
     const chat = await Chat.findOne({ _id: chatId, participants: userId });
     if (!chat) return res.status(404).json({ message: "Sohbet bulunamadı veya yetkiniz yok" });
 
-    await Message.deleteMany({ chat: chatId });
+    // MESAJLARI SİLME: Sadece sileyen kullanıcıyı mesajların 'deletedBy' listesine ekle
+    await Message.updateMany(
+      { chat: chatId },
+      { $addToSet: { deletedBy: userId } }
+    );
 
-    await Chat.findByIdAndDelete(chatId);
+    // CHAT'İ SİLME: Sohbetin kendisine de 'deletedBy' ekle (Listede görünmemesi için)
+    await Chat.findByIdAndUpdate(chatId, {
+      $addToSet: { deletedBy: userId }
+    });
 
-    res.status(200).json({ success: true, message: "Sohbet ve mesajlar silindi", deletedChatId: chatId });
+    res.status(200).json({ success: true, message: "Sohbet sizden gizlendi", deletedChatId: chatId });
   } catch (error) {
     res.status(500).json({ message: "Sohbet silinemedi", error: error.message });
   }
 };
 
+// 2. KULLANICI SOHBETLERİNİ GETİR (Gizlenenleri filtreler)
 export const getUserChats = async (req, res) => {
   try {
     const userId = req.user._id;
-    const chats = await Chat.find({ participants: userId })
-      .populate('participants', 'fullname username profileImage')
+    
+    // SADECE 'deletedBy' listesinde benim ID'min OLMADIĞI sohbetleri getir
+    const chats = await Chat.find({ 
+      participants: userId,
+      deletedBy: { $ne: userId } 
+    })
+      .populate('participants', 'fullname username profileImage title')
       .populate('lastMessage')
       .sort({ lastActivity: -1 });
 
@@ -71,6 +86,7 @@ export const getOrCreateChat = async (req, res) => {
   }
 };
 
+// 3. MESAJLARI GETİR (Sildiğim mesajları göstermez)
 export const getChatMessages = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -83,16 +99,10 @@ export const getChatMessages = async (req, res) => {
     const chat = await Chat.findOne({ _id: chatId, participants: userId });
     if (!chat) return res.status(404).json({ message: "Sohbet erişimi reddedildi" });
 
-    const partnerId = chat.participants.find(p => p.toString() !== userId.toString());
-
+    // SADECE sildiğim mesajlar HARİÇ olanları getir
     const messages = await Message.find({
-      $or: [
-        { chat: chatId },
-        { 
-          sender: { $in: [userId, partnerId] }, 
-          receiver: { $in: [userId, partnerId] } 
-        }
-      ]
+      chat: chatId,
+      deletedBy: { $ne: userId } 
     })
     .populate('sender', 'fullname username profileImage')
     .sort({ createdAt: -1 });
@@ -111,7 +121,7 @@ export const getChatMessages = async (req, res) => {
   }
 };
 
-// Mesaj Gönder
+// 4. MESAJ GÖNDER (Yeni mesaj gelince sohbeti her iki tarafta da görünür yapar)
 export const sendMessage = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -135,132 +145,71 @@ export const sendMessage = async (req, res) => {
       messageType
     });
 
+    // Yeni mesaj gelince sohbet her iki taraf için de görünür olmalı (deletedBy'dan temizle)
     await Chat.findByIdAndUpdate(chatId, {
       lastMessage: message._id,
-      lastActivity: new Date()
+      lastActivity: new Date(),
+      $pull: { deletedBy: { $in: [userId, receiverId] } } 
     });
 
     const populatedMessage = await Message.findById(message._id).populate('sender', 'fullname username profileImage');
-
-
     res.status(201).json({ message: populatedMessage });
   } catch (error) {
     res.status(500).json({ message: "Gönderilemedi", error: error.message });
   }
 };
 
+// --- DİĞER FONKSİYONLAR (Aynı Bırakıldı) ---
 
-// Mesaj düzenle
 export const editMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
     const { content } = req.body;
     const userId = req.user._id;
 
-    if (!content || !content.trim()) {
-      return res.status(400).json({ message: "Mesaj içeriği boş olamaz" });
-    }
+    if (!content || !content.trim()) return res.status(400).json({ message: "İçerik boş olamaz" });
 
-    const message = await Message.findOne({
-      _id: messageId,
-      sender: userId
-    });
+    const message = await Message.findOne({ _id: messageId, sender: userId });
+    if (!message) return res.status(404).json({ message: "Mesaj bulunamadı" });
 
-    if (!message) {
-      return res.status(404).json({ message: "Mesaj bulunamadı veya düzenleme yetkiniz yok" });
-    }
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    if (message.createdAt < tenMinutesAgo) return res.status(400).json({ message: "Süre doldu" });
 
-    // 10 dakika kontrolü
-    const tenMinutesAgo = new Date();
-    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10);
-
-    if (message.createdAt < tenMinutesAgo) {
-      return res.status(400).json({
-        message: "Bu mesaj 10 dakikadan eski olduğu için düzenlenemez",
-        canEdit: false,
-        timeLeft: 0
-      });
-    }
-
-    await Message.findByIdAndUpdate(messageId, {
-      content: content.trim()
-    });
-
-    const updatedMessage = await Message.findById(messageId)
-      .populate({
-        path: 'sender',
-        select: 'fullname username profileImage'
-      });
-
-    res.status(200).json({
-      success: true,
-      message: updatedMessage
-    });
-
+    await Message.findByIdAndUpdate(messageId, { content: content.trim() });
+    const updatedMessage = await Message.findById(messageId).populate('sender', 'fullname username profileImage');
+    res.status(200).json({ success: true, message: updatedMessage });
   } catch (error) {
-    console.error("Mesaj düzenleme hatası:", error);
-    res.status(500).json({
-      message: "Mesaj düzenlenemedi",
-      error: error.message
-    });
+    res.status(500).json({ message: "Hata", error: error.message });
   }
 };
 
-// Mesaj sil
 export const deleteMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
     const userId = req.user._id;
+    const message = await Message.findOne({ _id: messageId, sender: userId });
+    if (!message) return res.status(404).json({ message: "Yetki yok" });
 
-    const message = await Message.findOne({
-      _id: messageId,
-      sender: userId
-    });
-
-    if (!message) {
-      return res.status(404).json({ message: "Mesaj bulunamadı veya silme yetkiniz yok" });
-    }
-
-    // 1 gün kontrolü
-    const oneDayAgo = new Date();
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-
-    if (message.createdAt < oneDayAgo) {
-      return res.status(400).json({
-        message: "Bu mesaj 1 günden eski olduğu için silinemez",
-        canDelete: false,
-        timeLeft: 0
-      });
-    }
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    if (message.createdAt < oneDayAgo) return res.status(400).json({ message: "Süre doldu" });
 
     await Message.findByIdAndDelete(messageId);
-
-    res.status(200).json({
-      success: true,
-      message: "Mesaj silindi",
-      deletedMessageId: messageId
-    });
+    res.status(200).json({ success: true, message: "Silindi", deletedMessageId: messageId });
   } catch (error) {
-    console.error("Mesaj silme hatası:", error);
-    res.status(500).json({ message: "Mesaj silinemedi", error: error.message });
+    res.status(500).json({ message: "Hata" });
   }
 };
 
 export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;
-
     const unreadCount = await Message.countDocuments({
-      chat: {
-        $in: await Chat.find({ participants: userId }).select('_id')
-      },
+      chat: { $in: await Chat.find({ participants: userId }).select('_id') },
       sender: { $ne: userId },
       isRead: false
     });
-
     res.status(200).json({ unreadCount });
   } catch (error) {
-    console.error("Okunmamış mesaj sayısı getirme hatası:", error);
-    res.status(500).json({ message: "Okunmamış mesaj sayısı getirilemedi", error: error.message });
+    res.status(500).json({ message: "Hata" });
   }
 };

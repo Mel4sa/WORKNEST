@@ -78,13 +78,15 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
-      
     </>
   );
 }
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
+  const fetchUser = useAuthStore((state) => state.fetchUser); // Store'dan fetchUser'ı aldık
+  const token = useAuthStore((state) => state.token); // Token'ı takip ediyoruz
+
   useEffect(() => {
     const hasCleared = localStorage.getItem("dev_cleared");
     if (!hasCleared) {
@@ -93,6 +95,21 @@ function App() {
     }
     initialize();
   }, [initialize]);
+
+  // YENİ EKLENEN KISIM: Uygulama her başladığında veya token değiştiğinde kullanıcıyı sorgular
+  useEffect(() => {
+    const loadUser = async () => {
+      if (token) {
+        try {
+          await fetchUser(); // Backend'deki /users/me isteğini atar
+        } catch (error) {
+          console.error("Kullanıcı verisi yüklenirken hata oluştu:", error);
+        }
+      }
+    };
+    loadUser();
+  }, [token, fetchUser]);
+
   return (
     <Router>
       <AppRoutes />
