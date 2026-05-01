@@ -10,6 +10,7 @@ import {
   deleteChat
 } from "../controllers/chat.controller.js";
 import { protectRoute } from "../middleware/authMiddleware.js";
+import { upload } from "../lib/multer.js";
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get("/unread-count", getUnreadCount);
 router.get("/user/:userId", getOrCreateChat);
 router.get("/:chatId/messages", getChatMessages);
 
-router.post("/:chatId/messages", sendMessage);
+router.post("/:chatId/messages", upload.single('file'), sendMessage);
 
 router.put("/messages/:messageId", editMessage);
 

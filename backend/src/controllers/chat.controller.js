@@ -4,7 +4,7 @@ import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import { createNotification } from "./notification.controller.js";
 
-// 1. SOHBETİ SİL (WhatsApp Usulü: Sadece sileyen kişiden gizler)
+// 1. SOHBETİ SİL (WhatsApp Usulü: Sadece benden gizler)
 export const deleteChat = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -59,6 +59,7 @@ export const getUserChats = async (req, res) => {
   }
 };
 
+// 3. SOHBET OLUŞTUR VEYA GETİR
 export const getOrCreateChat = async (req, res) => {
   try {
     const { userId } = req.params; 
@@ -86,7 +87,7 @@ export const getOrCreateChat = async (req, res) => {
   }
 };
 
-// 3. MESAJLARI GETİR (Sildiğim mesajları göstermez)
+// 4. MESAJLARI GETİR (Sildiğim mesajları göstermez)
 export const getChatMessages = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -121,15 +122,16 @@ export const getChatMessages = async (req, res) => {
   }
 };
 
-// 4. MESAJ GÖNDER (Yeni mesaj gelince sohbeti her iki tarafta da görünür yapar)
+// 5. MESAJ GÖNDER (Yeni mesaj gelince sohbeti görünür yapar)
 export const sendMessage = async (req, res) => {
   try {
     const { chatId } = req.params;
     const { content, messageType = "text" } = req.body;
     const userId = req.user._id;
 
-    if (!content?.trim()) {
-      return res.status(400).json({ message: "İçerik boş olamaz" });
+    // 1. Validasyon: Hem mesaj boşsa hem de dosya yoksa hata ver
+    if (!content?.trim() && !req.file) {
+      return res.status(400).json({ message: "Mesaj içeriği veya dosya gerekli" });
     }
 
     const chat = await Chat.findOne({ _id: chatId, participants: userId });
@@ -137,15 +139,32 @@ export const sendMessage = async (req, res) => {
 
     const receiverId = chat.participants.find(p => p.toString() !== userId.toString());
 
-    const message = await Message.create({
+    // 2. Mesaj Verisini Hazırla
+    const messageData = {
       chat: chatId,
       sender: userId,
       receiver: receiverId,
-      content: content.trim(),
-      messageType
-    });
+      content: content?.trim() || "", // Metin varsa koy, yoksa boş bırak
+      messageType: messageType, // Varsayılan text
+    };
 
-    // Yeni mesaj gelince sohbet her iki taraf için de görünür olmalı (deletedBy'dan temizle)
+    // 3. Dosya Kontrolü: Eğer Multer bir dosya yakaladıysa veriye ekle
+    if (req.file) {
+      messageData.fileUrl = `/uploads/${req.file.filename}`; // Sunucudaki yolu
+      messageData.fileName = req.file.originalname; // Orijinal dosya adı
+      
+      // Dosya tipine göre messageType'ı otomatik belirle
+      if (req.file.mimetype.startsWith("image/")) {
+        messageData.messageType = "image";
+      } else {
+        messageData.messageType = "file";
+      }
+    }
+
+    // 4. Mesajı Kaydet
+    const message = await Message.create(messageData);
+
+    // Sohbeti güncelle (WhatsApp mantığı: silenler listesinden çıkar)
     await Chat.findByIdAndUpdate(chatId, {
       lastMessage: message._id,
       lastActivity: new Date(),
@@ -153,21 +172,20 @@ export const sendMessage = async (req, res) => {
     });
 
     const populatedMessage = await Message.findById(message._id).populate('sender', 'fullname username profileImage');
+
     res.status(201).json({ message: populatedMessage });
   } catch (error) {
     res.status(500).json({ message: "Gönderilemedi", error: error.message });
   }
 };
-
-// --- DİĞER FONKSİYONLAR (Aynı Bırakıldı) ---
-
+// 6. MESAJ DÜZENLE
 export const editMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
     const { content } = req.body;
     const userId = req.user._id;
 
-    if (!content || !content.trim()) return res.status(400).json({ message: "İçerik boş olamaz" });
+    if (!content || !content.trim()) return res.status(400).json({ message: "Mesaj içeriği boş olamaz" });
 
     const message = await Message.findOne({ _id: messageId, sender: userId });
     if (!message) return res.status(404).json({ message: "Mesaj bulunamadı" });
@@ -177,29 +195,34 @@ export const editMessage = async (req, res) => {
 
     await Message.findByIdAndUpdate(messageId, { content: content.trim() });
     const updatedMessage = await Message.findById(messageId).populate('sender', 'fullname username profileImage');
+
     res.status(200).json({ success: true, message: updatedMessage });
   } catch (error) {
-    res.status(500).json({ message: "Hata", error: error.message });
+    res.status(500).json({ message: "Düzenlenemedi", error: error.message });
   }
 };
 
+// 7. MESAJ SİL (Route'un beklediği export)
 export const deleteMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
     const userId = req.user._id;
+
     const message = await Message.findOne({ _id: messageId, sender: userId });
-    if (!message) return res.status(404).json({ message: "Yetki yok" });
+    if (!message) return res.status(404).json({ message: "Mesaj bulunamadı" });
 
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     if (message.createdAt < oneDayAgo) return res.status(400).json({ message: "Süre doldu" });
 
     await Message.findByIdAndDelete(messageId);
-    res.status(200).json({ success: true, message: "Silindi", deletedMessageId: messageId });
+
+    res.status(200).json({ success: true, message: "Mesaj silindi", deletedMessageId: messageId });
   } catch (error) {
-    res.status(500).json({ message: "Hata" });
+    res.status(500).json({ message: "Silinemedi", error: error.message });
   }
 };
 
+// 8. OKUNMAMIŞ SAYISI
 export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -210,6 +233,6 @@ export const getUnreadCount = async (req, res) => {
     });
     res.status(200).json({ unreadCount });
   } catch (error) {
-    res.status(500).json({ message: "Hata" });
+    res.status(500).json({ message: "Hata", error: error.message });
   }
 };

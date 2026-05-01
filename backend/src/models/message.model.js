@@ -19,9 +19,10 @@ const messageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: true,
+      required: false, 
       trim: true,
       maxlength: 1000,
+      default: "",
     },
     isRead: {
       type: Boolean,
@@ -32,6 +33,8 @@ const messageSchema = new mongoose.Schema(
       enum: ["text", "image", "file"],
       default: "text",
     },
+    fileUrl: { type: String, default: "" },
+    fileName: { type: String, default: "" },
     deletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   {
