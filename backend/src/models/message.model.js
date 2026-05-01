@@ -21,7 +21,6 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: false, 
       trim: true,
-      maxlength: 1000,
       default: "",
     },
     isRead: {
