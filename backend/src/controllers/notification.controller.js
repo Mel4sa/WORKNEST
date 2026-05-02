@@ -168,3 +168,34 @@ export const deleteNotification = async (req, res) => {
     res.status(500).json({ message: "Bildirim silinemedi" });
   }
 };
+
+// Tüm bildirimleri sil
+export const deleteAllNotifications = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    console.log("Silme isteği来了 - userId:", userId);
+
+    // Önce kaç bildirim var bakalım
+    const totalCount = await Notification.countDocuments({ user: userId });
+    console.log("Toplam bildirim sayısı:", totalCount);
+
+    const result = await Notification.deleteMany({ user: userId });
+    console.log("Silinen bildirim sayısı:", result.deletedCount);
+
+    try {
+      if (io) {
+        io.to(userId.toString()).emit("notification:deleted", { notificationId: null });
+      }
+    } catch (e) {
+      console.error("Socket emit hatası:", e);
+    }
+
+    res.status(200).json({ 
+      message: "Tüm bildirimler silindi",
+      deletedCount: result.deletedCount 
+    });
+  } catch (error) {
+    console.error("Silme hatası:", error);
+    res.status(500).json({ message: "Bildirimler silinemedi" });
+  }
+};
