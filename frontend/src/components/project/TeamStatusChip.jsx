@@ -21,7 +21,9 @@ export default function TeamStatusChip({ status }) {
         fontWeight: 600,
         fontSize: "0.95rem",
         px: 2,
-        height: 40
+        height: 40,
+        width: "100%",
+        borderRadius: 2
       }}
     />
   );

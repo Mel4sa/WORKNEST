@@ -15,6 +15,7 @@ import {
   Fab
 } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import axiosInstance from "../lib/axios";
 
 function Projects() {
@@ -279,6 +280,42 @@ function Projects() {
                 </Box>
               </Box>
 
+{project.lookingForMembers && (
+                <Box
+                  onClick={(e) => e.stopPropagation()}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                    px: 2.5,
+                    py: 1.5,
+                    bgcolor: "#10B981",
+                    borderRadius: "12px",
+                    border: "2px solid #059669",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    alignSelf: { xs: "center", md: "flex-start" },
+                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+                    animation: "pulse 2s infinite",
+                    "@keyframes pulse": {
+                      "0%": { boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)" },
+                      "50%": { boxShadow: "0 4px 20px rgba(16, 185, 129, 0.5)" },
+                      "100%": { boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)" }
+                    },
+                    "&:hover": {
+                      bgcolor: "#059669",
+                      transform: "scale(1.05)"
+                    },
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  <GroupAddIcon sx={{ color: "#fff", fontSize: 20 }} />
+                  <Typography variant="caption" sx={{ color: "#fff", fontWeight: 700, fontSize: { xs: "0.7rem", md: "0.75rem" }, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    ÜYE ARIYORUZ
+                  </Typography>
+                </Box>
+              )}
               <Button
                 variant="contained"
                 onClick={(e) => {

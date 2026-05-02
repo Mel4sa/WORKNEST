@@ -433,3 +433,175 @@ export const removeMember = async (req, res) => {
     res.status(500).json({ message: "Üye çıkarılamadı", error: error.message });
   }
 };
+
+// Create a new ilan for a project
+export const createIlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+    const { title, description, skills } = req.body;
+
+    const project = await Project.findOne({ _id: id, isActive: true });
+
+    if (!project) {
+      return res.status(404).json({ message: "Proje bulunamadı" });
+    }
+
+    if (project.owner.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "İlan verme yetkiniz yok" });
+    }
+
+    // Create new ilan object
+    const newIlan = {
+      title: title || 'Üye Arıyoruz',
+      description: description || '',
+      skills: skills || [],
+      isActive: true,
+      createdAt: new Date()
+    };
+
+    // Add to ilans array
+    if (!project.ilans) {
+      project.ilans = [];
+    }
+    project.ilans.push(newIlan);
+    
+    // Also update legacy field for backward compatibility
+    project.lookingForMembers = true;
+    if (skills && skills.length > 0) {
+      project.lookingForSkills = skills;
+    }
+
+    await project.save();
+
+    const updatedProject = await Project.findById(id)
+      .populate('owner', 'fullname email profileImage')
+      .populate('members.user', 'fullname email profileImage');
+
+    res.status(201).json({ 
+      message: "İlan başarıyla oluşturuldu",
+      project: updatedProject 
+    });
+  } catch (error) {
+    res.status(500).json({ message: "İlan oluşturulamadı", error: error.message });
+  }
+};
+
+// Update an existing ilan
+export const updateIlan = async (req, res) => {
+  try {
+    const { id, ilanId } = req.params;
+    const userId = req.user._id;
+    const { title, description, skills, isActive } = req.body;
+
+    const project = await Project.findOne({ _id: id, isActive: true });
+
+    if (!project) {
+      return res.status(404).json({ message: "Proje bulunamadı" });
+    }
+
+    if (project.owner.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "İlan güncelleme yetkiniz yok" });
+    }
+
+    // Find the ilan
+    const ilanIndex = project.ilans.findIndex(
+      ilan => ilan._id.toString() === ilanId
+    );
+
+    if (ilanIndex === -1) {
+      return res.status(404).json({ message: "İlan bulunamadı" });
+    }
+
+    // Update ilan fields
+    if (title !== undefined) project.ilans[ilanIndex].title = title;
+    if (description !== undefined) project.ilans[ilanIndex].description = description;
+    if (skills !== undefined) project.ilans[ilanIndex].skills = skills;
+    if (isActive !== undefined) project.ilans[ilanIndex].isActive = isActive;
+
+    // Check if any active ilans remain
+    const hasActiveIlans = project.ilans.some(ilan => ilan.isActive);
+    project.lookingForMembers = hasActiveIlans;
+
+    await project.save();
+
+    const updatedProject = await Project.findById(id)
+      .populate('owner', 'fullname email profileImage')
+      .populate('members.user', 'fullname email profileImage');
+
+    res.status(200).json({ 
+      message: "İlan başarıyla güncellendi",
+      project: updatedProject 
+    });
+  } catch (error) {
+    res.status(500).json({ message: "İlan güncellenemedi", error: error.message });
+  }
+};
+
+// Delete/deactivate an ilan
+export const deleteIlan = async (req, res) => {
+  try {
+    const { id, ilanId } = req.params;
+    const userId = req.user._id;
+
+    const project = await Project.findOne({ _id: id, isActive: true });
+
+    if (!project) {
+      return res.status(404).json({ message: "Proje bulunamadı" });
+    }
+
+    if (project.owner.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "İlan silme yetkiniz yok" });
+    }
+
+    // Find and remove the ilan
+    const ilanIndex = project.ilans.findIndex(
+      ilan => ilan._id.toString() === ilanId
+    );
+
+    if (ilanIndex === -1) {
+      return res.status(404).json({ message: "İlan bulunamadı" });
+    }
+
+    project.ilans.splice(ilanIndex, 1);
+
+    // Check if any active ilans remain
+    const hasActiveIlans = project.ilans.some(ilan => ilan.isActive);
+    project.lookingForMembers = hasActiveIlans;
+
+    await project.save();
+
+    const updatedProject = await Project.findById(id)
+      .populate('owner', 'fullname email profileImage')
+      .populate('members.user', 'fullname email profileImage');
+
+    res.status(200).json({ 
+      message: "İlan başarıyla silindi",
+      project: updatedProject 
+    });
+  } catch (error) {
+    res.status(500).json({ message: "İlan silinemedi", error: error.message });
+  }
+};
+
+// Get all ilans for a project
+export const getProjectIlans = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const project = await Project.findOne({ _id: id, isActive: true })
+      .select('ilans lookingForMembers lookingForSkills');
+
+    if (!project) {
+      return res.status(404).json({ message: "Proje bulunamadı" });
+    }
+
+    res.status(200).json({ 
+      ilans: project.ilans || [],
+      lookingForMembers: project.lookingForMembers,
+      lookingForSkills: project.lookingForSkills
+    });
+  } catch (error) {
+    res.status(500).json({ message: "İlanlar getirilemedi", error: error.message });
+  }
+};

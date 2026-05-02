@@ -53,7 +53,7 @@ const projectSchema = new mongoose.Schema({
     type: Date
   },
   
-  isActive: {
+isActive: {
     type: Boolean,
     default: true
   },
@@ -64,10 +64,65 @@ const projectSchema = new mongoose.Schema({
     default: 'public'
   },
   
+  lookingForMembers: {
+    type: Boolean,
+    default: false
+  },
+  
+lookingForSkills: [{
+    type: String,
+    trim: true
+  }],
+  
+  // Support for multiple job postings (ilans)
+  ilans: [{
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      auto: true
+    },
+    title: {
+      type: String,
+      trim: true,
+      default: 'Üye Arıyoruz'
+    },
+    description: {
+      type: String,
+      trim: true
+    },
+    skills: [{
+      type: String,
+      trim: true
+    }],
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
+});
+
+// Virtual to check if project has any active ilans
+projectSchema.virtual('hasActiveIlan').get(function() {
+  // Check legacy lookingForMembers field OR new ilans array
+  if (this.lookingForMembers) return true;
+  if (this.ilans && this.ilans.length > 0) {
+    return this.ilans.some(ilan => ilan.isActive === true);
+  }
+  return false;
+});
+
+// Virtual to get all active ilans
+projectSchema.virtual('activeIlans').get(function() {
+  if (!this.ilans) return [];
+  return this.ilans.filter(ilan => ilan.isActive === true);
 });
 
 

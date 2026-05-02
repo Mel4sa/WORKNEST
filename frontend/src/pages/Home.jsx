@@ -14,6 +14,7 @@ import {
   InputAdornment
 } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import axiosInstance from "../lib/axios";
 
 function Home() {
@@ -355,7 +356,39 @@ function Home() {
                     </Box>
                   </Box>
 
-                  <Box sx={{ flexShrink: 0, textAlign: "right" }}>
+<Box sx={{ flexShrink: 0, textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+                    {project.lookingForMembers && (
+                      <Box
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/projects/${project._id}`);
+                        }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          px: 1.5,
+                          py: 0.5,
+                          bgcolor: "#10B981",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          animation: "pulse 2s infinite",
+                          "@keyframes pulse": {
+                            "0%": { boxShadow: "0 0 0 0 rgba(16, 185, 129, 0.4)" },
+                            "70%": { boxShadow: "0 0 0 6px rgba(16, 185, 129, 0)" },
+                            "100%": { boxShadow: "0 0 0 0 rgba(16, 185, 129, 0)" }
+                          },
+                          "&:hover": {
+                            bgcolor: "#059669"
+                          }
+                        }}
+                      >
+                        <GroupAddIcon sx={{ color: "#fff", fontSize: 14 }} />
+                        <Typography variant="caption" sx={{ color: "#fff", fontWeight: 700, fontSize: "0.65rem" }}>
+                          ÜYE ARIYORUZ
+                        </Typography>
+                      </Box>
+                    )}
                     <Chip
                       label={
                         project.status === "completed" ? "Tamamlandı" :
