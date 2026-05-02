@@ -251,7 +251,15 @@ function ProjectDetail() {
                 <Typography variant="overline" sx={{ color: "#94A3B8", fontWeight: 700 }}>PROJE DETAYLARI</Typography>
                 {!isEditing && isOwner && (
                   <Stack direction="row" spacing={1}>
-                    <IconButton onClick={() => setIsEditing(true)} size="small"><EditOutlinedIcon fontSize="small" /></IconButton>
+<IconButton onClick={() => {
+                          setEditFormData({
+                            title: project.title || "",
+                            description: project.description || "",
+                            status: project.status || "planned",
+                            skills: project.skills || []
+                          });
+                          setIsEditing(true);
+                        }} size="small"><EditOutlinedIcon fontSize="small" /></IconButton>
                     <IconButton onClick={() => setDeleteDialogOpen(true)} size="small" sx={{ color: "#EF4444" }}><DeleteOutlineIcon fontSize="small" /></IconButton>
                   </Stack>
                 )}
