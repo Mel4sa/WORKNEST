@@ -365,8 +365,28 @@ export const leaveProject = async (req, res) => {
       return res.status(400).json({ message: "Bu projenin üyesi değilsiniz" });
     }
 
+    // Get user info for notification before removing
+    const leavingUser = await User.findById(userId);
+    const leavingUserName = leavingUser?.fullname || "Bir kullanıcı";
+
     project.members.splice(memberIndex, 1);
     await project.save();
+
+    // Send notification to project owner
+    if (project.owner && project.owner.toString() !== userId.toString()) {
+      try {
+        await createNotification({
+          userId: project.owner,
+          type: "member_left",
+          title: "Üye Projeden Ayrıldı",
+          message: `${leavingUserName}, '${project.title}' projenizden ayrıldı`,
+          relatedProject: project._id,
+          relatedUser: userId
+        });
+      } catch (notificationError) {
+        console.error("Bildirim gönderilemedi:", notificationError);
+      }
+    }
 
     res.status(200).json({ message: "Projeden başarıyla ayrıldınız" });
   } catch (error) {

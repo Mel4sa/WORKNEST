@@ -168,26 +168,18 @@ function Home() {
                   <SearchIcon sx={{ color: "#64748b" }} />
                 </InputAdornment>
               ),
-            }}
+}}
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: "20px",
-                backgroundColor: "#fff",
-                fontSize: "1rem",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                border: "1px solid rgba(226, 232, 240, 0.8)",
-                "&:hover": {
+                borderRadius: "25px",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                "&:hover fieldset": {
                   borderColor: "#6b0f1a",
-                  boxShadow: "0 6px 24px rgba(107, 15, 26, 0.15)"
                 },
-                "&.Mui-focused": {
+                "&.Mui-focused fieldset": {
                   borderColor: "#6b0f1a",
-                  borderWidth: "2px",
-                  boxShadow: "0 8px 32px rgba(107, 15, 26, 0.2)"
+                  borderWidth: "2px"
                 }
-              },
-              "& .MuiOutlinedInput-input": {
-                py: 2
               }
             }}
           />
