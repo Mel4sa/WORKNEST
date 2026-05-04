@@ -1,5 +1,7 @@
 import Project from "../models/project.model.js";
 import User from "../models/user.model.js";
+import cloudinary from "../lib/cloudinary.js";
+import fs from "fs";
 import { createNotification } from "./notification.controller.js";
 
 // Tüm projeleri getir (genel projeler sayfası için)
@@ -623,5 +625,101 @@ export const getProjectIlans = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "İlanlar getirilemedi", error: error.message });
+  }
+};
+
+// Add a resource/link to a project
+export const addResource = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+    const { title, url, type } = req.body;
+
+    if (!title || !url) {
+      return res.status(400).json({ message: "Başlık ve URL gereklidir" });
+    }
+
+    const project = await Project.findOne({ _id: id, isActive: true });
+
+    if (!project) {
+      return res.status(404).json({ message: "Proje bulunamadı" });
+    }
+
+    // Check if user is owner or member
+    const isOwner = project.owner.toString() === userId.toString();
+    const isMember = project.members.some(
+      member => member.user.toString() === userId.toString()
+    );
+
+    if (!isOwner && !isMember) {
+      return res.status(403).json({ message: "Bu işlemi yapma yetkiniz yok" });
+    }
+
+    const newResource = {
+      title,
+      url,
+      type: type || 'link',
+      createdAt: new Date()
+    };
+
+    if (!project.resources) {
+      project.resources = [];
+    }
+    project.resources.push(newResource);
+    
+    await project.save();
+
+    const updatedProject = await Project.findById(id)
+      .populate('owner', 'fullname email profileImage')
+      .populate('members.user', 'fullname email profileImage');
+
+    res.status(201).json({ 
+      message: "Kaynak başarıyla eklendi",
+      project: updatedProject 
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Kaynak eklenemedi", error: error.message });
+  }
+};
+
+// Delete a resource from a project
+export const deleteResource = async (req, res) => {
+  try {
+    const { id, resourceId } = req.params;
+    const userId = req.user._id;
+
+    const project = await Project.findOne({ _id: id, isActive: true });
+
+    if (!project) {
+      return res.status(404).json({ message: "Proje bulunamadı" });
+    }
+
+    // Only owner can delete resources
+    if (project.owner.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Bu işlemi yapma yetkiniz yok" });
+    }
+
+    // Find and remove the resource
+    const resourceIndex = project.resources.findIndex(
+      resource => resource._id.toString() === resourceId
+    );
+
+    if (resourceIndex === -1) {
+      return res.status(404).json({ message: "Kaynak bulunamadı" });
+    }
+
+    project.resources.splice(resourceIndex, 1);
+    await project.save();
+
+    const updatedProject = await Project.findById(id)
+      .populate('owner', 'fullname email profileImage')
+      .populate('members.user', 'fullname email profileImage');
+
+    res.status(200).json({ 
+      message: "Kaynak başarıyla silindi",
+      project: updatedProject 
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Kaynak silinemedi", error: error.message });
   }
 };

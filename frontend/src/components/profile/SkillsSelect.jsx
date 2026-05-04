@@ -22,7 +22,14 @@ import axios from "../../lib/axios";
     }, []);
 
 
-    const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+const capitalize = (str) => {
+    if (!str) return "";
+    return str
+      .split(' ')
+      .filter(word => word.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
 
     const handleAddSkill = async (event, newValue, reason) => {
       let skillToAdd = typeof newValue === 'string' ? newValue.trim() : newValue?.trim();

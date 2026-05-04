@@ -1,4 +1,4 @@
-import Dialog from '@mui/material/Dialog';
+ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -58,8 +58,12 @@ function ProjectDetail() {
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [removeReason, setRemoveReason] = useState("");
   const [allSkills, setAllSkills] = useState([]);
+<<<<<<< Updated upstream
   
   const [lookingForMembers, setLookingForMembers] = useState(false);
+=======
+const [lookingForMembers, setLookingForMembers] = useState(false);
+>>>>>>> Stashed changes
   const [lookingForSkills, setLookingForSkills] = useState([]);
   const [resources, setResources] = useState([]);
   const [newResource, setNewResource] = useState({ title: "", url: "" });
@@ -95,11 +99,20 @@ function ProjectDetail() {
     }
   }, [project]);
 
-  const handleAddResource = () => {
+const handleAddResource = async () => {
     if (newResource.title.trim() && newResource.url.trim()) {
-      setResources([...resources, { ...newResource, id: Date.now(), type: 'link' }]);
-      setNewResource({ title: "", url: "" });
-      setSuccessSnackbar({ open: true, message: "Bağlantı başarıyla eklendi!" });
+      try {
+        const response = await axiosInstance.post(`/projects/${project._id}/resources`, {
+          title: newResource.title,
+          url: newResource.url,
+          type: 'link'
+        });
+        setResources(response.data.project.resources || []);
+        setNewResource({ title: "", url: "" });
+        setSuccessSnackbar({ open: true, message: "Bağlantı başarıyla eklendi!" });
+      } catch (err) {
+        setError("Kaynak eklenemedi.");
+      }
     }
   };
 
@@ -114,7 +127,7 @@ function ProjectDetail() {
     return <LinkIcon />;
   };
 
-  const handleFileUpload = async (event) => {
+const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
     setUploading(true);
@@ -123,9 +136,29 @@ function ProjectDetail() {
     try {
       const response = await axiosInstance.post(`/projects/${project._id}/upload`, formData);
       const fileUrl = response.data.url || URL.createObjectURL(file);
+<<<<<<< Updated upstream
       setResources([...resources, { id: Date.now(), title: file.name, url: fileUrl, type: 'file' }]);
       setSuccessSnackbar({ open: true, message: "Dosya başarıyla yüklendi!" });
     } catch {
+=======
+      // Save resource to database
+      const resourceResponse = await axiosInstance.post(`/projects/${project._id}/resources`, {
+        title: file.name,
+        url: fileUrl,
+        type: 'file'
+      });
+      setResources(resourceResponse.data.project.resources || []);
+      setSuccessSnackbar({ open: true, message: "Dosya başarıyla yüklendi!" });
+    } catch {
+      // Fallback: add locally without saving to database
+      const fileUrl = URL.createObjectURL(file);
+      setResources([...resources, { 
+        _id: Date.now().toString(), 
+        title: file.name, 
+        url: fileUrl,
+        type: 'file'
+      }]);
+>>>>>>> Stashed changes
       setSuccessSnackbar({ open: true, message: "Dosya eklendi!" });
     } finally {
       setUploading(false);
@@ -133,8 +166,14 @@ function ProjectDetail() {
     }
   };
 
-  const handleRemoveResource = (resourceId) => {
-    setResources(resources.filter(r => r.id !== resourceId));
+const handleRemoveResource = async (resourceId) => {
+    try {
+      await axiosInstance.delete(`/projects/${project._id}/resources/${resourceId}`);
+      setResources(resources.filter(r => r._id !== resourceId));
+      setSuccessSnackbar({ open: true, message: "Kaynak silindi!" });
+    } catch (err) {
+      setError("Kaynak silinemedi.");
+    }
   };
 
   const handleRemoveMember = (userId) => {
@@ -152,6 +191,85 @@ function ProjectDetail() {
     }
   };
 
+<<<<<<< Updated upstream
+=======
+  const fetchProject = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(`/projects/${id}`);
+      setProject(response.data);
+    } catch {
+      setError("Proje detayı yüklenemedi. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  const handleCancelProject = async () => {
+    try {
+      await axiosInstance.put(`/projects/${id}`, { ...project, status: "cancelled" });
+      setProject(prev => ({ ...prev, status: "cancelled" }));
+      setCancelDialogOpen(false);
+      setSuccessSnackbar({ open: true, message: "Proje başarıyla iptal edildi!" });
+    } catch {
+      setError("Proje iptal edilemedi.");
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    try {
+      await axiosInstance.delete(`/projects/${project._id}`);
+      setDeleteDialogOpen(false);
+      navigate("/projects");
+    } catch (err) {
+      setError(err.response?.data?.message || "Proje silinirken hata oluştu.");
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProject();
+  }, [fetchProject]);
+
+useEffect(() => {
+    if (project) {
+      setLookingForMembers(project.lookingForMembers || false);
+      setLookingForSkills(project.lookingForSkills || []);
+      setResources(project.resources || []);
+    }
+  }, [project]);
+
+function capitalizeWords(str) {
+    if (!str) return "";
+    return str
+      .split(' ')
+      .filter(word => word.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+const saveSkillToDatabase = async (skillNames) => {
+    try {
+      const skillsToSave = Array.isArray(skillNames) ? skillNames : [skillNames];
+      await Promise.all(skillsToSave.map(skill => axiosInstance.post("/skills", { name: skill })));
+      const res = await axiosInstance.get("/skills");
+      setAllSkills(res.data);
+    } catch (err) {
+      console.error("Skill could not be saved:", err);
+    }
+  };
+
+  const handleEditClick = () => {
+    setEditFormData({
+      title: capitalizeWords(project.title),
+      description: project.description || "",
+      status: project.status || "planned",
+      skills: project.skills || []
+    });
+    setIsEditing(true);
+  };
+
+>>>>>>> Stashed changes
   const handleEditSave = async () => {
     if (!editFormData.title.trim() || !editFormData.description.trim() || !editFormData.skills?.length) {
       setError("Lütfen tüm alanları doldurun.");
@@ -267,9 +385,25 @@ function ProjectDetail() {
                     <MenuItem value="on_hold">Beklemede</MenuItem>
                     <MenuItem value="completed">Bitti</MenuItem>
                   </Select>
+<<<<<<< Updated upstream
                   <MuiAutocomplete multiple options={allSkills} value={editFormData.skills} onChange={(e, v) => setEditFormData({...editFormData, skills: v})} renderInput={(p) => <MuiTextField {...p} label="Beceriler" />} />
                   <Stack direction="row" spacing={2}>
                     <Button fullWidth variant="outlined" onClick={() => setIsEditing(false)}>İptal</Button>
+=======
+<MuiAutocomplete multiple freeSolo options={allSkills} value={editFormData.skills} onChange={async (e, v) => {
+                const formattedSkills = v.map(skill => capitalizeWords(skill));
+                for (const skill of formattedSkills) {
+                  if (!allSkills.includes(skill)) {
+                    await saveSkillToDatabase(skill);
+                  }
+                }
+                setEditFormData(f => ({ ...f, skills: formattedSkills }));
+              }}
+                    renderTags={(v, p) => v.map((opt, i) => <Chip variant="outlined" label={opt} {...p({ index: i })} />)}
+                    renderInput={(p) => <MuiTextField {...p} label="Beceriler" />} />
+                  <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
+                    <Button fullWidth variant="outlined" onClick={() => setIsEditing(false)} sx={{ color: "#64748B" }}>İptal</Button>
+>>>>>>> Stashed changes
                     <Button fullWidth variant="contained" onClick={handleEditSave} sx={{ bgcolor: "#0F172A" }}>Kaydet</Button>
                   </Stack>
                 </Stack>
@@ -296,17 +430,142 @@ function ProjectDetail() {
                     <Button fullWidth variant="outlined" startIcon={<AddIcon />} onClick={() => setShowNewIlanForm(true)}>Yeni İlan Ekle</Button>
                   ) : (
                     <Stack spacing={2}>
+<<<<<<< Updated upstream
                       <TextField fullWidth label="İlan Başlığı" value={newIlanTitle} onChange={e => setNewIlanTitle(e.target.value)} />
                       <TextField fullWidth multiline rows={2} label="Açıklama" value={newIlanDescription} onChange={e => setNewIlanDescription(e.target.value)} />
                       <MuiAutocomplete multiple options={allSkills} value={newIlanSkills} onChange={(e, v) => setNewIlanSkills(v)} renderInput={(p) => <MuiTextField {...p} label="Aranan Beceriler" />} />
                       <Stack direction="row" spacing={1}>
                         <Button fullWidth variant="outlined" onClick={() => setShowNewIlanForm(false)}>İptal</Button>
                         <Button fullWidth variant="contained" sx={{ bgcolor: "#10B981" }} onClick={handleCreateIlan}>Yayınla</Button>
+=======
+<MuiAutocomplete 
+                        multiple 
+                        freeSolo 
+                        options={allSkills} 
+                        value={newIlanSkills}
+                        onChange={async (e, v) => {
+                          const formattedSkills = v.map(skill => capitalizeWords(skill));
+                          for (const skill of formattedSkills) {
+                            if (!allSkills.includes(skill)) {
+                              await saveSkillToDatabase(skill);
+                            }
+                          }
+                          setNewIlanSkills(formattedSkills);
+                        }}
+                        renderTags={(v, p) => v.map((opt, i) => <Chip variant="outlined" label={opt} {...p({ index: i })} />)}
+                        renderInput={(p) => <MuiTextField {...p} label="Aranan Beceriler" />} 
+                      />
+                      <Stack direction="row" spacing={2}>
+                        <Button 
+                          fullWidth 
+                          variant="outlined" 
+                          onClick={() => {
+setShowNewIlanForm(false);
+                            setNewIlanTitle("");
+                            setNewIlanDescription("");
+                            setNewIlanSkills([]);
+                          }}
+                          sx={{ color: "#64748B" }}
+                        >
+                          İptal
+                        </Button>
+                        <Button 
+                          fullWidth 
+                          variant="contained" 
+                          startIcon={<AddIcon />}
+disabled={!newIlanSkills?.length}
+                          onClick={async () => {
+                            if (!newIlanSkills?.length) {
+                              setError("Lütfen en az bir beceri seçin.");
+                              return;
+                            }
+                            try {
+                              await axiosInstance.post(`/projects/${project._id}/ilans`, {
+                                title: newIlanTitle || "Üye Arıyoruz",
+                                description: newIlanDescription,
+                                skills: newIlanSkills
+                              });
+                              fetchProject();
+                              setNewIlanTitle("");
+                              setNewIlanDescription("");
+                              setNewIlanSkills([]);
+                              setShowNewIlanForm(false);
+                              setSuccessSnackbar({ open: true, message: "İlan yayında!" });
+                            } catch {
+                              setError("İlan oluşturulamadı.");
+                            }
+                          }}
+                          sx={{ 
+                            bgcolor: "#10B981", 
+                            "&:hover": { bgcolor: "#059669" }
+                          }}
+                        >
+                          İlan Yayınla
+                        </Button>
+>>>>>>> Stashed changes
                       </Stack>
                     </Stack>
                   )}
                 </Stack>
               )}
+<<<<<<< Updated upstream
+=======
+
+              {/* Legacy toggle for backward compatibility - if no ilans array */}
+              {(!project.ilans || project.ilans.length === 0) && user && project.owner && user._id === project.owner._id && (
+                <Stack spacing={2}>
+<MuiAutocomplete 
+                    multiple 
+                    freeSolo 
+                    options={allSkills} 
+                    value={lookingForSkills} 
+                    onChange={async (e, v) => {
+                      const formattedSkills = v.map(skill => capitalizeWords(skill));
+                      for (const skill of formattedSkills) {
+                        if (!allSkills.includes(skill)) {
+                          await saveSkillToDatabase(skill);
+                        }
+                      }
+                      setLookingForSkills(formattedSkills);
+                    }}
+                    renderTags={(v, p) => v.map((opt, i) => <Chip variant="outlined" label={opt} {...p({ index: i })} />)}
+                    renderInput={(p) => <MuiTextField {...p} label="Aranan Beceriler" />} 
+                  />
+                  <Button 
+                    fullWidth 
+                    variant={lookingForMembers ? "outlined" : "contained"} 
+                    startIcon={<GroupAddIcon />}
+                    onClick={async () => {
+                      if (!lookingForSkills?.length) {
+                        setError("Lütfen en az bir beceri seçin.");
+                        return;
+                      }
+                      try {
+                        await axiosInstance.put(`/projects/${project._id}`, {
+                          lookingForMembers: !lookingForMembers,
+                          lookingForSkills: lookingForSkills
+                        });
+                        setProject(prev => ({ ...prev, lookingForMembers: !lookingForMembers, lookingForSkills: lookingForSkills }));
+                        setLookingForMembers(!lookingForMembers);
+                        setSuccessSnackbar({ open: true, message: !lookingForMembers ? "İlan yayında!" : "İlan kapatıldı!" });
+                      } catch {
+                        setError("İlan güncellenemedi.");
+                      }
+                    }}
+                    sx={{ 
+                      bgcolor: lookingForMembers ? "transparent" : "#10B981", 
+                      color: lookingForMembers ? "#10B981" : "#fff",
+                      borderColor: "#10B981",
+                      fontWeight: 600,
+                      py: 1,
+                      "&:hover": { bgcolor: lookingForMembers ? "#ECFDF5" : "#059669" }
+                    }}
+                  >
+                    {lookingForMembers ? "İlanı Kapat" : "İlanı Yayınla"}
+                  </Button>
+                </Stack>
+              )}
+>>>>>>> Stashed changes
             </Paper>
           </Box>
 
@@ -327,6 +586,7 @@ function ProjectDetail() {
               <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: "1px solid #E2E8F0", bgcolor: "#FFFFFF" }}>
                 <Typography variant="overline" sx={{ color: "#94A3B8", fontWeight: 700, mb: 2, display: 'block' }}>KAYNAKLAR ve DOSYALAR</Typography>
                 <Stack spacing={2}>
+<<<<<<< Updated upstream
                   <Stack direction="row" spacing={1}>
                     <TextField size="small" placeholder="Başlık" value={newResource.title} onChange={e => setNewResource({...newResource, title: e.target.value})} />
                     <TextField size="small" fullWidth placeholder="URL" value={newResource.url} onChange={e => setNewResource({...newResource, url: e.target.value})} />
@@ -353,6 +613,55 @@ function ProjectDetail() {
                       </Box>
                     ))}
                   </Stack>
+=======
+                  {resources.length === 0 && (
+                    <Box sx={{ textAlign: 'center', py: 4, px: 2, borderRadius: 3, bgcolor: "#F8FAFC", border: "2px dashed #E2E8F0" }}>
+                      <Typography variant="body2" sx={{ color: "#94A3B8", fontWeight: 500 }}>Henüz kaynak eklenmedi</Typography>
+                      <Typography variant="caption" sx={{ color: "#CBD5E1", display: 'block', mt: 0.5 }}>Yukarıdaki alanları kullanarak bağlantı veya dosya ekleyebilirsiniz</Typography>
+                    </Box>
+                  )}
+{resources.map(res => (
+                    <Box key={res._id || res.id} sx={{
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "space-between", 
+                      p: 2, 
+                      borderRadius: 3, 
+                      border: "1px solid #E2E8F0", 
+                      bgcolor: "#FFFFFF",
+                      transition: "all 0.2s ease",
+                      "&:hover": { 
+                        bgcolor: "#F8FAFC",
+                        borderColor: "#CBD5E1",
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+                      } 
+                    }}>
+                      <Stack direction="row" spacing={2} alignItems="center" component="a" href={res.url} target="_blank" sx={{ textDecoration: "none", color: "inherit", flex: 1 }}>
+                        <Box sx={{ 
+                          bgcolor: res.type === 'file' ? "#EEF2FF" : "#F0FDF4", 
+                          p: 1.5, 
+                          borderRadius: 2, 
+                          display: "flex",
+                          color: res.type === 'file' ? "#4F46E5" : "#16A34A"
+                        }}>
+                          {getResourceIcon(res)}
+                        </Box>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1E293B" }}>{res.title}</Typography>
+                          <Typography variant="caption" sx={{ color: "#94A3B8" }}>
+                            {res.type === 'file' ? 'Dosya' : res.url?.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}
+                          </Typography>
+                        </Box>
+                      </Stack>
+{(user && project.owner && (user._id === project.owner._id || project.members?.some(m => (m.user?._id || m._id) === user._id))) && (
+                        <IconButton size="small" onClick={() => handleRemoveResource(res._id || res.id)} sx={{ color: "#CBD5E1", "&:hover": { color: "#EF4444", bgcolor: "#FEE2E2" } }}>
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Box>
+                  ))}
+>>>>>>> Stashed changes
                 </Stack>
               </Paper>
             )}

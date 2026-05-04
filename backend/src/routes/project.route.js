@@ -14,9 +14,13 @@ import {
   createIlan,
   updateIlan,
   deleteIlan,
-  getProjectIlans
+  getProjectIlans,
+  addResource,
+  deleteResource,
+  uploadResource
 } from "../controllers/project.controller.js";
 import { protectRoute } from "../middleware/authMiddleware.js";
+import { upload } from "../lib/multer.js";
 
 const router = express.Router();
 
@@ -40,5 +44,9 @@ router.get("/:id/ilans", getProjectIlans);
 router.post("/:id/ilans", createIlan);
 router.put("/:id/ilans/:ilanId", updateIlan);
 router.delete("/:id/ilans/:ilanId", deleteIlan);
+
+// Resource management routes
+router.post("/:id/resources", addResource);
+router.delete("/:id/resources/:resourceId", deleteResource);
 
 export default router;
