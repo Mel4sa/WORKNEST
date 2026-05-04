@@ -31,13 +31,15 @@ const capitalize = (str) => {
       .join(' ');
   };
 
-    const handleAddSkill = async (event, newValue, reason) => {
+    const handleAddSkill = async (event, newValue) => {
       let skillToAdd = typeof newValue === 'string' ? newValue.trim() : newValue?.trim();
       if (skillToAdd) skillToAdd = capitalize(skillToAdd);
       if (skillToAdd && !skills.includes(skillToAdd)) {
         try {
           await axios.post('skills', { name: skillToAdd });
-        } catch (err) {}
+        } catch (err) {
+          console.error("Skill ekleme hatası:", err);
+        }
         onChange([...skills, skillToAdd]);
         setAllSkills((prev) => prev.includes(skillToAdd) ? prev : [...prev, skillToAdd]);
       }
@@ -56,7 +58,9 @@ const capitalize = (str) => {
         if (skillToAdd && !skills.includes(skillToAdd)) {
           try {
             await axios.post('skills', { name: skillToAdd });
-          } catch (err) {}
+          } catch (err) {
+            console.error("Skill ekleme hatası:", err);
+          }
           onChange([...skills, skillToAdd]);
           setAllSkills((prev) => prev.includes(skillToAdd) ? prev : [...prev, skillToAdd]);
         }

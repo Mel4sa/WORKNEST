@@ -628,19 +628,56 @@ export const getProjectIlans = async (req, res) => {
   }
 };
 
-// Add a resource/link to a project
 export const addResource = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
-    const { title, url, type } = req.body;
+    let { title, url, type } = req.body;
+    let resourceUrl = url;
+    let fileExt = '';
+    let newResourceType = 'link';
 
-    if (!title || !url) {
+    // Eğer dosya varsa önce Cloudinary'e yükle
+    if (req.file) {
+      fileExt = (req.file.originalname || '').split('.').pop().toLowerCase();
+      let cloudinaryResourceType = 'auto';
+      if (fileExt === 'pdf') {
+        cloudinaryResourceType = 'raw';
+      }
+      const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'project_resources',
+        resource_type: cloudinaryResourceType,
+        type: 'upload'
+      });
+      resourceUrl = uploadResult.secure_url;
+      // Dosya uzantısına göre resourceType kesin atanıyor
+      if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(fileExt)) {
+        newResourceType = 'image';
+      } else if (["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar", "7z", "txt", "rtf"].includes(fileExt)) {
+        newResourceType = 'file';
+      } else {
+        newResourceType = 'file';
+      }
+      if (req.file.path && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } else {
+      // Dosya yoksa, başlıktan uzantı kontrolü
+      fileExt = (title || '').split('.').pop().toLowerCase();
+      if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(fileExt)) {
+        newResourceType = 'image';
+      } else if (["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar", "7z", "txt", "rtf"].includes(fileExt)) {
+        newResourceType = 'file';
+      } else if (!fileExt && resourceUrl && resourceUrl.startsWith('http')) {
+        newResourceType = 'link';
+      }
+    }
+
+    if (!title || !resourceUrl) {
       return res.status(400).json({ message: "Başlık ve URL gereklidir" });
     }
 
     const project = await Project.findOne({ _id: id, isActive: true });
-
     if (!project) {
       return res.status(404).json({ message: "Proje bulunamadı" });
     }
@@ -650,23 +687,20 @@ export const addResource = async (req, res) => {
     const isMember = project.members.some(
       member => member.user.toString() === userId.toString()
     );
-
     if (!isOwner && !isMember) {
       return res.status(403).json({ message: "Bu işlemi yapma yetkiniz yok" });
     }
 
     const newResource = {
       title,
-      url,
-      type: type || 'link',
+      url: resourceUrl,
+      type: newResourceType,
       createdAt: new Date()
     };
-
     if (!project.resources) {
       project.resources = [];
     }
     project.resources.push(newResource);
-    
     await project.save();
 
     const updatedProject = await Project.findById(id)
@@ -679,6 +713,44 @@ export const addResource = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Kaynak eklenemedi", error: error.message });
+  }
+};
+
+// Update existing resources with correct type
+export const updateResourceTypes = async (req, res) => {
+  try {
+    const projects = await Project.find({ isActive: true });
+    let updatedCount = 0;
+
+    for (const project of projects) {
+      if (project.resources && project.resources.length > 0) {
+        project.resources = project.resources.map(resource => {
+          const title = resource.title || '';
+          const ext = title.split('.').pop().toLowerCase();
+          
+          let newType = 'link';
+          if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) {
+            newType = 'image';
+          } else if (["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar", "7z", "txt", "rtf"].includes(ext)) {
+            newType = 'file';
+          }
+          
+          if (resource.type !== newType) {
+            resource.type = newType;
+            updatedCount++;
+          }
+          return resource;
+        });
+        await project.save();
+      }
+    }
+
+    res.status(200).json({ 
+      message: `${updatedCount} kaynak başarıyla güncellendi`,
+      updatedCount 
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Kaynaklar güncellenemedi", error: error.message });
   }
 };
 

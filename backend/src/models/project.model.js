@@ -121,7 +121,7 @@ lookingForSkills: [{
     },
     type: {
       type: String,
-      enum: ['link', 'file'],
+      enum: ['link', 'file', 'image'],
       default: 'link'
     },
     createdAt: {

@@ -41,6 +41,8 @@ import ProjectDialogs from "../components/project/ProjectDialogs";
 import TeamStatusChip from "../components/project/TeamStatusChip";
 
 function ProjectDetail() {
+  const [allSkills, setAllSkills] = useState([]);
+  const [removeReason, setRemoveReason] = useState("");
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
@@ -56,20 +58,9 @@ function ProjectDetail() {
 
   const [removeMemberDialog, setRemoveMemberDialog] = useState({ open: false, userId: null });
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
-  const [removeReason, setRemoveReason] = useState("");
-  const [allSkills, setAllSkills] = useState([]);
-<<<<<<< Updated upstream
-  
-<<<<<<< HEAD
   const [lookingForMembers, setLookingForMembers] = useState(false);
-=======
-const [lookingForMembers, setLookingForMembers] = useState(false);
->>>>>>> Stashed changes
   const [lookingForSkills, setLookingForSkills] = useState([]);
   const [resources, setResources] = useState([]);
-=======
-const [resources, setResources] = useState([]);
->>>>>>> d0068bed8d4934e6eba2971e9ccc161ee62145d8
   const [newResource, setNewResource] = useState({ title: "", url: "" });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -80,28 +71,28 @@ const [resources, setResources] = useState([]);
   const [showNewIlanForm, setShowNewIlanForm] = useState(false);
   const [ilans, setIlans] = useState([]);
 
-  const fetchProject = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await axiosInstance.get(`/projects/${id}`);
-      setProject(response.data);
-    } catch {
-      setError("Proje detayı yüklenemedi.");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    axiosInstance.get("/skills").then(res => setAllSkills(res.data)).catch(() => setAllSkills([]));
-    fetchProject();
-  }, [fetchProject]);
+const fetchProject = useCallback(async () => {
+  try {
+    setLoading(true);
+    const response = await axiosInstance.get(`/projects/${id}`);
+    setProject(response.data);
+  } catch {
+    setError("Proje detayı yüklenemedi.");
+  } finally {
+    setLoading(false);
+  }
+}, [id]);
 
 useEffect(() => {
-    if (project) {
-      setIlans(project.ilans || []);
-    }
-  }, [project]);
+  axiosInstance.get("/skills").then(res => setAllSkills(res.data)).catch(() => setAllSkills([]));
+  fetchProject();
+}, [fetchProject]);
+
+useEffect(() => {
+  if (project) {
+    setIlans(project.ilans || []);
+  }
+}, [project]);
 
 const handleAddResource = async () => {
     if (newResource.title.trim() && newResource.url.trim()) {
@@ -114,68 +105,55 @@ const handleAddResource = async () => {
         setResources(response.data.project.resources || []);
         setNewResource({ title: "", url: "" });
         setSuccessSnackbar({ open: true, message: "Bağlantı başarıyla eklendi!" });
-      } catch (err) {
+      } catch {
         setError("Kaynak eklenemedi.");
       }
     }
   };
 
   const getResourceIcon = (res) => {
-    if (res.type === 'file') {
-      const ext = res.title?.split('.').pop()?.toLowerCase();
-      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return <ImageIcon />;
-      if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return <FolderZipIcon />;
-      if (['doc', 'docx', 'pdf', 'txt', 'rtf'].includes(ext)) return <DescriptionIcon />;
-      return <InsertDriveFileIcon />;
+    // Başlıktan extension'ı al
+    const ext = res.title?.split('.').pop()?.toLowerCase();
+    
+    if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) {
+      return <ImageIcon />;
+    } else if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) {
+      return <FolderZipIcon />;
+    } else if (["pdf", "doc", "docx", "xls", "xlsx", "txt", "rtf"].includes(ext)) {
+      return <DescriptionIcon />;
+    } else if (res.type === 'link' || (res.url && res.url.startsWith('http'))) {
+      return <LinkIcon />;
     }
-    return <LinkIcon />;
+    return <InsertDriveFileIcon />;
   };
 
 const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const response = await axiosInstance.post(`/projects/${project._id}/upload`, formData);
-      const fileUrl = response.data.url || URL.createObjectURL(file);
-<<<<<<< Updated upstream
-      setResources([...resources, { id: Date.now(), title: file.name, url: fileUrl, type: 'file' }]);
-      setSuccessSnackbar({ open: true, message: "Dosya başarıyla yüklendi!" });
-    } catch {
-=======
-      // Save resource to database
-      const resourceResponse = await axiosInstance.post(`/projects/${project._id}/resources`, {
-        title: file.name,
-        url: fileUrl,
-        type: 'file'
-      });
-      setResources(resourceResponse.data.project.resources || []);
-      setSuccessSnackbar({ open: true, message: "Dosya başarıyla yüklendi!" });
-    } catch {
-      // Fallback: add locally without saving to database
-      const fileUrl = URL.createObjectURL(file);
-      setResources([...resources, { 
-        _id: Date.now().toString(), 
-        title: file.name, 
-        url: fileUrl,
-        type: 'file'
-      }]);
->>>>>>> Stashed changes
-      setSuccessSnackbar({ open: true, message: "Dosya eklendi!" });
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
+  const file = event.target.files[0];
+  if (!file) return;
+  setUploading(true);
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('title', file.name);
+  try {
+    // Artık doğrudan /resources endpoint'ine gönderiyoruz
+    const response = await axiosInstance.post(`/projects/${project._id}/resources`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    setResources(response.data.project.resources || []);
+    setSuccessSnackbar({ open: true, message: "Dosya başarıyla yüklendi!" });
+  } catch {
+    setError("Dosya yüklenemedi.");
+  }
+  setUploading(false);
+  if (fileInputRef.current) fileInputRef.current.value = "";
+};
 
 const handleRemoveResource = async (resourceId) => {
     try {
       await axiosInstance.delete(`/projects/${project._id}/resources/${resourceId}`);
       setResources(resources.filter(r => r._id !== resourceId));
       setSuccessSnackbar({ open: true, message: "Kaynak silindi!" });
-    } catch (err) {
+    } catch {
       setError("Kaynak silinemedi.");
     }
   };
@@ -195,41 +173,7 @@ const handleRemoveResource = async (resourceId) => {
     }
   };
 
-<<<<<<< Updated upstream
-=======
-  const fetchProject = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await axiosInstance.get(`/projects/${id}`);
-      setProject(response.data);
-    } catch {
-      setError("Proje detayı yüklenemedi. Lütfen tekrar deneyin.");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  const handleCancelProject = async () => {
-    try {
-      await axiosInstance.put(`/projects/${id}`, { ...project, status: "cancelled" });
-      setProject(prev => ({ ...prev, status: "cancelled" }));
-      setCancelDialogOpen(false);
-      setSuccessSnackbar({ open: true, message: "Proje başarıyla iptal edildi!" });
-    } catch {
-      setError("Proje iptal edilemedi.");
-    }
-  };
-
-  const handleDeleteProject = async () => {
-    try {
-      await axiosInstance.delete(`/projects/${project._id}`);
-      setDeleteDialogOpen(false);
-      navigate("/projects");
-    } catch (err) {
-      setError(err.response?.data?.message || "Proje silinirken hata oluştu.");
-      setDeleteDialogOpen(false);
-    }
-  };
+  // (duplicate handleCancelProject and handleDeleteProject removed)
 
   useEffect(() => {
     fetchProject();
@@ -263,17 +207,7 @@ const saveSkillToDatabase = async (skillNames) => {
     }
   };
 
-  const handleEditClick = () => {
-    setEditFormData({
-      title: capitalizeWords(project.title),
-      description: project.description || "",
-      status: project.status || "planned",
-      skills: project.skills || []
-    });
-    setIsEditing(true);
-  };
 
->>>>>>> Stashed changes
   const handleEditSave = async () => {
     if (!editFormData.title.trim() || !editFormData.description.trim() || !editFormData.skills?.length) {
       setError("Lütfen tüm alanları doldurun.");
@@ -310,27 +244,6 @@ const saveSkillToDatabase = async (skillNames) => {
     }
   };
 
-const handleCreateIlan = async () => {
-    if (!newIlanSkills.length) {
-      setError("Lütfen en az bir beceri seçin.");
-      return;
-    }
-    try {
-      await axiosInstance.post(`/projects/${project._id}/ilans`, {
-        title: newIlanTitle || "Üye Arıyoruz",
-        description: newIlanDescription,
-        skills: newIlanSkills
-      });
-      fetchProject();
-      setNewIlanTitle("");
-      setNewIlanDescription("");
-      setNewIlanSkills([]);
-      setShowNewIlanForm(false);
-      setSuccessSnackbar({ open: true, message: "İlan yayında!" });
-    } catch {
-      setError("İlan oluşturulamadı.");
-    }
-  };
 
   const handleDeleteIlan = async (ilanId) => {
     try {
@@ -355,7 +268,6 @@ const handleCreateIlan = async () => {
 
   const handleDeleteProject = async () => {
     try {
-      await axiosInstance.delete(`/projects/${project._id}`);
       setDeleteDialogOpen(false);
       navigate("/projects");
     } catch {
@@ -407,11 +319,6 @@ const handleCreateIlan = async () => {
                     <MenuItem value="on_hold">Beklemede</MenuItem>
                     <MenuItem value="completed">Bitti</MenuItem>
                   </Select>
-<<<<<<< Updated upstream
-                  <MuiAutocomplete multiple options={allSkills} value={editFormData.skills} onChange={(e, v) => setEditFormData({...editFormData, skills: v})} renderInput={(p) => <MuiTextField {...p} label="Beceriler" />} />
-                  <Stack direction="row" spacing={2}>
-                    <Button fullWidth variant="outlined" onClick={() => setIsEditing(false)}>İptal</Button>
-=======
 <MuiAutocomplete multiple freeSolo options={allSkills} value={editFormData.skills} onChange={async (e, v) => {
                 const formattedSkills = v.map(skill => capitalizeWords(skill));
                 for (const skill of formattedSkills) {
@@ -425,7 +332,6 @@ const handleCreateIlan = async () => {
                     renderInput={(p) => <MuiTextField {...p} label="Beceriler" />} />
                   <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
                     <Button fullWidth variant="outlined" onClick={() => setIsEditing(false)} sx={{ color: "#64748B" }}>İptal</Button>
->>>>>>> Stashed changes
                     <Button fullWidth variant="contained" onClick={handleEditSave} sx={{ bgcolor: "#0F172A" }}>Kaydet</Button>
                   </Stack>
                 </Stack>
@@ -452,14 +358,6 @@ const handleCreateIlan = async () => {
                     <Button fullWidth variant="outlined" startIcon={<AddIcon />} onClick={() => setShowNewIlanForm(true)}>Yeni İlan Ekle</Button>
                   ) : (
                     <Stack spacing={2}>
-<<<<<<< Updated upstream
-                      <TextField fullWidth label="İlan Başlığı" value={newIlanTitle} onChange={e => setNewIlanTitle(e.target.value)} />
-                      <TextField fullWidth multiline rows={2} label="Açıklama" value={newIlanDescription} onChange={e => setNewIlanDescription(e.target.value)} />
-                      <MuiAutocomplete multiple options={allSkills} value={newIlanSkills} onChange={(e, v) => setNewIlanSkills(v)} renderInput={(p) => <MuiTextField {...p} label="Aranan Beceriler" />} />
-                      <Stack direction="row" spacing={1}>
-                        <Button fullWidth variant="outlined" onClick={() => setShowNewIlanForm(false)}>İptal</Button>
-                        <Button fullWidth variant="contained" sx={{ bgcolor: "#10B981" }} onClick={handleCreateIlan}>Yayınla</Button>
-=======
 <MuiAutocomplete 
                         multiple 
                         freeSolo 
@@ -524,15 +422,11 @@ disabled={!newIlanSkills?.length}
                         >
                           İlan Yayınla
                         </Button>
->>>>>>> Stashed changes
                       </Stack>
                     </Stack>
                   )}
                 </Stack>
               )}
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
 
               {/* Legacy toggle for backward compatibility - if no ilans array */}
               {(!project.ilans || project.ilans.length === 0) && user && project.owner && user._id === project.owner._id && (
@@ -588,8 +482,6 @@ disabled={!newIlanSkills?.length}
                   </Button>
                 </Stack>
               )}
->>>>>>> Stashed changes
-=======
               {ilans.length > 0 && (
                 <Stack spacing={2} sx={{ mt: 2 }}>
                   {ilans.map((ilan) => (
@@ -619,7 +511,6 @@ disabled={!newIlanSkills?.length}
                   ))}
                 </Stack>
               )}
->>>>>>> d0068bed8d4934e6eba2971e9ccc161ee62145d8
             </Paper>
           </Box>
 
@@ -640,7 +531,6 @@ disabled={!newIlanSkills?.length}
               <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: "1px solid #E2E8F0", bgcolor: "#FFFFFF" }}>
                 <Typography variant="overline" sx={{ color: "#94A3B8", fontWeight: 700, mb: 2, display: 'block' }}>KAYNAKLAR ve DOSYALAR</Typography>
                 <Stack spacing={2}>
-<<<<<<< Updated upstream
                   <Stack direction="row" spacing={1}>
                     <TextField size="small" placeholder="Başlık" value={newResource.title} onChange={e => setNewResource({...newResource, title: e.target.value})} />
                     <TextField size="small" fullWidth placeholder="URL" value={newResource.url} onChange={e => setNewResource({...newResource, url: e.target.value})} />
@@ -656,18 +546,7 @@ disabled={!newIlanSkills?.length}
                     style={{ display: 'none' }} 
                     accept="*/*"
                   />
-<Stack spacing={1}>
-                    {resources.map(res => (
-                      <Box key={res.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.5, border: '1px solid #F1F5F9', borderRadius: 2 }}>
-                        <Stack direction="row" spacing={2} alignItems="center" component="a" href={res.url} target="_blank" sx={{ textDecoration: 'none', color: 'inherit' }}>
-                          {getResourceIcon(res)}
-                          <Typography variant="body2" fontWeight={600}>{res.title}</Typography>
-                        </Stack>
-                        <IconButton size="small" onClick={() => handleRemoveResource(res.id)} sx={{ color: "#EF4444" }}><CloseIcon fontSize="small" /></IconButton>
-                      </Box>
-                    ))}
-                  </Stack>
-=======
+
                   {resources.length === 0 && (
                     <Box sx={{ textAlign: 'center', py: 4, px: 2, borderRadius: 3, bgcolor: "#F8FAFC", border: "2px dashed #E2E8F0" }}>
                       <Typography variant="body2" sx={{ color: "#94A3B8", fontWeight: 500 }}>Henüz kaynak eklenmedi</Typography>
@@ -675,47 +554,81 @@ disabled={!newIlanSkills?.length}
                     </Box>
                   )}
 {resources.map(res => (
-                    <Box key={res._id || res.id} sx={{
-                      display: "flex", 
-                      alignItems: "center", 
-                      justifyContent: "space-between", 
-                      p: 2, 
-                      borderRadius: 3, 
-                      border: "1px solid #E2E8F0", 
-                      bgcolor: "#FFFFFF",
-                      transition: "all 0.2s ease",
-                      "&:hover": { 
-                        bgcolor: "#F8FAFC",
-                        borderColor: "#CBD5E1",
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-                      } 
-                    }}>
-                      <Stack direction="row" spacing={2} alignItems="center" component="a" href={res.url} target="_blank" sx={{ textDecoration: "none", color: "inherit", flex: 1 }}>
-                        <Box sx={{ 
-                          bgcolor: res.type === 'file' ? "#EEF2FF" : "#F0FDF4", 
-                          p: 1.5, 
-                          borderRadius: 2, 
-                          display: "flex",
-                          color: res.type === 'file' ? "#4F46E5" : "#16A34A"
-                        }}>
-                          {getResourceIcon(res)}
-                        </Box>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1E293B" }}>{res.title}</Typography>
-                          <Typography variant="caption" sx={{ color: "#94A3B8" }}>
-                            {res.type === 'file' ? 'Dosya' : res.url?.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}
-                          </Typography>
-                        </Box>
-                      </Stack>
-{(user && project.owner && (user._id === project.owner._id || project.members?.some(m => (m.user?._id || m._id) === user._id))) && (
-                        <IconButton size="small" onClick={() => handleRemoveResource(res._id || res.id)} sx={{ color: "#CBD5E1", "&:hover": { color: "#EF4444", bgcolor: "#FEE2E2" } }}>
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      )}
-                    </Box>
-                  ))}
->>>>>>> Stashed changes
+  <Box
+    key={res._id || res.id}
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      p: 2,
+      borderRadius: 3,
+      border: "1px solid #E2E8F0",
+      bgcolor: "#FFFFFF",
+      transition: "all 0.2s ease",
+      cursor: "pointer",
+      "&:hover": {
+        bgcolor: "#F8FAFC",
+        borderColor: "#CBD5E1",
+        transform: "translateY(-2px)",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+      }
+    }}
+    onClick={() => {
+      let url = res.url;
+      if (url && url.includes('cloudinary.com')) {
+        // Cloudinary dosyalarını inline açmak için fl_inline parametresi ekle
+        const separator = url.includes('?') ? '&' : '?';
+        url = url + separator + 'fl_inline=true';
+      }
+      window.open(url, "_blank");
+    }}
+  >
+    <Stack direction="row" spacing={2} alignItems="center" sx={{ textDecoration: "none", color: "inherit", flex: 1 }}>
+      <Box sx={{
+        bgcolor: (() => {
+          const ext = res.title?.split('.').pop()?.toLowerCase();
+          if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) return "#FEF3C7";
+          if (["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar", "7z", "txt", "rtf"].includes(ext)) return "#EEF2FF";
+          return "#F0FDF4";
+        })(),
+        p: 1.5,
+        borderRadius: 2,
+        display: "flex",
+        color: (() => {
+          const ext = res.title?.split('.').pop()?.toLowerCase();
+          if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) return "#D97706";
+          if (["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar", "7z", "txt", "rtf"].includes(ext)) return "#4F46E5";
+          return "#16A34A";
+        })()
+      }}>
+        {getResourceIcon(res)}
+      </Box>
+      <Box>
+        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1E293B" }}>{res.title}</Typography>
+        <Typography variant="caption" sx={{ color: "#94A3B8" }}>
+          {(() => {
+            const ext = res.title?.split('.').pop()?.toLowerCase();
+            if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) return 'Görsel';
+            if (["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar", "7z", "txt", "rtf"].includes(ext)) return 'Dosya';
+            return 'Bağlantı';
+          })()}
+        </Typography>
+      </Box>
+    </Stack>
+    {(user && project.owner && (user._id === project.owner._id || project.members?.some(m => (m.user?._id || m._id) === user._id))) && (
+      <IconButton
+        size="small"
+        onClick={e => {
+          e.stopPropagation();
+          handleRemoveResource(res._id || res.id);
+        }}
+        sx={{ color: "#CBD5E1", "&:hover": { color: "#EF4444", bgcolor: "#FEE2E2" } }}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    )}
+  </Box>
+))}
                 </Stack>
               </Paper>
             )}
