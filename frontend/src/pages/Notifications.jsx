@@ -15,7 +15,11 @@ import {
   Divider,
   CircularProgress,
   Badge,
-  Tooltip
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import ProfileSnackbar from "../components/profile/ProfileSnackbar";
 import {
@@ -42,7 +46,9 @@ function Bildirimler() {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
+const [unreadCount, setUnreadCount] = useState(0);
+const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
+  const [successSnackbar, setSuccessSnackbar] = useState({ open: false, message: "" });
 
   const fetchNotifications = async (pageNum = 1, append = false) => {
     try {
@@ -117,7 +123,7 @@ function Bildirimler() {
     });
   };
 
-  const handleMarkAllAsRead = () => {
+const handleMarkAllAsRead = () => {
     setNotifications(prev =>
       prev.map(notif => ({ ...notif, isRead: true }))
     );
@@ -129,6 +135,26 @@ function Bildirimler() {
       .catch(err => {
         console.error('Tüm bildirimler okundu olarak işaretlenemedi:', err);
       });
+  };
+
+const handleDeleteAllNotifications = async () => {
+    setDeleteAllDialogOpen(false);
+    try {
+      console.log('Deleting all notifications...');
+      const response = await axiosInstance.delete('/notifications/delete-all');
+      console.log('Delete response:', response.data);
+      
+      if (response.data.deletedCount !== undefined) {
+        console.log(`Successfully deleted ${response.data.deletedCount} notifications`);
+      }
+      
+      // Force refresh to verify deletion
+      fetchNotifications();
+    } catch (err) {
+      console.error('Tüm bildirimler silinemedi:', err);
+      console.error('Error response:', err.response?.data);
+      setError('Bildirimler silinirken bir hata oluştu');
+    }
   };
 
   const handleDeleteNotification = (notificationId) => {
@@ -217,7 +243,7 @@ function Bildirimler() {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#fafbfc', py: 4 }}>
       <Container maxWidth="md">
-        <Box sx={{ mb: 4 }}>
+<Box sx={{ mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
             
             {unreadCount > 0 && (
@@ -235,6 +261,24 @@ function Bildirimler() {
                 }}
               >
                 Tümünü Okundu İşaretle
+              </Button>
+            )}
+
+{notifications.length > 0 && (
+              <Button
+                variant="outlined"
+                startIcon={<Delete />}
+                onClick={() => setDeleteAllDialogOpen(true)}
+                sx={{
+                  borderColor: '#ef4444',
+                  color: '#ef4444',
+                  '&:hover': {
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderColor: '#ef4444'
+                  }
+                }}
+              >
+                Tüm Bildirimleri Sil
               </Button>
             )}
           </Box>
@@ -256,15 +300,18 @@ function Bildirimler() {
           ) : (
             notifications.map((notification) => {
               return (
-              <Card
+<Card
                 key={notification._id}
                 sx={{
                   cursor: 'pointer',
                   backgroundColor: notification.isRead ? '#fff' : getNotificationColor(notification.type),
-                  border: notification.isRead ? '1px solid #e2e8f0' : '2px solid rgba(74, 13, 22, 0.2)',
+                  border: '1px solid #e2e8f0',
                   boxShadow: 'none',
+                  transition: 'all 0.2s ease',
                   '&:hover': {
-                    border: '2px solid #800020', 
+                    borderColor: '#6b0f1a',
+                    backgroundColor: '#fafbfc',
+                    boxShadow: '0 4px 12px rgba(107, 15, 26, 0.1)'
                   }
                 }}
                 onClick={() => {
@@ -429,9 +476,26 @@ function Bildirimler() {
                 'Daha Fazla Göster'
               )}
             </Button>
-          </Box>
+</Box>
         )}
       </Container>
+
+      <Dialog open={deleteAllDialogOpen} onClose={() => setDeleteAllDialogOpen(false)}>
+        <DialogTitle sx={{ color: '#ef4444', fontWeight: 700 }}>
+          Tüm Bildirimleri Silmek İstediğinize Emin Misiniz?
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Tüm bildirimleriniz kalıcı olarak silinecek. Bu işlem geri alınamaz!
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteAllDialogOpen(false)}>İptal</Button>
+          <Button onClick={handleDeleteAllNotifications} color="error" variant="contained">
+            Evet, Sil
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
