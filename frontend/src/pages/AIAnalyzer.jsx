@@ -41,13 +41,34 @@ const AIAnalyzer = () => {
     setResult(null);
 
     let extractedSkills = [];
+    let description = "";
     if (inputType === 'existing') {
       const selected = projects.find(p => p._id === selectedProject);
-      if (selected && selected.skills && selected.skills.length > 0) {
-        extractedSkills = selected.skills;
-      }
+      description = selected?.description || "";
     } else {
-      extractedSkills = ["React", "Node.js", "MongoDB", "TypeScript", "REST API", "UI/UX Tasarım"];
+      description = customProject;
+    }
+
+
+    // Gemini'den beceri çek
+    try {
+      const aiRes = await axiosInstance.post("/ai/analyze-project", { description });
+      const aiSkills = aiRes.data.skills || [];
+      if (inputType === 'existing') {
+        const selected = projects.find(p => p._id === selectedProject);
+        const projectSkills = selected?.skills || [];
+        // AI ve proje skills birleştir, tekrarsız
+        const normalize = s => (s || "").toLowerCase().replace(/[^a-z0-9ğüşöçıİĞÜŞÖÇ ]/gi, '').trim();
+        const allSkills = [...aiSkills, ...projectSkills];
+        // Tekrarsızlaştır
+        extractedSkills = allSkills.filter((item, idx, arr) =>
+          arr.findIndex(x => normalize(x) === normalize(item)) === idx
+        );
+      } else {
+        extractedSkills = aiSkills;
+      }
+    } catch {
+      extractedSkills = [];
     }
 
     try {
@@ -62,11 +83,18 @@ const AIAnalyzer = () => {
         console.warn('Could not fetch current user for excluding from results:', e);
       }
 
+      // Normalize fonksiyonu
+      const normalize = s => (s || "").toLowerCase().replace(/[^a-z0-9ğüşöçıİĞÜŞÖÇ ]/gi, '').trim();
+
       const candidates = users
         .filter(u => u.skills && Array.isArray(u.skills) && u.skills.length > 0 && (!myId || u._id !== myId))
         .map(u => {
-          const matchedSkills = extractedSkills.filter(skill => u.skills.map(s => s.toLowerCase()).includes(skill.toLowerCase()));
-          const missingSkills = extractedSkills.filter(skill => !u.skills.map(s => s.toLowerCase()).includes(skill.toLowerCase()));
+          const matchedSkills = extractedSkills.filter(skill =>
+            u.skills.map(s => normalize(s)).includes(normalize(skill))
+          );
+          const missingSkills = extractedSkills.filter(skill =>
+            !u.skills.map(s => normalize(s)).includes(normalize(skill))
+          );
           const matchScore = extractedSkills.length > 0 ? Math.round((matchedSkills.length / extractedSkills.length) * 100) : 0;
           return {
             id: u._id,
@@ -98,13 +126,19 @@ const AIAnalyzer = () => {
   };
 
   const handleInvite = async (userId) => {
-    if (!selectedProject) return;
+    if (!selectedProject) {
+      setSnackbar({ open: true, message: "Davet göndermek için kayıtlı bir proje seçmelisiniz.", severity: "warning" });
+      return;
+    }
     const key = `${selectedProject}_${userId}`;
     setInvitedUsers(prev => ({ ...prev, [key]: 'loading' }));
     try {
       const selected = projects.find(p => p._id === selectedProject);
       const projectTitle = selected?.title || "bir proje";
-      const message = `Sizi '${projectTitle}' projesini birlikte yapmak için ekibine davet ediyor!`;
+      let message = `Sizi '${projectTitle}' projesini birlikte yapmak için ekibine davet ediyor!`;
+      if (message.length > 100) {
+        message = message.slice(0, 97) + '...';
+      }
       await axiosInstance.post("/invites/send", {
         projectId: selectedProject,
         receiverId: userId,
@@ -342,15 +376,17 @@ const AIAnalyzer = () => {
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleInvite(candidate.id)}
-                                    disabled={invited || loading || revoking}
+                                    disabled={invited || loading || revoking || !selectedProject}
                                     className={`p-2 rounded-lg font-bold text-sm flex items-center transition-all border ${
-                                      invited
-                                        ? 'bg-[#f4e6e8] text-[#a82936] border-[#a82936]/30 cursor-not-allowed'
-                                        : loading
-                                          ? 'bg-slate-200 text-slate-400 border-slate-200 cursor-wait'
-                                          : 'bg-gradient-to-r from-[#6b0f1a] to-[#a82936] text-white border-[#a82936]/40 hover:from-[#a82936] hover:to-[#6b0f1a] shadow-sm'
+                                      !selectedProject
+                                        ? 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed'
+                                        : invited
+                                          ? 'bg-[#f4e6e8] text-[#a82936] border-[#a82936]/30 cursor-not-allowed'
+                                          : loading
+                                            ? 'bg-slate-200 text-slate-400 border-slate-200 cursor-wait'
+                                            : 'bg-gradient-to-r from-[#6b0f1a] to-[#a82936] text-white border-[#a82936]/40 hover:from-[#a82936] hover:to-[#6b0f1a] shadow-sm'
                                     }`}
-                                    title="Davet Gönder"
+                                    title={!selectedProject ? "Davet göndermek için kayıtlı bir proje seçin" : "Davet Gönder"}
                                   >
                                     {loading ? (
                                       <Loader2 className="w-4 h-4 animate-spin" />
