@@ -20,10 +20,15 @@ const AIAnalyzer = () => {
 
   const [inputType, setInputType] = useState('existing');
   const [selectedProject, setSelectedProject] = useState('');
+
+
   const [customProject, setCustomProject] = useState('');
 
   const [creatingProject, setCreatingProject] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [autoCreated, setAutoCreated] = useState(false);
+  const [autoCreatedProjectId, setAutoCreatedProjectId] = useState('');
+
   const [result, setResult] = useState(null);
 
   const [invitedUsers, setInvitedUsers] = useState({});
@@ -58,13 +63,22 @@ const AIAnalyzer = () => {
       return;
     }
 
+    // Proje oluşturulduktan sonra tekrar oluşturma
+    if (selectedProject || autoCreated) return;
+
+
     setCreatingProject(true);
     try {
       const titleRes = await axiosInstance.post('/ai/generate-title', {
         description: customProject,
       });
 
-      const title = titleRes.data?.title || 'Yeni Proje';
+      const aiTitle =
+  titleRes.data?.title ||
+  titleRes.data?.projectTitle ||
+  titleRes.data?.generatedTitle ||
+  titleRes.data?.data?.title;
+      const title = aiTitle && typeof aiTitle === 'string' && aiTitle.trim() ? aiTitle.trim() : 'Yeni Proje';
 
       const payload = {
         title,
@@ -72,8 +86,15 @@ const AIAnalyzer = () => {
         skills: result.extractedSkills,
       };
 
-      await axiosInstance.post('/projects', payload);
+      const created = await axiosInstance.post('/projects', payload);
+      const createdProjectId = created?.data?._id || created?.data?.project?._id || created?.data?.id || '';
+
+      setAutoCreated(true);
+      setAutoCreatedProjectId(createdProjectId);
+
       setSnackbar({ open: true, message: 'Proje başarıyla oluşturuldu!', severity: 'success' });
+
+
     } catch (err) {
       setSnackbar({
         open: true,
@@ -81,9 +102,10 @@ const AIAnalyzer = () => {
           'Proje oluşturulamadı: ' + (err?.response?.data?.message || 'Bir hata oluştu'),
         severity: 'error',
       });
-    } finally {
+      } finally {
       setCreatingProject(false);
     }
+
   };
 
   const handleAnalyze = async () => {
@@ -188,27 +210,31 @@ const AIAnalyzer = () => {
     }
   };
 
-  const handleInvite = async (userId) => {
-    if (!selectedProject) {
+const handleInvite = async (userId) => {
+    const projectIdForInvite = selectedProject || autoCreatedProjectId;
+    if (!projectIdForInvite) {
+
       setSnackbar({ open: true, message: 'Davet göndermek için kayıtlı bir proje seçmelisiniz.', severity: 'warning' });
       return;
     }
 
-    const key = `${selectedProject}_${userId}`;
+    const key = `${projectIdForInvite}_${userId}`;
     setInvitedUsers((prev) => ({ ...prev, [key]: 'loading' }));
 
     try {
-      const selected = projects.find((p) => p._id === selectedProject);
+      const selected = projects.find((p) => p._id === projectIdForInvite);
+
       const projectTitle = selected?.title || 'bir proje';
 
       let message = `Sizi '${projectTitle}' projesini birlikte yapmak için ekibine davet ediyor!`;
       if (message.length > 100) message = message.slice(0, 97) + '...';
 
-      await axiosInstance.post('/invites/send', {
-        projectId: selectedProject,
-        receiverId: userId,
-        message,
-      });
+
+await axiosInstance.post('/invites/send', {
+  projectId: projectIdForInvite,
+  receiverId: userId,
+  message,
+});
 
       setInvitedUsers((prev) => ({ ...prev, [key]: true }));
     } catch (e) {
@@ -232,16 +258,18 @@ const AIAnalyzer = () => {
   };
 
   const handleRevokeInvite = async (userId) => {
-    if (!selectedProject) return;
+    const projectIdForInvite = selectedProject || autoCreatedProjectId;
+    if (!projectIdForInvite) return;
 
-    const key = `${selectedProject}_${userId}`;
+    const key = `${projectIdForInvite}_${userId}`;
+
     setInvitedUsers((prev) => ({ ...prev, [key]: 'revoking' }));
 
     try {
-      await axiosInstance.post('/invites/revoke', {
-        projectId: selectedProject,
-        receiverId: userId,
-      });
+await axiosInstance.post('/invites/revoke', {
+  projectId: projectIdForInvite,
+  receiverId: userId,
+});
 
       setInvitedUsers((prev) => {
         const updated = { ...prev };
@@ -426,7 +454,7 @@ const AIAnalyzer = () => {
                     <div className="flex justify-end">
                       <button
                         onClick={handleAutoCreateProject}
-                        disabled={creatingProject}
+                        disabled={creatingProject || autoCreated || !!selectedProject}
                         className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-white transition-all duration-300 bg-gradient-to-r from-[#6b0f1a] to-[#a82936] hover:from-[#a82936] hover:to-[#6b0f1a] shadow-lg hover:shadow-[#a82936]/30 disabled:opacity-60 disabled:cursor-not-allowed`}
                       >
                         {creatingProject ? <Loader2 className="w-5 h-5 animate-spin" /> : <PlusCircle className="w-5 h-5" />}
@@ -488,7 +516,8 @@ const AIAnalyzer = () => {
                             </div>
 
                             {(() => {
-                              const inviteKey = `${selectedProject}_${candidate.id}`;
+                              const currentProjectId = selectedProject || autoCreatedProjectId;
+const inviteKey = `${currentProjectId}_${candidate.id}`;
                               const invited = invitedUsers[inviteKey] === true;
                               const loading = invitedUsers[inviteKey] === 'loading';
                               const revoking = invitedUsers[inviteKey] === 'revoking';
@@ -497,9 +526,14 @@ const AIAnalyzer = () => {
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleInvite(candidate.id)}
-                                    disabled={invited || loading || revoking || !selectedProject}
+                                    disabled={
+  invited ||
+  loading ||
+  revoking ||
+  !(selectedProject || autoCreatedProjectId)
+}
                                     className={`p-2 rounded-lg font-bold text-sm flex items-center transition-all border ${
-                                      !selectedProject
+                                      !(selectedProject || autoCreatedProjectId)
                                         ? 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed'
                                         : invited
                                           ? 'bg-[#f4e6e8] text-[#a82936] border-[#a82936]/30 cursor-not-allowed'

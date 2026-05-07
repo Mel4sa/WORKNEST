@@ -269,9 +269,10 @@ const saveSkillToDatabase = async (skillNames) => {
   const handleDeleteProject = async () => {
     try {
       setDeleteDialogOpen(false);
+      await axiosInstance.delete(`/projects/${project._id}`);
       navigate("/projects");
-    } catch {
-      setError("Silme işlemi başarısız.");
+    } catch (err) {
+      setError(err?.response?.data?.message || "Silme işlemi başarısız.");
     }
   };
 

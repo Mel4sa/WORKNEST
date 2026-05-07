@@ -50,7 +50,7 @@ async function postToGemini(url, body, { retries = 2, baseDelayMs = 800 } = {}) 
 export async function extractSkillsWithGemini(description) {
   const apiKey = process.env.GEMINI_API_KEY;
 
-  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
 
   const prompt = `Aşağıdaki proje açıklamasından anahtar becerileri çıkar ve SADECE bir JSON array olarak döndür (ör: ["React", "Node.js", "MongoDB"]). Açıklama ekleme, sadece array döndür:\n---\n${description}\n---\n\nKURALLAR:\n- Çıktı SADECE JSON array olmalı (ör: ["React", "Node.js"]).\n- Açıklamada geçen teknoloji/alanlar için "genel" (alanın master/headline karşılığı) ile birlikte "spesifik" alt başlıkları da mümkün olduğunca ekle.\n- Genel başlığı kaçırma: Eğer spesifik bir alt alan yakalanıyorsa, onun genel karşılığını da eklemeye çalış.\n- Mobil örneği: Android/iOS/React Native/Flutter/Kotlin/Swift geçiyorsa mutlaka "Mobile App Development" (veya "Mobil Uygulama Geliştirme") de ekle.\n`;
 
@@ -61,13 +61,33 @@ export async function extractSkillsWithGemini(description) {
   const data = await postToGemini(url, body, { retries: 2, baseDelayMs: 900 });
   console.log("Gemini response:", JSON.stringify(data, null, 2));
 
-  try {
-    const skillsText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    const skills = JSON.parse(skillsText);
-    return Array.isArray(skills) ? skills : [];
-  } catch {
-    return [];
-  }
+  const safeParseSkillsArray = (raw) => {
+    if (!raw || typeof raw !== "string") return [];
+
+    const text = raw.trim();
+
+    // Case 1: fenced block like ```json\n[... ]\n```
+    const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    const candidateText = fencedMatch?.[1] ? fencedMatch[1].trim() : text;
+
+    // Case 2: sometimes Gemini adds extra text; extract first [...] block
+    const bracketMatch = candidateText.match(/\[[\s\S]*\]/);
+    const jsonCandidate = bracketMatch?.[0] ? bracketMatch[0] : candidateText;
+
+    try {
+      const parsed = JSON.parse(jsonCandidate);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const skillsText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  const skills = safeParseSkillsArray(skillsText);
+
+  // Ensure all entries are strings
+  return skills.filter((s) => typeof s === "string").map((s) => s.trim()).filter(Boolean);
+
 }
 
 export async function extractProjectTitleWithGemini(description) {
