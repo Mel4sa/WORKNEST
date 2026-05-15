@@ -1,4 +1,4 @@
- import Dialog from '@mui/material/Dialog';
+import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -112,7 +112,6 @@ const handleAddResource = async () => {
   };
 
   const getResourceIcon = (res) => {
-    // Başlıktan extension'ı al
     const ext = res.title?.split('.').pop()?.toLowerCase();
     
     if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) {
@@ -135,7 +134,6 @@ const handleFileUpload = async (event) => {
   formData.append('file', file);
   formData.append('title', file.name);
   try {
-    // Artık doğrudan /resources endpoint'ine gönderiyoruz
     const response = await axiosInstance.post(`/projects/${project._id}/resources`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
@@ -172,8 +170,6 @@ const handleRemoveResource = async (resourceId) => {
       setRemoveMemberDialog({ open: false, userId: null });
     }
   };
-
-  // (duplicate handleCancelProject and handleDeleteProject removed)
 
   useEffect(() => {
     fetchProject();
@@ -329,7 +325,11 @@ const saveSkillToDatabase = async (skillNames) => {
                 }
                 setEditFormData(f => ({ ...f, skills: formattedSkills }));
               }}
-                    renderTags={(v, p) => v.map((opt, i) => <Chip variant="outlined" label={opt} {...p({ index: i })} />)}
+                    renderTags={(v, p) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {v.map((opt, i) => <Chip variant="outlined" label={opt} {...p({ index: i })} />)}
+                      </Box>
+                    )}
                     renderInput={(p) => <MuiTextField {...p} label="Beceriler" />} />
                   <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
                     <Button fullWidth variant="outlined" onClick={() => setIsEditing(false)} sx={{ color: "#64748B" }}>İptal</Button>
@@ -340,7 +340,8 @@ const saveSkillToDatabase = async (skillNames) => {
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 800, mb: 2 }}>{project.title}</Typography>
                   <Typography variant="body1" sx={{ color: "#475569", mb: 3 }}>{project.description}</Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 4 }}>
+                  {/* DÜZENLEME: Buradaki Stack'e useFlexGap eklendi */}
+                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 4 }}>
                     {project.skills?.map((s, i) => <Chip key={i} label={s} size="small" sx={{ bgcolor: "#F1F5F9" }} />)}
                   </Stack>
                   <TeamStatusChip status={project.status} />
@@ -373,7 +374,11 @@ const saveSkillToDatabase = async (skillNames) => {
                           }
                           setNewIlanSkills(formattedSkills);
                         }}
-                        renderTags={(v, p) => v.map((opt, i) => <Chip variant="outlined" label={opt} {...p({ index: i })} />)}
+                        renderTags={(v, p) => (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {v.map((opt, i) => <Chip variant="outlined" label={opt} {...p({ index: i })} />)}
+                          </Box>
+                        )}
                         renderInput={(p) => <MuiTextField {...p} label="Aranan Beceriler" />} 
                       />
                       <Stack direction="row" spacing={2}>
@@ -429,7 +434,6 @@ disabled={!newIlanSkills?.length}
                 </Stack>
               )}
 
-              {/* Legacy toggle for backward compatibility - if no ilans array */}
               {(!project.ilans || project.ilans.length === 0) && user && project.owner && user._id === project.owner._id && (
                 <Stack spacing={2}>
 <MuiAutocomplete 
@@ -446,7 +450,11 @@ disabled={!newIlanSkills?.length}
                       }
                       setLookingForSkills(formattedSkills);
                     }}
-                    renderTags={(v, p) => v.map((opt, i) => <Chip variant="outlined" label={opt} {...p({ index: i })} />)}
+                    renderTags={(v, p) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {v.map((opt, i) => <Chip variant="outlined" label={opt} {...p({ index: i })} />)}
+                      </Box>
+                    )}
                     renderInput={(p) => <MuiTextField {...p} label="Aranan Beceriler" />} 
                   />
                   <Button 
@@ -492,7 +500,8 @@ disabled={!newIlanSkills?.length}
                           <Typography variant="subtitle1" fontWeight={600}>{ilan.title}</Typography>
                           {ilan.description && <Typography variant="body2" sx={{ color: "#64748B", mt: 1 }}>{ilan.description}</Typography>}
                           {ilan.skills && ilan.skills.length > 0 && (
-                            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5 }}>
+                            /* DÜZENLEME: İlan içindeki Stack'e useFlexGap eklendi */
+                            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>
                               {ilan.skills.map((skill, idx) => (
                                 <Chip key={idx} label={skill} size="small" sx={{ bgcolor: "#F1F5F9", fontSize: '0.75rem' }} />
                               ))}
@@ -577,7 +586,6 @@ disabled={!newIlanSkills?.length}
     onClick={() => {
       let url = res.url;
       if (url && url.includes('cloudinary.com')) {
-        // Cloudinary dosyalarını inline açmak için fl_inline parametresi ekle
         const separator = url.includes('?') ? '&' : '?';
         url = url + separator + 'fl_inline=true';
       }
