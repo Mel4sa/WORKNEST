@@ -348,39 +348,7 @@ function Home() {
                     </Box>
                   </Box>
 
-<Box sx={{ flexShrink: 0, textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
-                    {project.lookingForMembers && (
-                      <Box
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/projects/${project._id}`);
-                        }}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 0.5,
-                          px: 1.5,
-                          py: 0.5,
-                          bgcolor: "#10B981",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          animation: "pulse 2s infinite",
-                          "@keyframes pulse": {
-                            "0%": { boxShadow: "0 0 0 0 rgba(16, 185, 129, 0.4)" },
-                            "70%": { boxShadow: "0 0 0 6px rgba(16, 185, 129, 0)" },
-                            "100%": { boxShadow: "0 0 0 0 rgba(16, 185, 129, 0)" }
-                          },
-                          "&:hover": {
-                            bgcolor: "#059669"
-                          }
-                        }}
-                      >
-                        <GroupAddIcon sx={{ color: "#fff", fontSize: 14 }} />
-                        <Typography variant="caption" sx={{ color: "#fff", fontWeight: 700, fontSize: "0.65rem" }}>
-                          ÜYE ARIYORUZ
-                        </Typography>
-                      </Box>
-                    )}
+<Box sx={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", height: "100%", py: 0.5 }}>
                     <Chip
                       label={
                         project.status === "completed" ? "Tamamlandı" :
@@ -410,6 +378,35 @@ function Home() {
                         fontSize: "0.75rem"
                       }}
                     />
+                    {project.ilans && project.ilans.length > 0 && (
+                      <Box
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/projects/${project._id}`);
+                        }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          px: 1.5,
+                          py: 0.5,
+mt: 6,
+                          bgcolor: "#10B981",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          transition: "all 0.3s ease",
+                          "&:hover": {
+                            bgcolor: "#059669",
+                            transform: "scale(1.02)"
+                          }
+                        }}
+                      >
+                        <GroupAddIcon sx={{ color: "#fff", fontSize: 14 }} />
+                        <Typography variant="caption" sx={{ color: "#fff", fontWeight: 700, fontSize: "0.7rem" }}>
+                          Üye Aranıyor
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
                 </Box>
               ))}

@@ -15,7 +15,6 @@ import {
   Fab
 } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
-import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import axiosInstance from "../lib/axios";
 
 function Projects() {
@@ -192,7 +191,7 @@ function Projects() {
                       {project.title}
                     </Typography>
                     
-                    <Chip
+<Chip
                       label={
                         project.status === "completed" ? "Tamamlandı" :
                         project.status === "ongoing" ? "Devam Ediyor" :
@@ -218,7 +217,7 @@ function Projects() {
                   </Box>
 
                   <Box sx={{ 
-                    display: "flex", 
+                    display: "flex",
                     flexDirection: { xs: "column", md: "row" },
                     alignItems: { xs: "flex-start", md: "center" }, 
                     gap: { xs: 1, md: 3 }
@@ -281,7 +280,7 @@ function Projects() {
                   </Box>
 </Box>
 
-                <Button
+<Button
                   variant="contained"
                   onClick={(e) => {
                     e.stopPropagation();

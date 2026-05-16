@@ -59,9 +59,7 @@ function ProjectDetail() {
   const [removeReason, setRemoveReason] = useState("");
   const [allSkills, setAllSkills] = useState([]);
   
-  const [lookingForMembers, setLookingForMembers] = useState(false);
-  const [lookingForSkills, setLookingForSkills] = useState([]);
-  const [resources, setResources] = useState([]);
+const [resources, setResources] = useState([]);
   const [newResource, setNewResource] = useState({ title: "", url: "" });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -70,6 +68,7 @@ function ProjectDetail() {
   const [newIlanDescription, setNewIlanDescription] = useState("");
   const [newIlanSkills, setNewIlanSkills] = useState([]);
   const [showNewIlanForm, setShowNewIlanForm] = useState(false);
+  const [ilans, setIlans] = useState([]);
 
   const fetchProject = useCallback(async () => {
     try {
@@ -88,10 +87,9 @@ function ProjectDetail() {
     fetchProject();
   }, [fetchProject]);
 
-  useEffect(() => {
+useEffect(() => {
     if (project) {
-      setLookingForMembers(project.lookingForMembers || false);
-      setLookingForSkills(project.lookingForSkills || []);
+      setIlans(project.ilans || []);
     }
   }, [project]);
 
@@ -188,7 +186,7 @@ function ProjectDetail() {
     }
   };
 
-  const handleCreateIlan = async () => {
+const handleCreateIlan = async () => {
     if (!newIlanSkills.length) {
       setError("Lütfen en az bir beceri seçin.");
       return;
@@ -207,6 +205,16 @@ function ProjectDetail() {
       setSuccessSnackbar({ open: true, message: "İlan yayında!" });
     } catch {
       setError("İlan oluşturulamadı.");
+    }
+  };
+
+  const handleDeleteIlan = async (ilanId) => {
+    try {
+      await axiosInstance.delete(`/projects/${project._id}/ilans/${ilanId}`);
+      fetchProject();
+      setSuccessSnackbar({ open: true, message: "İlan silindi!" });
+    } catch {
+      setError("İlan silinemedi.");
     }
   };
 
@@ -294,11 +302,11 @@ function ProjectDetail() {
             </Paper>
 
             <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: "1px solid #E2E8F0", bgcolor: "#FFFFFF" }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                 <Typography variant="overline" sx={{ color: "#94A3B8", fontWeight: 700 }}>İLAN YÖNETİMİ</Typography>
-                {lookingForMembers && <Chip icon={<GroupAddIcon />} label={`${lookingForSkills.length} Beceri Aranyor`} sx={{ bgcolor: "#10B981", color: "#fff" }} />}
+                {ilans.length > 0 && <Chip label={`${ilans.length} Aktif İlan`} sx={{ bgcolor: "#10B981", color: "#fff" }} />}
               </Stack>
-              {isOwner && (
+{isOwner && (
                 <Stack spacing={2}>
                   {!showNewIlanForm ? (
                     <Button fullWidth variant="outlined" startIcon={<AddIcon />} onClick={() => setShowNewIlanForm(true)}>Yeni İlan Ekle</Button>
@@ -313,6 +321,35 @@ function ProjectDetail() {
                       </Stack>
                     </Stack>
                   )}
+                </Stack>
+              )}
+              {ilans.length > 0 && (
+                <Stack spacing={2} sx={{ mt: 2 }}>
+                  {ilans.map((ilan) => (
+                    <Box key={ilan._id} sx={{ p: 2, border: '1px solid #E2E8F0', borderRadius: 2 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="subtitle1" fontWeight={600}>{ilan.title}</Typography>
+                          {ilan.description && <Typography variant="body2" sx={{ color: "#64748B", mt: 1 }}>{ilan.description}</Typography>}
+                          {ilan.skills && ilan.skills.length > 0 && (
+                            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5 }}>
+                              {ilan.skills.map((skill, idx) => (
+                                <Chip key={idx} label={skill} size="small" sx={{ bgcolor: "#F1F5F9", fontSize: '0.75rem' }} />
+                              ))}
+                            </Stack>
+                          )}
+                          <Typography variant="caption" sx={{ color: "#94A3B8", mt: 1, display: 'block' }}>
+                            {ilan.createdAt ? new Date(ilan.createdAt).toLocaleDateString('tr-TR') : ''}
+                          </Typography>
+                        </Box>
+                        {isOwner && (
+                          <IconButton size="small" onClick={() => handleDeleteIlan(ilan._id)} sx={{ color: "#EF4444" }}>
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Stack>
+                    </Box>
+                  ))}
                 </Stack>
               )}
             </Paper>
