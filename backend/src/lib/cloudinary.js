@@ -4,22 +4,28 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const cloudinaryUrl = process.env.CLOUDINARY_URL;
+
+// Dev/test ortamında Cloudinary ayarları yokken serverın çökmesini engelle.
+// Cloudinary kullanan yerler bu export'u kullanırken upload işlemlerinde başarısız olursa
+// ayrıca handle edilmelidir.
 if (!cloudinaryUrl) {
-  throw new Error("CLOUDINARY_URL environment variable is not set");
+  console.warn("[cloudinary] CLOUDINARY_URL is not set; cloudinary upload will be disabled.");
 }
 
-const urlParts = cloudinaryUrl.match(/cloudinary:\/\/(\d+):([^@]+)@(.+)/);
-if (!urlParts) {
-  throw new Error("Invalid CLOUDINARY_URL format");
+
+let config = null;
+
+if (cloudinaryUrl) {
+  const urlParts = cloudinaryUrl.match(/cloudinary:\/\/(\d+):([^@]+)@(.+)/);
+  if (urlParts) {
+    const [, api_key, api_secret, cloud_name] = urlParts;
+    config = { cloud_name, api_key, api_secret, secure: true };
+  }
 }
 
-const [, api_key, api_secret, cloud_name] = urlParts;
-
-cloudinary.config({
-  cloud_name: cloud_name,
-  api_key: api_key,
-  api_secret: api_secret,
-  secure: true,
-});
+if (config) {
+  cloudinary.config(config);
+}
 
 export default cloudinary;
+

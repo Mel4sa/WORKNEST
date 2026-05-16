@@ -58,7 +58,11 @@ function ProjectDetail() {
 
   const [removeMemberDialog, setRemoveMemberDialog] = useState({ open: false, userId: null });
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
-const [resources, setResources] = useState([]);
+
+  const [lookingForMembers, setLookingForMembers] = useState(false);
+  const [lookingForSkills, setLookingForSkills] = useState([]);
+
+  const [resources, setResources] = useState([]);
   const [newResource, setNewResource] = useState({ title: "", url: "" });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -249,15 +253,6 @@ const handleDeleteIlan = async (ilanId) => {
     }
   };
 
-  const handleDeleteIlan = async (ilanId) => {
-    try {
-      await axiosInstance.delete(`/projects/${project._id}/ilans/${ilanId}`);
-      fetchProject();
-      setSuccessSnackbar({ open: true, message: "İlan silindi!" });
-    } catch {
-      setError("İlan silinemedi.");
-    }
-  };
 
   const handleCancelProject = async () => {
     try {

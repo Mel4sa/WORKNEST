@@ -19,10 +19,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions
 } from '@mui/material';
 import ProfileSnackbar from "../components/profile/ProfileSnackbar";
@@ -52,7 +48,7 @@ function Bildirimler() {
   const [hasMore, setHasMore] = useState(true);
 const [unreadCount, setUnreadCount] = useState(0);
 const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
-  const [successSnackbar, setSuccessSnackbar] = useState({ open: false, message: "" });
+
 
   const fetchNotifications = async (pageNum = 1, append = false) => {
     try {
