@@ -22,15 +22,24 @@ import axios from "../../lib/axios";
     }, []);
 
 
-    const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+const capitalize = (str) => {
+    if (!str) return "";
+    return str
+      .split(' ')
+      .filter(word => word.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
 
-    const handleAddSkill = async (event, newValue, reason) => {
+    const handleAddSkill = async (event, newValue) => {
       let skillToAdd = typeof newValue === 'string' ? newValue.trim() : newValue?.trim();
       if (skillToAdd) skillToAdd = capitalize(skillToAdd);
       if (skillToAdd && !skills.includes(skillToAdd)) {
         try {
           await axios.post('skills', { name: skillToAdd });
-        } catch (err) {}
+        } catch (err) {
+          console.error("Skill ekleme hatası:", err);
+        }
         onChange([...skills, skillToAdd]);
         setAllSkills((prev) => prev.includes(skillToAdd) ? prev : [...prev, skillToAdd]);
       }
@@ -49,7 +58,9 @@ import axios from "../../lib/axios";
         if (skillToAdd && !skills.includes(skillToAdd)) {
           try {
             await axios.post('skills', { name: skillToAdd });
-          } catch (err) {}
+          } catch (err) {
+            console.error("Skill ekleme hatası:", err);
+          }
           onChange([...skills, skillToAdd]);
           setAllSkills((prev) => prev.includes(skillToAdd) ? prev : [...prev, skillToAdd]);
         }

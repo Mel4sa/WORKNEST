@@ -4,9 +4,9 @@ import {
   sendInvite, 
   getReceivedInvites, 
   getSentInvites, 
-  respondInvite 
+  respondInvite,
+  revokeInvite
 } from "../controllers/invitation.controller.js";
-import { revokeInvite } from "../controllers/revokeInvite.controller.js";
 
 const router = express.Router();
 

@@ -74,7 +74,7 @@ lookingForSkills: [{
     trim: true
   }],
   
-  // Support for multiple job postings (ilans)
+// Support for multiple job postings (ilans)
   ilans: [{
     _id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -96,6 +96,33 @@ lookingForSkills: [{
     isActive: {
       type: Boolean,
       default: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
+  // Project resources/links
+  resources: [{
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      auto: true
+    },
+    title: {
+      type: String,
+      trim: true,
+      required: true
+    },
+    url: {
+      type: String,
+      trim: true,
+      required: true
+    },
+    type: {
+      type: String,
+      enum: ['link', 'file', 'image'],
+      default: 'link'
     },
     createdAt: {
       type: Date,
