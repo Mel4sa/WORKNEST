@@ -621,4 +621,3 @@ const inviteKey = `${currentProjectId}_${candidate.id}`;
 };
 
 export default AIAnalyzer;
-
