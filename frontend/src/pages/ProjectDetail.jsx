@@ -1,3 +1,16 @@
+// Dosya türüne göre kutu rengi döndüren fonksiyon
+const getResourceColor = (type) => {
+  switch (type) {
+    case 'image':
+      return '#E0F7FA'; // açık mavi
+    case 'file':
+      return '#FFF3E0'; // açık turuncu
+    case 'link':
+      return '#E8F5E9'; // açık yeşil
+    default:
+      return '#F1F5F9'; // varsayılan gri
+  }
+};
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -113,15 +126,18 @@ useEffect(() => {
   };
 
   const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
+  const file = event.target.files[0];
+  if (!file) return;
+  setUploading(true);
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('title', file.name);
     try {
-      const response = await axiosInstance.post(`/projects/${project._id}/upload`, formData);
-      const fileUrl = response.data.url || URL.createObjectURL(file);
-      setResources([...resources, { id: Date.now(), title: file.name, url: fileUrl, type: 'file' }]);
+      const response = await axiosInstance.post(`/projects/${project._id}/resources`, formData);
+      // Backend'den dönen güncel project bilgisini al
+      const updatedProject = response.data.project;
+      setProject(updatedProject);
+      setResources(updatedProject.resources || []);
       setSuccessSnackbar({ open: true, message: "Dosya başarıyla yüklendi!" });
     } catch {
       setSuccessSnackbar({ open: true, message: "Dosya eklendi!" });
@@ -389,7 +405,18 @@ const handleCreateIlan = async () => {
                   />
 <Stack spacing={1}>
                     {resources.map(res => (
-                      <Box key={res.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.5, border: '1px solid #F1F5F9', borderRadius: 2 }}>
+                      <Box
+                        key={res.id}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          p: 1.5,
+                          border: '1px solid #F1F5F9',
+                          borderRadius: 2,
+                          bgcolor: getResourceColor(res.type)
+                        }}
+                      >
                         <Stack direction="row" spacing={2} alignItems="center" component="a" href={res.url} target="_blank" sx={{ textDecoration: 'none', color: 'inherit' }}>
                           {getResourceIcon(res)}
                           <Typography variant="body2" fontWeight={600}>{res.title}</Typography>
