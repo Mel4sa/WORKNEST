@@ -369,30 +369,35 @@ function UserProfile() {
                 Projeler
               </Typography>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {projects.map((project) => (
-                  <Chip
-                    key={project._id}
-                    label={<span style={{ color: '#fff', fontWeight: 600 }}>{project.title}</span>}
-                    clickable
-                    onClick={() => navigate(`/projects/${project._id}`)}
-                    sx={{
-                      bgcolor: '#6b0f1a',
-                      color: '#fff',
-                      fontWeight: 600,
-                      height: '32px',
-                      border: '2px solid #6b0f1a',
-                      fontSize: '1rem',
-                      letterSpacing: '0.5px',
-                      px: 2,
-                      transition: 'background 0.2s',
-                      '&:hover': {
-                        bgcolor: 'rgba(107, 15, 26, 0.7)',
+                {projects
+                  .filter((project) =>
+                    project.owner?._id === userId ||
+                    (project.members && project.members.some((m) => (m.user?._id || m.user) === userId))
+                  )
+                  .map((project) => (
+                    <Chip
+                      key={project._id}
+                      label={<span style={{ color: '#fff', fontWeight: 600 }}>{project.title}</span>}
+                      clickable
+                      onClick={() => navigate(`/projects/${project._id}`)}
+                      sx={{
+                        bgcolor: '#6b0f1a',
                         color: '#fff',
-                        boxShadow: '0 2px 8px 0 rgba(107,15,26,0.10)'
-                      }
-                    }}
-                  />
-                ))}
+                        fontWeight: 600,
+                        height: '32px',
+                        border: '2px solid #6b0f1a',
+                        fontSize: '1rem',
+                        letterSpacing: '0.5px',
+                        px: 2,
+                        transition: 'background 0.2s',
+                        '&:hover': {
+                          bgcolor: 'rgba(107, 15, 26, 0.7)',
+                          color: '#fff',
+                          boxShadow: '0 2px 8px 0 rgba(107,15,26,0.10)'
+                        }
+                      }}
+                    />
+                  ))}
               </Box>
             </Box>
           )}

@@ -309,9 +309,11 @@ const handleCreateIlan = async () => {
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 800, mb: 2 }}>{project.title}</Typography>
                   <Typography variant="body1" sx={{ color: "#475569", mb: 3 }}>{project.description}</Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 4 }}>
-                    {project.skills?.map((s, i) => <Chip key={i} label={s} size="small" sx={{ bgcolor: "#F1F5F9" }} />)}
-                  </Stack>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 14px', marginBottom: 24 }}>
+                    {project.skills?.map((s, i) => (
+                      <Chip key={i} label={s} size="small" sx={{ bgcolor: "#F1F5F9" }} />
+                    ))}
+                  </div>
                   <TeamStatusChip status={project.status} />
                 </Box>
               )}
