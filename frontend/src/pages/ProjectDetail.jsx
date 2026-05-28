@@ -88,6 +88,7 @@ const [resources, setResources] = useState([]);
       setLoading(true);
       const response = await axiosInstance.get(`/projects/${id}`);
       setProject(response.data);
+      setResources(response.data.resources || []);
     } catch {
       setError("Proje detayı yüklenemedi.");
     } finally {
@@ -106,11 +107,16 @@ useEffect(() => {
     }
   }, [project]);
 
-  const handleAddResource = () => {
+  const handleAddResource = async () => {
     if (newResource.title.trim() && newResource.url.trim()) {
-      setResources([...resources, { ...newResource, id: Date.now(), type: 'link' }]);
+      try {
+        await axiosInstance.post(`/projects/${project._id}/resources`, newResource);
+        await fetchProject();
+        setSuccessSnackbar({ open: true, message: "Bağlantı başarıyla eklendi!" });
+      } catch {
+        setSuccessSnackbar({ open: true, message: "Bağlantı eklenemedi!" });
+      }
       setNewResource({ title: "", url: "" });
-      setSuccessSnackbar({ open: true, message: "Bağlantı başarıyla eklendi!" });
     }
   };
 
@@ -134,7 +140,7 @@ useEffect(() => {
   formData.append('title', file.name);
     try {
       const response = await axiosInstance.post(`/projects/${project._id}/resources`, formData);
-      // Backend'den dönen güncel project bilgisini al
+
       const updatedProject = response.data.project;
       setProject(updatedProject);
       setResources(updatedProject.resources || []);
@@ -147,8 +153,13 @@ useEffect(() => {
     }
   };
 
-  const handleRemoveResource = (resourceId) => {
-    setResources(resources.filter(r => r.id !== resourceId));
+  const handleRemoveResource = async (resourceId) => {
+    try {
+      await axiosInstance.delete(`/projects/${project._id}/resources/${resourceId}`);
+      await fetchProject();
+    } catch {
+      // Error
+    }
   };
 
   const handleRemoveMember = (userId) => {

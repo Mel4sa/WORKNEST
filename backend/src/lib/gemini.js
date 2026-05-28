@@ -15,7 +15,6 @@ async function postToGemini(url, body, { retries = 2, baseDelayMs = 800 } = {}) 
 
       const data = await response.json().catch(() => ({}));
 
-      // Gemini UNAVAILABLE / 503 case: retry
       const status = data?.error?.status;
       const isUnavailable = response.status === 503 || status === "UNAVAILABLE";
 
@@ -66,11 +65,9 @@ export async function extractSkillsWithGemini(description) {
 
     const text = raw.trim();
 
-    // Case 1: fenced block like ```json\n[... ]\n```
     const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
     const candidateText = fencedMatch?.[1] ? fencedMatch[1].trim() : text;
 
-    // Case 2: sometimes Gemini adds extra text; extract first [...] block
     const bracketMatch = candidateText.match(/\[[\s\S]*\]/);
     const jsonCandidate = bracketMatch?.[0] ? bracketMatch[0] : candidateText;
 
@@ -85,7 +82,6 @@ export async function extractSkillsWithGemini(description) {
   const skillsText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   const skills = safeParseSkillsArray(skillsText);
 
-  // Ensure all entries are strings
   return skills.filter((s) => typeof s === "string").map((s) => s.trim()).filter(Boolean);
 
 }

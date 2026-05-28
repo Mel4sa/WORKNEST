@@ -74,7 +74,6 @@ lookingForSkills: [{
     trim: true
   }],
   
-// Support for multiple job postings (ilans)
   ilans: [{
     _id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -103,7 +102,6 @@ lookingForSkills: [{
     }
   }],
   
-  // Project resources/links
   resources: [{
     _id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -136,9 +134,7 @@ lookingForSkills: [{
   toObject: { virtuals: true }
 });
 
-// Virtual to check if project has any active ilans
 projectSchema.virtual('hasActiveIlan').get(function() {
-  // Check legacy lookingForMembers field OR new ilans array
   if (this.lookingForMembers) return true;
   if (this.ilans && this.ilans.length > 0) {
     return this.ilans.some(ilan => ilan.isActive === true);
@@ -146,7 +142,6 @@ projectSchema.virtual('hasActiveIlan').get(function() {
   return false;
 });
 
-// Virtual to get all active ilans
 projectSchema.virtual('activeIlans').get(function() {
   if (!this.ilans) return [];
   return this.ilans.filter(ilan => ilan.isActive === true);

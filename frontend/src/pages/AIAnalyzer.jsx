@@ -63,7 +63,6 @@ const AIAnalyzer = () => {
       return;
     }
 
-    // Proje oluşturulduktan sonra tekrar oluşturma
     if (selectedProject || autoCreated) return;
 
 
@@ -125,7 +124,6 @@ const AIAnalyzer = () => {
       description = customProject;
     }
 
-    // Gemini'den beceri çek
     try {
       const aiRes = await axiosInstance.post('/ai/analyze-project', { description });
       const aiSkills = aiRes.data.skills || [];

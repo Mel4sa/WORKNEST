@@ -39,13 +39,11 @@ router.post("/:id/join", joinProject);
 router.post("/:id/leave", leaveProject);
 router.delete("/:id/members/:userId", removeMember);
 
-// Ilan management routes
 router.get("/:id/ilans", getProjectIlans);
 router.post("/:id/ilans", createIlan);
 router.put("/:id/ilans/:ilanId", updateIlan);
 router.delete("/:id/ilans/:ilanId", deleteIlan);
 
-// Resource management routes
 router.post("/:id/resources", upload.single("file"), addResource);
 router.delete("/:id/resources/:resourceId", deleteResource);
 router.post("/update-resource-types", updateResourceTypes);

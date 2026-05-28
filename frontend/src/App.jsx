@@ -96,12 +96,12 @@ function App() {
     initialize();
   }, [initialize]);
 
-  // YENİ EKLENEN KISIM: Uygulama her başladığında veya token değiştiğinde kullanıcıyı sorgular
+
   useEffect(() => {
     const loadUser = async () => {
       if (token) {
         try {
-          await fetchUser(); // Backend'deki /users/me isteğini atar
+          await fetchUser(); 
         } catch (error) {
           console.error("Kullanıcı verisi yüklenirken hata oluştu:", error);
         }

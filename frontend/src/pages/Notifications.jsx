@@ -148,7 +148,6 @@ const handleDeleteAllNotifications = async () => {
         console.log(`Successfully deleted ${response.data.deletedCount} notifications`);
       }
       
-      // Force refresh to verify deletion
       fetchNotifications();
     } catch (err) {
       console.error('Tüm bildirimler silinemedi:', err);

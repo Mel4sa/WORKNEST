@@ -4,7 +4,6 @@ import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import { createNotification } from "./notification.controller.js";
 
-// 1. SOHBETİ SİL (WhatsApp Usulü: Sadece benden gizler)
 export const deleteChat = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -17,13 +16,11 @@ export const deleteChat = async (req, res) => {
     const chat = await Chat.findOne({ _id: chatId, participants: userId });
     if (!chat) return res.status(404).json({ message: "Sohbet bulunamadı veya yetkiniz yok" });
 
-    // MESAJLARI SİLME: Sadece sileyen kullanıcıyı mesajların 'deletedBy' listesine ekle
     await Message.updateMany(
       { chat: chatId },
       { $addToSet: { deletedBy: userId } }
     );
 
-    // CHAT'İ SİLME: Sohbetin kendisine de 'deletedBy' ekle (Listede görünmemesi için)
     await Chat.findByIdAndUpdate(chatId, {
       $addToSet: { deletedBy: userId }
     });
@@ -34,12 +31,10 @@ export const deleteChat = async (req, res) => {
   }
 };
 
-// 2. KULLANICI SOHBETLERİNİ GETİR (Gizlenenleri filtreler)
 export const getUserChats = async (req, res) => {
   try {
     const userId = req.user._id;
     
-    // SADECE 'deletedBy' listesinde benim ID'min OLMADIĞI sohbetleri getir
     const chats = await Chat.find({ 
       participants: userId,
       deletedBy: { $ne: userId } 
@@ -59,7 +54,6 @@ export const getUserChats = async (req, res) => {
   }
 };
 
-// 3. SOHBET OLUŞTUR VEYA GETİR
 export const getOrCreateChat = async (req, res) => {
   try {
     const { userId } = req.params; 
@@ -87,7 +81,6 @@ export const getOrCreateChat = async (req, res) => {
   }
 };
 
-// 4. MESAJLARI GETİR (Sildiğim mesajları göstermez)
 export const getChatMessages = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -100,7 +93,6 @@ export const getChatMessages = async (req, res) => {
     const chat = await Chat.findOne({ _id: chatId, participants: userId });
     if (!chat) return res.status(404).json({ message: "Sohbet erişimi reddedildi" });
 
-    // SADECE sildiğim mesajlar HARİÇ olanları getir
     const messages = await Message.find({
       chat: chatId,
       deletedBy: { $ne: userId } 
@@ -122,14 +114,12 @@ export const getChatMessages = async (req, res) => {
   }
 };
 
-// 5. MESAJ GÖNDER (Yeni mesaj gelince sohbeti görünür yapar)
 export const sendMessage = async (req, res) => {
   try {
     const { chatId } = req.params;
     const { content, messageType = "text" } = req.body;
     const userId = req.user._id;
 
-    // 1. Validasyon: Hem mesaj boşsa hem de dosya yoksa hata ver
     if (!content?.trim() && !req.file) {
       return res.status(400).json({ message: "Mesaj içeriği veya dosya gerekli" });
     }
@@ -139,21 +129,18 @@ export const sendMessage = async (req, res) => {
 
     const receiverId = chat.participants.find(p => p.toString() !== userId.toString());
 
-    // 2. Mesaj Verisini Hazırla
     const messageData = {
       chat: chatId,
       sender: userId,
       receiver: receiverId,
-      content: content?.trim() || "", // Metin varsa koy, yoksa boş bırak
-      messageType: messageType, // Varsayılan text
+      content: content?.trim() || "", 
+      messageType: messageType, 
     };
 
-    // 3. Dosya Kontrolü: Eğer Multer bir dosya yakaladıysa veriye ekle
     if (req.file) {
-      messageData.fileUrl = `/uploads/${req.file.filename}`; // Sunucudaki yolu
-      messageData.fileName = req.file.originalname; // Orijinal dosya adı
+      messageData.fileUrl = `/uploads/${req.file.filename}`; 
+      messageData.fileName = req.file.originalname; 
       
-      // Dosya tipine göre messageType'ı otomatik belirle
       if (req.file.mimetype.startsWith("image/")) {
         messageData.messageType = "image";
       } else {
@@ -164,7 +151,6 @@ export const sendMessage = async (req, res) => {
     // 4. Mesajı Kaydet
     const message = await Message.create(messageData);
 
-    // Sohbeti güncelle (WhatsApp mantığı: silenler listesinden çıkar)
     await Chat.findByIdAndUpdate(chatId, {
       lastMessage: message._id,
       lastActivity: new Date(),
@@ -178,7 +164,7 @@ export const sendMessage = async (req, res) => {
     res.status(500).json({ message: "Gönderilemedi", error: error.message });
   }
 };
-// 6. MESAJ DÜZENLE
+
 export const editMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
@@ -202,7 +188,6 @@ export const editMessage = async (req, res) => {
   }
 };
 
-// 7. MESAJ SİL (Route'un beklediği export)
 export const deleteMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
@@ -222,7 +207,6 @@ export const deleteMessage = async (req, res) => {
   }
 };
 
-// 8. OKUNMAMIŞ SAYISI
 export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;

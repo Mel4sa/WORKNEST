@@ -5,9 +5,6 @@ dotenv.config();
 
 const cloudinaryUrl = process.env.CLOUDINARY_URL;
 
-// Dev/test ortamında Cloudinary ayarları yokken serverın çökmesini engelle.
-// Cloudinary kullanan yerler bu export'u kullanırken upload işlemlerinde başarısız olursa
-// ayrıca handle edilmelidir.
 if (!cloudinaryUrl) {
   console.warn("[cloudinary] CLOUDINARY_URL is not set; cloudinary upload will be disabled.");
 }
