@@ -108,3 +108,135 @@ export async function extractProjectTitleWithGemini(description) {
   }
 }
 
+// Analyze project description and return a normalized list of required skills
+export async function analyzeProjectWithAI(description) {
+  try {
+    const skills = await extractSkillsWithGemini(description || "");
+  // Normalize skills to lowercase trimmed unique
+  const normalized = Array.from(new Set((skills || []).map(s => String(s).trim().toLowerCase()))).filter(Boolean);
+    return normalized;
+  } catch (err) {
+    console.error('analyzeProjectWithAI error:', err?.message || err);
+    return [];
+  }
+}
+
+// Match a single user's skills to project requirements
+export async function matchUserToProject(userSkills = [], projectRequirements = [], userName = '', projectTitle = '') {
+  // Helpers for normalization and fuzzy matching
+  const normalize = (t = "") => String(t || "").toLowerCase().trim().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+  // simple synonym map (extendable)
+  const synonyms = new Map([
+    ['web development', 'yazilim gelistirme'],
+    ['full stack development', 'yazilim gelistirme'],
+    ['fullstack', 'yazilim gelistirme'],
+    ['frontend', 'ui ux tasarimi'],
+    ['ui/ux', 'ui ux tasarimi'],
+    ['ui ux', 'ui ux tasarimi'],
+    ['mobile', 'mobile app development'],
+    ['mobile app development', 'mobile app development'],
+    ['node', 'node.js'],
+    ['reactjs', 'react'],
+    ['react native', 'react native']
+  ]);
+
+  const levenshtein = (a = '', b = '') => {
+    const A = String(a).split('');
+    const B = String(b).split('');
+    const m = A.length, n = B.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        const cost = A[i - 1] === B[j - 1] ? 0 : 1;
+        dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+      }
+    }
+    return dp[m][n];
+  };
+
+  const similarity = (a = '', b = '') => {
+    const na = normalize(a);
+    const nb = normalize(b);
+    if (!na && !nb) return 0;
+    if (na === nb) return 1;
+    const dist = levenshtein(na, nb);
+    const maxLen = Math.max(na.length, nb.length);
+    if (maxLen === 0) return 0;
+    return 1 - dist / maxLen;
+  };
+
+  const isSynonymMatch = (a, b) => {
+    const na = normalize(a);
+    const nb = normalize(b);
+    if (synonyms.get(na) === nb) return true;
+    if (synonyms.get(nb) === na) return true;
+    return false;
+  };
+
+  const isMatch = (req, user) => {
+    const nr = normalize(req);
+    const nu = normalize(user);
+    if (!nr || !nu) return false;
+    if (nr === nu) return true;
+    if (nr.includes(nu) || nu.includes(nr)) return true;
+    if (isSynonymMatch(nr, nu)) return true;
+    if (similarity(nr, nu) >= 0.75) return true; // fuzzy threshold
+    // token overlap
+    const rTokens = new Set(nr.split(' '));
+    const uTokens = new Set(nu.split(' '));
+    const common = [...rTokens].filter(t => uTokens.has(t));
+    if (common.length > 0) return true;
+    return false;
+  };
+
+  const reqList = (projectRequirements || []).map(r => String(r || ''));
+  const userList = (userSkills || []).map(u => String(u || ''));
+
+  const matched = [];
+  for (const r of reqList) {
+    for (const u of userList) {
+      if (isMatch(r, u)) {
+        matched.push(r);
+        break;
+      }
+    }
+  }
+
+  const uniqueReq = Array.from(new Set(reqList));
+  const score = uniqueReq.length > 0 ? matched.length / uniqueReq.length : 0;
+
+  return {
+    matchedSkills: matched,
+    requiredSkills: uniqueReq,
+    userSkills: userList,
+    score,
+    matchPercent: Math.round(score * 100)
+  };
+}
+
+// Match multiple users and return sorted matches (best first)
+export async function matchMultipleUsersToProject(users = [], projectRequirements = [], projectTitle = '') {
+  const reqSet = new Set((projectRequirements || []).map(s => String(s).trim()));
+
+  const results = await Promise.all((users || []).map(async (user) => {
+    // reuse single-user matcher logic by calling matchUserToProject
+    const match = await matchUserToProject(user.skills || [], [...reqSet], user.fullname || user.username || '', projectTitle);
+    return {
+      userId: user._id,
+      userName: user.fullname || user.username || '',
+      ...match
+    };
+  }));
+
+  // sort desc by score then by number of matched skills
+  results.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return (b.matchedSkills.length || 0) - (a.matchedSkills.length || 0);
+  });
+
+  return results;
+}
+

@@ -215,8 +215,9 @@ const ChatPanel = ({
       console.error("Mesaj gönderilemedi:", err);
       setNewMessage(messageText);
       setSelectedFile(fileToUpload);
-      setError(true);
-      alert("Mesaj gönderilemedi. Lütfen tekrar deneyin.");
+  setError(true);
+  const serverMsg = err?.response?.data?.message || "Mesaj gönderilemedi. Lütfen tekrar deneyin.";
+  setSnackbar({ open: true, message: serverMsg, severity: "error" });
     }
   };
 
@@ -310,9 +311,12 @@ const ChatPanel = ({
               >
                 {msg.messageType === "image" && (
                   <Box sx={{ position: "relative", lineHeight: 0 }}>
-                    <img
-                      src={`http://localhost:3000${msg.fileUrl}`}
-                      alt="Görsel"
+                    {(() => {
+                      const resolvedFileUrl = msg.fileUrl && (msg.fileUrl.startsWith('http') ? msg.fileUrl : `http://localhost:3000${msg.fileUrl}`);
+                      return (
+                        <img
+                          src={resolvedFileUrl}
+                          alt="Görsel"
                       style={{
                         width: "100%",
                         maxWidth: "200px",
@@ -323,8 +327,10 @@ const ChatPanel = ({
                         cursor: "pointer",
                         border: "1px solid rgba(0,0,0,0.08)",
                       }}
-                      onClick={() => window.open(`http://localhost:3000${msg.fileUrl}`, "_blank")}
-                    />
+                          onClick={() => resolvedFileUrl && window.open(resolvedFileUrl, "_blank")}
+                        />
+                      );
+                    })()}
                     <Typography 
                       variant="caption" 
                       sx={{ 
@@ -341,32 +347,36 @@ const ChatPanel = ({
                   </Box>
                 )}
 
-                {msg.messageType === "file" && (
-                  <Box
-                    component="a"
-                    href={`http://localhost:3000${msg.fileUrl}`}
-                    target="_blank"
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.5,
-                      bgcolor: isMe ? "#8c1c2b" : "#fff",
-                      color: isMe ? "#fff" : "text.primary",
-                      p: 1.2,
-                      borderRadius: "10px",
-                      textDecoration: "none",
-                      border: isMe ? "none" : "1px solid #eee",
-                      mb: msg.content ? 1 : 0,
-                    }}
-                  >
-                    <Box sx={{ bgcolor: isMe ? "#fff" : "#8c1c2b", color: isMe ? "#8c1c2b" : "#fff", p: 0.8, borderRadius: "8px", display: "flex" }}>
-                      <AttachFile fontSize="small" />
+                {msg.messageType === "file" && (() => {
+                  const resolvedFileUrl = msg.fileUrl && (msg.fileUrl.startsWith('http') ? msg.fileUrl : `http://localhost:3000${msg.fileUrl}`);
+                  return (
+                    <Box
+                      component="a"
+                      href={resolvedFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        bgcolor: isMe ? "#8c1c2b" : "#fff",
+                        color: isMe ? "#fff" : "text.primary",
+                        p: 1.2,
+                        borderRadius: "10px",
+                        textDecoration: "none",
+                        border: isMe ? "none" : "1px solid #eee",
+                        mb: msg.content ? 1 : 0,
+                      }}
+                    >
+                      <Box sx={{ bgcolor: isMe ? "#fff" : "#8c1c2b", color: isMe ? "#8c1c2b" : "#fff", p: 0.8, borderRadius: "8px", display: "flex" }}>
+                        <AttachFile fontSize="small" />
+                      </Box>
+                      <Typography variant="caption" sx={{ wordBreak: "break-all", fontWeight: 600 }}>
+                        {msg.fileName || "Dosya"}
+                      </Typography>
                     </Box>
-                    <Typography variant="caption" sx={{ wordBreak: "break-all", fontWeight: 600 }}>
-                      {msg.fileName || "Dosya"}
-                    </Typography>
-                  </Box>
-                )}
+                  );
+                })()}
 
                 {msg.content && (
                   <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", mb: 0.5 }}>

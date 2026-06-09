@@ -50,7 +50,7 @@ app.use("/api/chats", chatRoutes);
 app.use("/api/skills", skillRoutes);
 app.use("/api/ai", aiRoutes);
 
-app.get("/", (req, res) => res.send("WorkNest Backend Çalışıyor!"));
+app.get("/", (req, res) => res.send("Backend Çalışıyor"));
 
 connectDB();
 

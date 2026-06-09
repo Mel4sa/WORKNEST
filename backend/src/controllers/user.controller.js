@@ -1,4 +1,8 @@
-// E-posta formatı kontrol 
+import User from "../models/user.model.js";
+import cloudinary from "../lib/cloudinary.js";
+import fs from "fs";
+import bcrypt from "bcryptjs";
+
 function isValidEmail(email) {
   return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
 }
@@ -34,7 +38,7 @@ export const updateEmailStrict = async (req, res) => {
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
-// Tüm kullanıcıları getir
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, "-password"); 
@@ -43,10 +47,6 @@ export const getAllUsers = async (req, res) => {
     res.status(500).json({ message: "Kullanıcılar alınamadı", error: err.message });
   }
 };
-import User from "../models/user.model.js";
-import cloudinary from "../lib/cloudinary.js";
-import fs from "fs";
-import bcrypt from "bcryptjs";
 
 export const getUserProfile = async (req, res) => {
   try {

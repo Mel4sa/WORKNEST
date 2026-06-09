@@ -1,6 +1,5 @@
 import emailjs from "@emailjs/nodejs";
 
-// EmailJS konfigürasyonu
 const emailjsConfig = {
   serviceId: process.env.EMAILJS_SERVICE_ID,
   templateId: process.env.EMAILJS_TEMPLATE_ID,
@@ -80,5 +79,4 @@ export const testEmailConfig = async () => {
 export default {
   sendPasswordResetEmail,
   sendEmail,
-  testEmailConfig
 };

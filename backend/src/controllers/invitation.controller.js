@@ -3,7 +3,6 @@ import User from "../models/user.model.js";
 import Project from "../models/project.model.js";
 import { createNotification } from "./notification.controller.js";
 
-// Davet gönder
 export const sendInvite = async (req, res) => {
   try {
     const { projectId, receiverId, message } = req.body;
@@ -56,7 +55,6 @@ export const sendInvite = async (req, res) => {
       message: message || "Projeye katılmaya davet ediliyorsunuz!"
     });
 
-    // SOCKET.IO: Davet gönderildiğinde alıcıya anlık event gönder
     try {
       const io = req.app.get("io");
       if (io && receiverId) {
@@ -66,7 +64,6 @@ export const sendInvite = async (req, res) => {
       console.error("[SOCKET] Davet gönderiminde socket emit hatası:", err);
     }
 
-    // Alıcıya bildirim gönder
     await createNotification({
       userId: receiverId,
       type: 'invite_sent',
@@ -93,7 +90,6 @@ export const getReceivedInvites = async (req, res) => {
       .select("sender receiver project status message createdAt")
       .sort({ createdAt: -1 });
     
-    // Message alanı boş olan davvelere default mesaj ekle
     const updatedInvites = await Promise.all(invites.map(async (inv) => {
       if (!inv.message) {
         inv.message = "Projeye katılmaya davet ediliyorsunuz!";
@@ -124,7 +120,6 @@ export const getSentInvites = async (req, res) => {
   }
 };
 
-// Daveti kabul et / reddet
 export const respondInvite = async (req, res) => {
   try {
     const { inviteId } = req.params;
@@ -199,7 +194,6 @@ export const respondInvite = async (req, res) => {
   }
 };
 
-// Davet geri çek
 export const revokeInvite = async (req, res) => {
   try {
     const { projectId, receiverId } = req.body;

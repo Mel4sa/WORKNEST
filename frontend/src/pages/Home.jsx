@@ -231,7 +231,7 @@ function Home() {
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/user/${project.owner?._id}`);
+                      navigate(`/profile/${project.owner?._id}`);
                     }}
                   >
                     {project.owner?.fullname?.[0]}
@@ -263,7 +263,7 @@ function Home() {
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/user/${project.owner?._id}`);
+                        navigate(`/profile/${project.owner?._id}`);
                       }}
                     >
                       {project.owner?.fullname || "Bilinmeyen Kullanıcı"}

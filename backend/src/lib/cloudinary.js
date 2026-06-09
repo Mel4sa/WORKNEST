@@ -6,9 +6,10 @@ dotenv.config();
 const cloudinaryUrl = process.env.CLOUDINARY_URL;
 
 if (!cloudinaryUrl) {
-  console.warn("[cloudinary] CLOUDINARY_URL is not set; cloudinary upload will be disabled.");
+  console.warn(
+    "[cloudinary] CLOUDINARY_URL is not set; cloudinary upload will be disabled.",
+  );
 }
-
 
 let config = null;
 
@@ -25,4 +26,3 @@ if (config) {
 }
 
 export default cloudinary;
-

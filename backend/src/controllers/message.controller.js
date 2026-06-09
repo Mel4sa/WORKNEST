@@ -1,16 +1,19 @@
+import Message from '../models/message.model.js';
+import User from '../models/user.model.js';
+import { createNotification } from './notification.controller.js';
+
 export const deleteConversation = async (req, res) => {
   try {
     const { partnerId } = req.params;
     const currentUserId = req.user._id;
 
-    // Mesajları fiziksel olarak silmiyoruz, sadece silen kişiyi listeye ekliyoruz
     const result = await Message.updateMany(
       {
         $or: [
           { sender: currentUserId, receiver: partnerId },
           { sender: partnerId, receiver: currentUserId }
         ],
-        deletedBy: { $ne: currentUserId } // Zaten silinmemişse ekle
+        deletedBy: { $ne: currentUserId }
       },
       {
         $push: { deletedBy: currentUserId }
@@ -22,9 +25,6 @@ export const deleteConversation = async (req, res) => {
     res.status(500).json({ success: false, message: 'Sohbet gizlenemedi', error: error.message });
   }
 };
-import Message from '../models/message.model.js';
-import User from '../models/user.model.js';
-import { createNotification } from './notification.controller.js';
 
 export const getMessages = async (req, res) => {
   try {
@@ -36,7 +36,7 @@ export const getMessages = async (req, res) => {
         { sender: currentUserId, receiver: partnerId },
         { sender: partnerId, receiver: currentUserId }
       ],
-      deletedBy: { $ne: currentUserId } // SİHİRLİ DOKUNUŞ: Silen kişiye gösterme
+      deletedBy: { $ne: currentUserId }
     })
     .populate('sender', 'fullname username profileImage')
     .populate('receiver', 'fullname username profileImage')
@@ -48,7 +48,6 @@ export const getMessages = async (req, res) => {
   }
 };
 
-// Mesaj gönder
 export const sendMessage = async (req, res) => {
   try {
     const { receiverId, content } = req.body;
@@ -94,7 +93,7 @@ export const getConversations = async (req, res) => {
             { sender: currentUserId },
             { receiver: currentUserId }
           ],
-          deletedBy: { $ne: currentUserId } // Bu kullanıcı bu mesajı sildiyse listede sayma
+          deletedBy: { $ne: currentUserId }
         }
       },
       {

@@ -2,6 +2,8 @@ import Chat from "../models/chat.model.js";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
+import cloudinary from "../lib/cloudinary.js";
+import fs from "fs";
 import { createNotification } from "./notification.controller.js";
 
 export const deleteChat = async (req, res) => {
@@ -138,17 +140,30 @@ export const sendMessage = async (req, res) => {
     };
 
     if (req.file) {
-      messageData.fileUrl = `/uploads/${req.file.filename}`; 
-      messageData.fileName = req.file.originalname; 
+      const fileExt = (req.file.originalname || '').split('.').pop().toLowerCase();
+      let cloudinaryResourceType = 'auto';
+      if (fileExt === 'pdf') {
+        cloudinaryResourceType = 'raw';
+      }
+      const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'chat_files',
+        resource_type: cloudinaryResourceType,
+        type: 'upload'
+      });
+      messageData.fileUrl = uploadResult.secure_url;
+      messageData.fileName = req.file.originalname;
       
       if (req.file.mimetype.startsWith("image/")) {
         messageData.messageType = "image";
       } else {
         messageData.messageType = "file";
       }
+
+      if (req.file.path && fs.existsSync(req.file.path)) {
+        try { fs.unlinkSync(req.file.path); } catch (e) { console.warn('Failed to remove temp file', e.message); }
+      }
     }
 
-    // 4. Mesajı Kaydet
     const message = await Message.create(messageData);
 
     await Chat.findByIdAndUpdate(chatId, {

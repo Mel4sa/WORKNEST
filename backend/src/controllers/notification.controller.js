@@ -140,7 +140,6 @@ export const markAllAsRead = async (req, res) => {
   }
 };
 
-// Bildirimi sil
 export const deleteNotification = async (req, res) => {
   try {
     const { notificationId } = req.params;
@@ -169,18 +168,11 @@ export const deleteNotification = async (req, res) => {
   }
 };
 
-// Tüm bildirimleri sil
 export const deleteAllNotifications = async (req, res) => {
   try {
     const userId = req.user._id;
-    console.log("Silme isteği来了 - userId:", userId);
-
-    // Önce kaç bildirim var bakalım
     const totalCount = await Notification.countDocuments({ user: userId });
-    console.log("Toplam bildirim sayısı:", totalCount);
-
     const result = await Notification.deleteMany({ user: userId });
-    console.log("Silinen bildirim sayısı:", result.deletedCount);
 
     try {
       if (io) {

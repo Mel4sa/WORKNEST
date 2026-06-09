@@ -1,10 +1,11 @@
 import Project from "../models/project.model.js";
 import User from "../models/user.model.js";
 import cloudinary from "../lib/cloudinary.js";
+import path from "path";
 import fs from "fs";
 import { createNotification } from "./notification.controller.js";
 
-// Tüm projeleri getir (genel projeler sayfası için)
+
 export const getAllProjects = async (req, res) => {
   try {
   const { page = 1, limit = 10, status, skills, search } = req.query;
@@ -65,7 +66,6 @@ export const getUserProjects = async (req, res) => {
   }
 };
 
-// Sadece kendi projeleri getir
 export const getOwnedProjects = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -85,7 +85,6 @@ export const getOwnedProjects = async (req, res) => {
   }
 };
 
-// Tek proje detayı getir
 export const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -104,7 +103,6 @@ export const getProjectById = async (req, res) => {
   }
 };
 
-// Yeni proje oluştur
 export const createProject = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -294,7 +292,6 @@ export const cleanupDeletedProjects = async (req, res) => {
   }
 };
 
-// Projeye katıl
 export const joinProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -343,7 +340,6 @@ export const joinProject = async (req, res) => {
   }
 };
 
-// Projeden ayrıl
 export const leaveProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -367,14 +363,12 @@ export const leaveProject = async (req, res) => {
       return res.status(400).json({ message: "Bu projenin üyesi değilsiniz" });
     }
 
-    // Get user info for notification before removing
     const leavingUser = await User.findById(userId);
     const leavingUserName = leavingUser?.fullname || "Bir kullanıcı";
 
     project.members.splice(memberIndex, 1);
     await project.save();
 
-    // Send notification to project owner
     if (project.owner && project.owner.toString() !== userId.toString()) {
       try {
         await createNotification({
@@ -456,7 +450,6 @@ export const removeMember = async (req, res) => {
   }
 };
 
-// Create a new ilan for a project
 export const createIlan = async (req, res) => {
   try {
     const { id } = req.params;
@@ -473,7 +466,6 @@ export const createIlan = async (req, res) => {
       return res.status(403).json({ message: "İlan verme yetkiniz yok" });
     }
 
-    // Create new ilan object
     const newIlan = {
       title: title || 'Üye Arıyoruz',
       description: description || '',
@@ -482,13 +474,11 @@ export const createIlan = async (req, res) => {
       createdAt: new Date()
     };
 
-    // Add to ilans array
     if (!project.ilans) {
       project.ilans = [];
     }
     project.ilans.push(newIlan);
     
-    // Also update legacy field for backward compatibility
     project.lookingForMembers = true;
     if (skills && skills.length > 0) {
       project.lookingForSkills = skills;
@@ -509,7 +499,6 @@ export const createIlan = async (req, res) => {
   }
 };
 
-// Update an existing ilan
 export const updateIlan = async (req, res) => {
   try {
     const { id, ilanId } = req.params;
@@ -526,7 +515,6 @@ export const updateIlan = async (req, res) => {
       return res.status(403).json({ message: "İlan güncelleme yetkiniz yok" });
     }
 
-    // Find the ilan
     const ilanIndex = project.ilans.findIndex(
       ilan => ilan._id.toString() === ilanId
     );
@@ -535,13 +523,11 @@ export const updateIlan = async (req, res) => {
       return res.status(404).json({ message: "İlan bulunamadı" });
     }
 
-    // Update ilan fields
     if (title !== undefined) project.ilans[ilanIndex].title = title;
     if (description !== undefined) project.ilans[ilanIndex].description = description;
     if (skills !== undefined) project.ilans[ilanIndex].skills = skills;
     if (isActive !== undefined) project.ilans[ilanIndex].isActive = isActive;
 
-    // Check if any active ilans remain
     const hasActiveIlans = project.ilans.some(ilan => ilan.isActive);
     project.lookingForMembers = hasActiveIlans;
 
@@ -560,7 +546,6 @@ export const updateIlan = async (req, res) => {
   }
 };
 
-// Delete/deactivate an ilan
 export const deleteIlan = async (req, res) => {
   try {
     const { id, ilanId } = req.params;
@@ -587,7 +572,6 @@ export const deleteIlan = async (req, res) => {
 
     project.ilans.splice(ilanIndex, 1);
 
-    // Check if any active ilans remain
     const hasActiveIlans = project.ilans.some(ilan => ilan.isActive);
     project.lookingForMembers = hasActiveIlans;
 
@@ -606,7 +590,6 @@ export const deleteIlan = async (req, res) => {
   }
 };
 
-// Get all ilans for a project
 export const getProjectIlans = async (req, res) => {
   try {
     const { id } = req.params;
@@ -637,7 +620,6 @@ export const addResource = async (req, res) => {
     let fileExt = '';
     let newResourceType = 'link';
 
-    // Eğer dosya varsa önce Cloudinary'e yükle
     if (req.file) {
       fileExt = (req.file.originalname || '').split('.').pop().toLowerCase();
       let cloudinaryResourceType = 'auto';
@@ -650,7 +632,7 @@ export const addResource = async (req, res) => {
         type: 'upload'
       });
       resourceUrl = uploadResult.secure_url;
-      // Dosya uzantısına göre resourceType kesin atanıyor
+
       if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(fileExt)) {
         newResourceType = 'image';
       } else if (["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar", "7z", "txt", "rtf"].includes(fileExt)) {
@@ -662,7 +644,7 @@ export const addResource = async (req, res) => {
         fs.unlinkSync(req.file.path);
       }
     } else {
-      // Dosya yoksa, başlıktan uzantı kontrolü
+
       fileExt = (title || '').split('.').pop().toLowerCase();
       if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(fileExt)) {
         newResourceType = 'image';
@@ -682,7 +664,6 @@ export const addResource = async (req, res) => {
       return res.status(404).json({ message: "Proje bulunamadı" });
     }
 
-    // Check if user is owner or member
     const isOwner = project.owner.toString() === userId.toString();
     const isMember = project.members.some(
       member => member.user.toString() === userId.toString()
@@ -715,8 +696,6 @@ export const addResource = async (req, res) => {
     res.status(500).json({ message: "Kaynak eklenemedi", error: error.message });
   }
 };
-
-// Update existing resources with correct type
 export const updateResourceTypes = async (req, res) => {
   try {
     const projects = await Project.find({ isActive: true });
@@ -726,7 +705,7 @@ export const updateResourceTypes = async (req, res) => {
       if (project.resources && project.resources.length > 0) {
         project.resources = project.resources.map(resource => {
           const title = resource.title || '';
-          const ext = title.split('.').pop().toLowerCase();
+          const ext = (path.extname(title) || '').replace('.', '').toLowerCase();
           
           let newType = 'link';
           if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) {
@@ -741,10 +720,15 @@ export const updateResourceTypes = async (req, res) => {
           }
           return resource;
         });
-        await project.save();
+        try {
+          await project.save();
+        } catch (saveErr) {
+          console.error(`Failed to save project ${project._id}:`, saveErr.message);
+        }
       }
     }
 
+    console.info(`[updateResourceTypes] ${updatedCount} resources updated across ${projects.length} projects`);
     res.status(200).json({ 
       message: `${updatedCount} kaynak başarıyla güncellendi`,
       updatedCount 
@@ -754,7 +738,6 @@ export const updateResourceTypes = async (req, res) => {
   }
 };
 
-// Delete a resource from a project
 export const deleteResource = async (req, res) => {
   try {
     const { id, resourceId } = req.params;
@@ -766,12 +749,10 @@ export const deleteResource = async (req, res) => {
       return res.status(404).json({ message: "Proje bulunamadı" });
     }
 
-    // Only owner can delete resources
     if (project.owner.toString() !== userId.toString()) {
       return res.status(403).json({ message: "Bu işlemi yapma yetkiniz yok" });
     }
 
-    // Find and remove the resource
     const resourceIndex = project.resources.findIndex(
       resource => resource._id.toString() === resourceId
     );

@@ -145,8 +145,9 @@ useEffect(() => {
       setProject(updatedProject);
       setResources(updatedProject.resources || []);
       setSuccessSnackbar({ open: true, message: "Dosya başarıyla yüklendi!" });
-    } catch {
-      setSuccessSnackbar({ open: true, message: "Dosya eklendi!" });
+    } catch (err) {
+      const serverMsg = err?.response?.data?.message || "Dosya yüklenemedi.";
+      setSuccessSnackbar({ open: true, message: serverMsg });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
