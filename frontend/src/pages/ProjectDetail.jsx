@@ -1,16 +1,3 @@
-// Dosya türüne göre kutu rengi döndüren fonksiyon
-const getResourceColor = (type) => {
-  switch (type) {
-    case 'image':
-      return '#E0F7FA'; // açık mavi
-    case 'file':
-      return '#FFF3E0'; // açık turuncu
-    case 'link':
-      return '#E8F5E9'; // açık yeşil
-    default:
-      return '#F1F5F9'; // varsayılan gri
-  }
-};
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -52,6 +39,19 @@ import useAuthStore from "../store/useAuthStore";
 import TeamMembersList from "../components/project/TeamMembersList";
 import ProjectDialogs from "../components/project/ProjectDialogs";
 import TeamStatusChip from "../components/project/TeamStatusChip";
+
+const getResourceColor = (type) => {
+  switch (type) {
+    case 'image':
+      return '#E0F7FA'; 
+    case 'file':
+      return '#FFF3E0';
+    case 'link':
+      return '#E8F5E9';
+    default:
+      return '#F1F5F9';
+  }
+};
 
 function ProjectDetail() {
   const { id } = useParams();

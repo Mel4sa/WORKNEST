@@ -38,7 +38,7 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
   const token = useAuthStore((state) => state.token);
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState(0); // 0: Ad Soyad, 1: E-posta, 2: Şifre, 3: Sil
+  const [activeTab, setActiveTab] = useState(0);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -341,7 +341,6 @@ const AccountSettingsDialog = ({ open, onClose, onMessage }) => {
             }}
           />
 
-          {/* Şifre Validasyon Kuralları */}
           <Box sx={{ mb: 3 }}>
             <Typography variant="body2" sx={{ color: "#555", mb: 1, fontWeight: 600 }}>
               Yeni şifre şu kurallara uymalı:

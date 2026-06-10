@@ -110,7 +110,6 @@ function toTitleCaseWords(str) {
       px: { xs: 2, sm: 3, md: 4 }
     }}>
       <Container maxWidth="lg">
-        {/* Header Section */}
         <Box sx={{ 
           mb: 5,
           display: "flex",
@@ -162,7 +161,6 @@ function toTitleCaseWords(str) {
           </Box>
         </Box>
 
-        {/* Decorative Line */}
         <Box sx={{
           width: "100px",
           height: "4px",
@@ -174,7 +172,6 @@ function toTitleCaseWords(str) {
         <ProfileSnackbar open={showError} message={error} severity="error" onClose={() => setShowError(false)} />
 
         <Box component="form" onSubmit={handleSubmit}>
-          {/* Project Details Section */}
           <Box sx={{ mb: 4 }}>
             <Typography 
               variant="h6" 
@@ -270,7 +267,6 @@ function toTitleCaseWords(str) {
 
           <Divider sx={{ my: 4 }} />
 
-          {/* Skills Section */}
           <Box>
             <Typography 
               variant="h6" 
@@ -338,7 +334,6 @@ onChange={async (e, newValue) => {
               )}
             />
             
-            {/* Skills Chips Container */}
             <Box sx={{ 
               backgroundColor: "#fff", 
               borderRadius: "12px", 
@@ -400,8 +395,6 @@ onChange={async (e, newValue) => {
           </Box>
 
           <Divider sx={{ my: 4 }} />
-
-{/* Tips Section */}
           <Box sx={{ 
             display: "flex",
             alignItems: "center",
@@ -418,8 +411,6 @@ onChange={async (e, newValue) => {
               Detaylı açıklama ve doğru beceriler, projenize uygun takım üyelerini bulmanızda yardımcı olur.
             </Typography>
           </Box>
-
-          {/* Submit Button */}
           <Box sx={{ textAlign: "center" }}>
             <Button
               type="submit"

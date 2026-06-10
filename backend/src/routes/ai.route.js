@@ -21,7 +21,6 @@ router.post("/analyze-project", async (req, res) => {
   }
 });
 
-// Proje başlığı üretme endpointi
 router.post("/generate-title", async (req, res) => {
   try {
     const { description } = req.body;

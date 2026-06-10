@@ -84,8 +84,8 @@ function AppRoutes() {
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
-  const fetchUser = useAuthStore((state) => state.fetchUser); // Store'dan fetchUser'ı aldık
-  const token = useAuthStore((state) => state.token); // Token'ı takip ediyoruz
+  const fetchUser = useAuthStore((state) => state.fetchUser); 
+  const token = useAuthStore((state) => state.token);
 
   useEffect(() => {
     const hasCleared = localStorage.getItem("dev_cleared");
