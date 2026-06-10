@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import Skill from "../models/skill.model.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -84,6 +85,89 @@ export async function extractSkillsWithGemini(description) {
 
   return skills.filter((s) => typeof s === "string").map((s) => s.trim()).filter(Boolean);
 
+}
+
+export async function extractSkillsFromDbWithGemini(description) {
+  let dbSkills = [];
+  try {
+    const rows = await Skill.find().select("name -_id").lean();
+    dbSkills = Array.isArray(rows) ? rows.map((r) => r.name).filter(Boolean) : [];
+  } catch (err) {
+    console.warn("Failed to load skills from DB, falling back to generic extraction:", err?.message);
+  }
+
+  if (!dbSkills.length) {
+    return extractSkillsWithGemini(description);
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+
+  const prompt = `Aşağıdaki proje açıklamasından, aşağıda verilen veri tabanımızdaki beceri listesinden HANGİ becERİ(ler) gerektiğini tespit et ve SADECE bir JSON array olarak döndür (ör: ["React", "MongoDB"]).
+VERİ TABANI SKILL LİSTESİ: ${dbSkills.join(", ")}
+---
+${description}
+---
+KURALLAR:
+- Çıktı SADECE JSON array olmalıdır (ör: ["React", "Node.js"]).
+- Sadece "VERİ TABANI SKILL LİSTESİ" içinde olan öğeleri döndür. Yeni öğe ekleme veya normalleştirme yapma.
+- Büyük/küçük harf farkını önemseme; sonuçta listedeki orijinal yazımı kullanmaya çalış.
+`;
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+  };
+
+  const data = await postToGemini(url, body, { retries: 2, baseDelayMs: 900 });
+  console.log("Gemini DB-backed skills response:", JSON.stringify(data, null, 2));
+
+  const safeParseSkillsArray = (raw) => {
+    if (!raw || typeof raw !== "string") return [];
+
+    const text = raw.trim();
+
+    const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    const candidateText = fencedMatch?.[1] ? fencedMatch[1].trim() : text;
+
+    const bracketMatch = candidateText.match(/\[[\s\S]*\]/);
+    const jsonCandidate = bracketMatch?.[0] ? bracketMatch[0] : candidateText;
+
+    try {
+      const parsed = JSON.parse(jsonCandidate);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const skillsText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  let skills = safeParseSkillsArray(skillsText);
+
+  const lowerMap = new Map(dbSkills.map((s) => [s.toLowerCase(), s]));
+  skills = skills
+    .filter((s) => typeof s === "string")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => {
+      const exact = lowerMap.get(s.toLowerCase());
+      return exact || s;
+    })
+    .filter(Boolean);
+
+  const dbLower = new Set(dbSkills.map((s) => s.toLowerCase()));
+  skills = skills.filter((s) => dbLower.has(s.toLowerCase()));
+
+  const seen = new Set();
+  const unique = [];
+  for (const s of skills) {
+    const key = s.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(s);
+    }
+  }
+
+  return unique;
 }
 
 export async function extractProjectTitleWithGemini(description) {
